@@ -27,11 +27,10 @@ function getRevealProps(reduceMotion, delay = 0, amount = 0.22) {
   };
 }
 
-export default function ContactExperience() {
+export default function ContactExperience({ type = "" }) {
   const reduceMotion = useReducedMotion();
-  const headline = "Parlons d'une date ou d'une série.";
+  const headline = "Parlons de votre projet.";
   const headlineRef = useRef(null);
-  const instagram = siteConfig.socialLinks.find((link) => link.name === "Instagram");
 
   useGSAP(() => {
     if (reduceMotion) return;
@@ -70,7 +69,7 @@ export default function ContactExperience() {
             <MagneticElement strength={0.2}>
               <a
                 href="#contact-form"
-                className="inline-block rounded-full bg-ink px-8 py-4 text-[13px] font-bold uppercase tracking-[0.2em] text-paper transition-colors hover:bg-accent"
+                className="inline-block px-1 py-4 text-[13px] font-semibold uppercase tracking-[0.18em] text-ink/60 underline-offset-4 transition-colors hover:text-ink hover:underline"
               >
                 Aller au formulaire
               </a>
@@ -89,8 +88,15 @@ export default function ContactExperience() {
             <p className="max-w-2xl text-sm leading-relaxed text-ink/62 md:text-base">
                Plus le brief est précis, plus le retour peut être utile dès le premier message.
             </p>
+            <p className="max-w-2xl text-sm leading-relaxed text-ink/75 md:text-base">
+              Nos prestations démarrent à partir de 650 € pour les événements et de 1 500 € pour les mariages. Vous
+              préférez écrire directement ?{" "}
+              <a href={`mailto:${siteConfig.email}`} className="underline underline-offset-4 hover:text-ink">
+                {siteConfig.email}
+              </a>
+            </p>
           </div>
-          <ContactForm />
+          <ContactForm type={type} />
         </motion.div>
 
         <motion.div
@@ -101,11 +107,11 @@ export default function ContactExperience() {
           <div className="space-y-4">
             <details className="group cursor-pointer border-b border-line/10 pb-4">
               <summary className="font-serif text-xl font-medium tracking-tight text-ink flex justify-between items-center outline-none">
-                 Quels sont vos délais ?
+                 Quels sont vos délais de livraison ?
                  <span className="text-ink/40 group-open:rotate-180 transition-transform">↓</span>
               </summary>
                <p className="mt-3 text-sm text-ink/70 leading-relaxed opacity-0 group-open:opacity-100 transition-opacity duration-300">
-                 Les premières images (preview) sont envoyées sous 48h. L&apos;édit complet est livré en 2 à 3 semaines.
+                 Pour un mariage, la galerie est livrée sous 3 à 4 semaines selon la formule. Pour un événement, une sélection express le soir même est possible en option, et la galerie complète est livrée sous 7 jours.
                </p>
             </details>
             <details className="group cursor-pointer border-b border-line/10 pb-4">
@@ -124,7 +130,7 @@ export default function ContactExperience() {
                  <span className="text-ink/40 group-open:rotate-180 transition-transform">↓</span>
               </summary>
                <p className="mt-3 text-sm text-ink/70 leading-relaxed opacity-0 group-open:opacity-100 transition-opacity duration-300">
-                 Ma retouche se concentre sur la lumière, la colorémétrie et la force de l&apos;image. Je ne dénature jamais
+                 Ma retouche se concentre sur la lumière, la colorimétrie et la force de l&apos;image. Je ne dénature jamais
                  les personnes.
                </p>
             </details>
@@ -136,18 +142,20 @@ export default function ContactExperience() {
         >
           <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-ink/40 mb-4">Besoin d&apos;une autre voie ?</p>
           <h3 className="font-serif text-2xl tracking-tight text-ink mb-6">Suivre le travail au quotidien.</h3>
-          {instagram ? (
-            <MagneticElement strength={0.15}>
-              <a
-                href={instagram.href}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-3 rounded-full border border-line/20 px-8 py-4 text-[13px] font-bold uppercase tracking-[0.2em] text-ink transition-colors hover:border-ink hover:bg-white"
-              >
-                {instagram.handle}
-              </a>
-            </MagneticElement>
-          ) : null}
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            {siteConfig.socialLinks.map((link) => (
+              <MagneticElement key={link.href} strength={0.15}>
+                <a
+                  href={link.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-3 rounded-full border border-line/20 px-8 py-4 text-[13px] font-bold uppercase tracking-[0.2em] text-ink transition-colors hover:border-ink hover:bg-white"
+                >
+                  {link.name}
+                </a>
+              </MagneticElement>
+            ))}
+          </div>
         </motion.div>
       </section>
     </div>

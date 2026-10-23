@@ -2,17 +2,33 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
 import { submitContactForm } from "../app/contact/actions";
 import { initialContactFormState } from "../app/contact/constants";
-import { defaultPortfolioCategory, portfolioCategories } from "../lib/categories";
+import {
+  audienceOptions,
+  budgetOptions,
+  guestOptions,
+  serviceOptions,
+  sourceOptions,
+} from "../lib/contactValidation";
+import { trackEvent } from "../lib/analytics";
 import SubmitButton from "./SubmitButton";
 import CustomSelect from "./CustomSelect";
 
-const serviceOptions = portfolioCategories;
-const preferredContactOptions = ["Email", "Téléphone", "Instagram / WhatsApp"];
-const budgetOptions = ["À définir", "Moins de 500 EUR", "500 - 1000 EUR", "1000 - 2000 EUR", "Plus de 2000 EUR"];
+const PLACEHOLDER = "Choisir…";
 
-function SuccessCard({ onReset }) {
+// Pré-remplissage selon le paramètre ?type= de l'URL.
+const PRESETS = {
+  mariage: { audience: "Particulier (mariage)", serviceType: "Mariage" },
+  evenement: { audience: "Agence événementielle", serviceType: "Événement" },
+  entreprise: { audience: "Entreprise", serviceType: "Événement d'entreprise" },
+};
+
+const inputClass =
+  "w-full rounded-xl border border-line/18 bg-paper/88 px-4 py-3 outline-none transition focus:border-accent focus:bg-white";
+
+function SuccessCard({ message, onReset }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -35,13 +51,7 @@ function SuccessCard({ onReset }) {
         </svg>
       </motion.div>
       <p className="mt-6 text-[11px] font-bold uppercase tracking-[0.28em] text-emerald-700/80">Demande envoyée</p>
-      <h3 className="mt-3 font-serif text-3xl tracking-tight text-ink md:text-4xl">
-        Merci pour votre message.
-      </h3>
-      <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-ink/65">
-        Un email récapitulatif vient d&apos;être envoyé automatiquement à votre adresse. Je reviens vers vous personnellement
-        sous 24 à 48h avec un retour orienté action.
-      </p>
+      <p className="mx-auto mt-4 max-w-xl font-serif text-2xl leading-snug tracking-tight text-ink md:text-3xl">{message}</p>
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
         <button
           type="button"
@@ -50,18 +60,22 @@ function SuccessCard({ onReset }) {
         >
           Envoyer une autre demande
         </button>
-        <a
-          href="/gallery"
-          className="rounded-full bg-ink px-6 py-3 text-[12px] font-bold uppercase tracking-[0.18em] text-paper transition hover:bg-accent"
+        <Link
+          href="/signature"
+          className="text-[12px] font-semibold uppercase tracking-[0.18em] text-ink/60 underline-offset-4 transition hover:text-ink hover:underline"
         >
-          Revoir la galerie
-        </a>
+          Voir les séries Fashion Week
+        </Link>
       </div>
     </motion.div>
   );
 }
 
-export default function ContactForm() {
+function FieldError({ message }) {
+  return message ? <span className="text-xs text-red-700">{message}</span> : null;
+}
+
+export default function ContactForm({ type = "" }) {
   const formRef = useRef(null);
   const [formState, formAction] = useActionState(submitContactForm, initialContactFormState);
   const [isSuccessDismissed, setIsSuccessDismissed] = useState(false);
@@ -70,12 +84,14 @@ export default function ContactForm() {
   const status = formState.status || "idle";
   const message = formState.message || "";
   const showSuccessCard = status === "success" && !isSuccessDismissed;
+  const preset = PRESETS[type] || {};
 
-  // Recommended React 19 pattern: derive state from props/state changes during render
+  // Modèle React 19 : dériver l'état pendant le rendu.
   if (status !== lastStatus) {
     setLastStatus(status);
     if (status === "success") {
       setIsSuccessDismissed(false);
+      trackEvent("formulaire_envoye", { qualification: formState.qualification || "inconnue" });
     }
   }
 
@@ -88,7 +104,7 @@ export default function ContactForm() {
   if (showSuccessCard) {
     return (
       <AnimatePresence mode="wait">
-        <SuccessCard key="success" onReset={() => setIsSuccessDismissed(true)} />
+        <SuccessCard key="success" message={message} onReset={() => setIsSuccessDismissed(true)} />
       </AnimatePresence>
     );
   }
@@ -101,49 +117,34 @@ export default function ContactForm() {
       className="grid scroll-mt-32 gap-5 rounded-inset border border-line/12 bg-white/52 p-6 md:grid-cols-2 md:p-7"
     >
       <div className="space-y-3 rounded-inset border border-line/10 bg-paper/70 p-5 md:col-span-2">
-        <p className="text-[11px] uppercase tracking-[0.24em] text-ink/48">Brief express</p>
-        <h2 className="font-serif text-3xl leading-tight md:text-4xl">Parle-moi du contexte et du rendu attendu.</h2>
+        <p className="text-[11px] uppercase tracking-[0.24em] text-ink/48">Demande de devis</p>
+        <h2 className="font-serif text-3xl leading-tight md:text-4xl">Parlez-moi du contexte et du rendu attendu.</h2>
         <p className="max-w-2xl text-sm leading-relaxed text-ink/65 md:text-base">
-          Date, lieu, type de prestation, ambiance recherchée et contraintes utiles suffisent pour lancer un échange
-          clair.
+          Date, lieu, type de prestation et ambiance recherchée suffisent pour lancer un échange clair.
         </p>
       </div>
 
-      <label className="space-y-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Nom</span>
-        <input
-          name="name"
-          autoComplete="name"
-          aria-invalid={Boolean(errors.name)}
-          className="w-full rounded-xl border border-line/18 bg-paper/88 px-4 py-3 outline-none transition focus:border-accent focus:bg-white"
-          required
+      <div className="md:col-span-2">
+        <CustomSelect
+          name="audience"
+          label="Vous êtes"
+          options={[PLACEHOLDER, ...audienceOptions]}
+          defaultValue={preset.audience || PLACEHOLDER}
+          error={errors.audience}
         />
-        {errors.name ? <span className="text-xs text-red-700">{errors.name}</span> : null}
+        <FieldError message={errors.audience} />
+      </div>
+
+      <label className="space-y-2">
+        <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Nom et prénom</span>
+        <input name="name" autoComplete="name" aria-invalid={Boolean(errors.name)} className={inputClass} required />
+        <FieldError message={errors.name} />
       </label>
 
       <label className="space-y-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Email</span>
-        <input
-          name="email"
-          type="email"
-          autoComplete="email"
-          aria-invalid={Boolean(errors.email)}
-          className="w-full rounded-xl border border-line/18 bg-paper/88 px-4 py-3 outline-none transition focus:border-accent focus:bg-white"
-          required
-        />
-        {errors.email ? <span className="text-xs text-red-700">{errors.email}</span> : null}
-      </label>
-
-      <label className="space-y-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Structure / marque</span>
-        <input
-          name="company"
-          autoComplete="organization"
-          aria-invalid={Boolean(errors.company)}
-          className="w-full rounded-xl border border-line/18 bg-paper/88 px-4 py-3 outline-none transition focus:border-accent focus:bg-white"
-          placeholder="Optionnel"
-        />
-        {errors.company ? <span className="text-xs text-red-700">{errors.company}</span> : null}
+        <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">E-mail</span>
+        <input name="email" type="email" autoComplete="email" aria-invalid={Boolean(errors.email)} className={inputClass} required />
+        <FieldError message={errors.email} />
       </label>
 
       <label className="space-y-2">
@@ -153,97 +154,118 @@ export default function ContactForm() {
           autoComplete="tel"
           inputMode="tel"
           aria-invalid={Boolean(errors.phone)}
-          className="w-full rounded-xl border border-line/18 bg-paper/88 px-4 py-3 outline-none transition focus:border-accent focus:bg-white"
-          placeholder="Optionnel"
+          className={inputClass}
+          placeholder="Facultatif"
         />
-        {errors.phone ? <span className="text-xs text-red-700">{errors.phone}</span> : null}
+        <FieldError message={errors.phone} />
       </label>
 
-      <CustomSelect
-        name="serviceType"
-        label="Type de prestation"
-        options={serviceOptions}
-        defaultValue={defaultPortfolioCategory}
-        error={errors.serviceType}
-      />
-
-      <CustomSelect
-        name="preferredContact"
-        label="Canal préféré"
-        options={preferredContactOptions}
-        defaultValue="Email"
-        error={errors.preferredContact}
-      />
-
-      <CustomSelect
-        name="budget"
-        label="Budget indicatif"
-        options={budgetOptions}
-        defaultValue="À définir"
-        error={errors.budget}
-      />
+      <div>
+        <CustomSelect
+          name="serviceType"
+          label="Type de prestation"
+          options={[PLACEHOLDER, ...serviceOptions]}
+          defaultValue={preset.serviceType || PLACEHOLDER}
+          error={errors.serviceType}
+        />
+        <FieldError message={errors.serviceType} />
+      </div>
 
       <label className="space-y-2">
         <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Date de l&apos;événement</span>
-        <input
-          name="eventDate"
-          type="date"
-          aria-invalid={Boolean(errors.eventDate)}
-          className="w-full rounded-xl border border-line/18 bg-paper/88 px-4 py-3 outline-none transition focus:border-accent focus:bg-white"
-        />
-        {errors.eventDate ? <span className="text-xs text-red-700">{errors.eventDate}</span> : null}
+        <input name="eventDate" type="date" aria-invalid={Boolean(errors.eventDate)} className={inputClass} required />
+        <FieldError message={errors.eventDate} />
       </label>
 
-      <label className="space-y-2 md:col-span-2">
+      <label className="space-y-2">
         <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Lieu</span>
         <input
           name="location"
           autoComplete="address-level2"
           aria-invalid={Boolean(errors.location)}
-          className="w-full rounded-xl border border-line/18 bg-paper/88 px-4 py-3 outline-none transition focus:border-accent focus:bg-white"
-          placeholder="Ville, salle, lieu..."
+          className={inputClass}
+          placeholder="Ville, salle, lieu…"
+          required
         />
-        {errors.location ? <span className="text-xs text-red-700">{errors.location}</span> : null}
+        <FieldError message={errors.location} />
       </label>
 
-      <label className="space-y-2 md:col-span-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Référence ou lien utile</span>
-        <input
-          name="referenceLink"
-          aria-invalid={Boolean(errors.referenceLink)}
-          className="w-full rounded-xl border border-line/18 bg-paper/88 px-4 py-3 outline-none transition focus:border-accent focus:bg-white"
-          placeholder="Pinterest, Instagram, dossier press, brief..."
+      <div>
+        <CustomSelect
+          name="guests"
+          label="Nombre d'invités"
+          options={[PLACEHOLDER, ...guestOptions]}
+          defaultValue={PLACEHOLDER}
+          error={errors.guests}
         />
-        {errors.referenceLink ? <span className="text-xs text-red-700">{errors.referenceLink}</span> : null}
-      </label>
+        <FieldError message={errors.guests} />
+      </div>
+
+      <div>
+        <CustomSelect
+          name="budget"
+          label="Budget indicatif"
+          options={[PLACEHOLDER, ...budgetOptions]}
+          defaultValue={PLACEHOLDER}
+          error={errors.budget}
+        />
+        <FieldError message={errors.budget} />
+      </div>
+
+      <div>
+        <CustomSelect
+          name="source"
+          label="Comment m'avez-vous connu ?"
+          options={[PLACEHOLDER, ...sourceOptions]}
+          defaultValue={PLACEHOLDER}
+          error={errors.source}
+        />
+        <FieldError message={errors.source} />
+      </div>
 
       <label className="space-y-2 md:col-span-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Détails du projet</span>
+        <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Message</span>
         <textarea
           name="project"
           rows={6}
           aria-invalid={Boolean(errors.project)}
           className="w-full rounded-[1.2rem] border border-line/18 bg-paper/88 px-4 py-3 outline-none transition focus:border-accent focus:bg-white"
-          placeholder="Type de projet, date, lieu, ambiance recherchée, contraintes utiles..."
+          placeholder="Type de projet, ambiance recherchée, contraintes utiles…"
           required
         />
-        {errors.project ? <span className="text-xs text-red-700">{errors.project}</span> : null}
+        <FieldError message={errors.project} />
       </label>
+
+      <div className="space-y-2 md:col-span-2">
+        <label className="flex items-start gap-3 text-sm leading-relaxed text-ink/75">
+          <input
+            type="checkbox"
+            name="consent"
+            required
+            aria-invalid={Boolean(errors.consent)}
+            className="mt-1 h-4 w-4 shrink-0 accent-[var(--accent)]"
+          />
+          <span>
+            J&apos;accepte que mes données soient utilisées pour répondre à ma demande.{" "}
+            <Link href="/confidentialite" className="underline underline-offset-4 hover:text-ink">
+              Politique de confidentialité
+            </Link>
+          </span>
+        </label>
+        <FieldError message={errors.consent} />
+      </div>
 
       <div className="flex flex-wrap items-center gap-3 md:col-span-2">
         <SubmitButton
           idleLabel="Envoyer la demande"
-          pendingLabel="Envoi..."
+          pendingLabel="Envoi…"
           className="w-fit rounded-full bg-ink px-6 py-3 text-sm uppercase tracking-[0.18em] text-paper transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
         />
 
-        <p className="text-sm text-ink/55">Réponse habituelle sous 24h à 48h avec un retour orienté action.</p>
+        <p className="text-sm text-ink/55">Réponse sous 24 à 48 h.</p>
 
-        {message ? (
-          <p
-            aria-live="polite"
-            className={`text-sm ${status === "success" ? "text-emerald-700" : "text-red-700"}`}
-          >
+        {message && status !== "success" ? (
+          <p aria-live="polite" className="text-sm text-red-700">
             {message}
           </p>
         ) : null}

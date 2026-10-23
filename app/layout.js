@@ -6,6 +6,7 @@ import SmoothScroll from "../components/SmoothScroll";
 import NoiseOverlay from "../components/NoiseOverlay";
 import IntroSplash from "../components/IntroSplash";
 import Footer from "../components/Footer";
+import { Analytics } from "@vercel/analytics/next";
 import { getSiteUrl, siteConfig, toAbsoluteUrl } from "../lib/siteConfig";
 import { getMaintenanceMode } from "../lib/siteSettings";
 import { headers } from "next/headers";
@@ -26,11 +27,10 @@ export const metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
     default: siteConfig.defaultTitle,
-    template: `%s | ${siteConfig.name}`,
+    template: "%s",
   },
   applicationName: siteConfig.name,
   description: siteConfig.description,
-  keywords: siteConfig.keywords,
   alternates: {
     canonical: "/",
   },
@@ -46,7 +46,7 @@ export const metadata = {
         url: toAbsoluteUrl("/opengraph-image"),
         width: 1200,
         height: 630,
-        alt: `${siteConfig.name} portfolio photo`,
+        alt: `${siteConfig.name} — portfolio photo`,
       },
     ],
   },
@@ -94,7 +94,7 @@ export default async function RootLayout({ children }) {
         <body className="antialiased bg-paper text-ink" suppressHydrationWarning>
           <div className="flex min-h-screen flex-col items-center justify-center p-6 text-center">
             <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_70%_30%,rgba(188,125,79,0.12),transparent_42%)]" />
-            <p className="text-[11px] uppercase tracking-[0.4em] text-ink/40">Portfolio Jerrypicsart</p>
+            <p className="text-[11px] uppercase tracking-[0.4em] text-ink/40">Portfolio JerryPicsArt</p>
             <h1 className="mt-6 font-serif text-5xl md:text-7xl">Bientôt de retour.</h1>
             <p className="mt-8 max-w-md text-base leading-relaxed text-ink/60 md:text-lg">
               Le portfolio est actuellement en cours de mise à jour pour vous offrir une expérience encore plus raffinée.
@@ -119,6 +119,7 @@ export default async function RootLayout({ children }) {
             <Navbar />
             <main className={`w-full pt-20 ${isAdmin ? "pb-16" : ""}`}>{children}</main>
             {!isAdmin ? <Footer /> : null}
+            {!isAdmin ? <Analytics /> : null}
           </div>
         </SmoothScroll>
       </body>

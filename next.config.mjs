@@ -25,6 +25,12 @@ const r2PublicHostname = getR2PublicHostname();
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return [
+      { source: "/gallery", destination: "/signature", permanent: true },
+      { source: "/about", destination: "/a-propos", permanent: true },
+    ];
+  },
   images: {
     remotePatterns: [
       {

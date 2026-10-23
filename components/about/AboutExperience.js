@@ -5,6 +5,8 @@ import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import MagneticElement from "../MagneticElement";
 import { defaultAboutCopy } from "../../lib/siteSettings";
+import { stats } from "../../data/stats";
+import { siteConfig } from "../../lib/siteConfig";
 
 function getRevealProps(reduceMotion, delay = 0, amount = 0.22) {
   if (reduceMotion) {
@@ -30,7 +32,7 @@ function PortraitPanel({ photo, className = "", imageClassName = "", sizes, prio
     <div className={`relative overflow-hidden bg-ink shadow-[0_32px_96px_rgba(12,10,8,0.14)] ${className}`}>
       <Image
         src={photo.src || photo}
-        alt={photo.alt || "Portrait Jerrypicsart"}
+        alt={photo.alt || "Portrait JerryPicsArt"}
         fill
         priority={priority}
         sizes={sizes}
@@ -43,6 +45,7 @@ function PortraitPanel({ photo, className = "", imageClassName = "", sizes, prio
 
 export default function AboutExperience({ aboutCopy = defaultAboutCopy }) {
   const reduceMotion = useReducedMotion();
+  const chiffres = stats.filter((item) => item.valeur > 0);
   const {
     headline,
     subheadline,
@@ -57,15 +60,15 @@ export default function AboutExperience({ aboutCopy = defaultAboutCopy }) {
     convictionText,
   } = aboutCopy;
 
-  const portrait = typeof portraitPhoto === "string" ? { src: portraitPhoto, alt: "Portrait Jerrypicsart" } : portraitPhoto;
-  const profile = typeof profilePhoto === "string" ? { src: profilePhoto, alt: "Profile Jerrypicsart" } : profilePhoto;
+  const portrait = typeof portraitPhoto === "string" ? { src: portraitPhoto, alt: "Portrait JerryPicsArt" } : portraitPhoto;
+  const profile = typeof profilePhoto === "string" ? { src: profilePhoto, alt: "Portrait de JerryPicsArt" } : profilePhoto;
 
   return (
     <div data-page="about" className="page-shell mx-auto space-y-20 bg-paper pb-20 text-ink md:space-y-32">
       <div className="bg-paper pt-12">
         <section className="mx-auto max-w-7xl px-4 md:px-8 grid min-h-[calc(100vh-8rem)] gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-end pb-20">
           <motion.div className="space-y-8 pb-2" {...getRevealProps(reduceMotion)}>
-            <p className="text-[11px] font-medium uppercase tracking-[0.34em] text-ink/50">Derrière l&apos;objectif</p>
+            <p className="text-[11px] font-medium uppercase tracking-[0.34em] text-ink/50">Derrière l&apos;objectif — {siteConfig.legalName}</p>
             <h1 className="max-w-4xl font-serif text-5xl leading-[0.92] tracking-[-0.05em] md:text-7xl xl:text-8xl text-ink">
               {headline}
             </h1>
@@ -75,18 +78,18 @@ export default function AboutExperience({ aboutCopy = defaultAboutCopy }) {
             <div className="flex flex-wrap gap-4 pt-2">
               <MagneticElement strength={0.25}>
                 <Link
-                  href="/gallery"
+                  href="/contact"
                   className="inline-block rounded-full bg-ink px-8 py-4 text-[13px] font-bold uppercase tracking-[0.2em] text-paper transition-colors hover:bg-accent"
                 >
-                  Voir la galerie
+                  Parler d&apos;un projet
                 </Link>
               </MagneticElement>
               <MagneticElement strength={0.15}>
                 <Link
-                  href="/contact"
-                  className="inline-block rounded-full border border-line/20 px-8 py-4 text-[13px] font-bold uppercase tracking-[0.2em] text-ink transition-colors hover:border-ink hover:bg-white"
+                  href="/signature"
+                  className="inline-block px-2 py-4 text-[13px] font-semibold uppercase tracking-[0.18em] text-ink/60 underline-offset-4 transition-colors hover:text-ink hover:underline"
                 >
-                  Parler d&apos;un projet
+                  Voir les séries Fashion Week
                 </Link>
               </MagneticElement>
             </div>
@@ -154,6 +157,34 @@ export default function AboutExperience({ aboutCopy = defaultAboutCopy }) {
         ))}
       </section>
 
+      <section className="space-y-10 border-y border-line/12 py-12 md:py-16">
+        <motion.div className="max-w-3xl space-y-5" {...getRevealProps(reduceMotion)}>
+          <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-ink/40">De la Fashion Week à votre événement</p>
+          <p className="font-serif text-3xl leading-snug tracking-tight md:text-4xl">
+            La Fashion Week impose trois réflexes : travailler vite, composer avec une lumière difficile, rester discret
+            au milieu des personnalités.
+          </p>
+          <p className="text-base leading-relaxed text-ink/70 md:text-lg">
+            Ces réflexes servent chaque mariage et chaque événement d&apos;entreprise : une image juste dès le premier
+            déclenchement, sans jamais gêner vos invités.
+          </p>
+        </motion.div>
+        {chiffres.length ? (
+          <dl className="grid gap-6 sm:grid-cols-3">
+            {chiffres.map((item) => (
+              <motion.div key={item.libelle} className="border-t border-line/16 pt-5" {...getRevealProps(reduceMotion)}>
+                <dd className="font-serif text-5xl leading-none tracking-[-0.04em] md:text-6xl">
+                  {item.valeur}
+                  {item.suffixe}
+                </dd>
+                <dt className="mt-4 text-[11px] font-bold uppercase tracking-[0.24em] text-ink/55">{item.libelle}</dt>
+                {item.precision ? <p className="mt-1 text-sm text-ink/45">{item.precision}</p> : null}
+              </motion.div>
+            ))}
+          </dl>
+        ) : null}
+      </section>
+
       <section className="overflow-hidden rounded-feature border border-line/12 bg-[linear-gradient(135deg,rgba(18,15,12,0.98),rgba(29,33,41,0.96))] p-8 text-paper shadow-[0_32px_96px_rgba(12,10,8,0.18)] md:p-12 lg:p-16">
         <motion.div className="grid gap-12 lg:grid-cols-[1.08fr_0.92fr] lg:items-center" {...getRevealProps(reduceMotion)}>
           <div className="space-y-6">
@@ -170,17 +201,17 @@ export default function AboutExperience({ aboutCopy = defaultAboutCopy }) {
             <MagneticElement strength={0.25}>
               <Link
                 href="/contact"
-                className="inline-block rounded-full bg-paper px-8 py-4 text-[13px] font-bold uppercase tracking-[0.2em] text-ink transition-colors hover:bg-accent hover:text-paper"
+                className="inline-block rounded-full border border-paper/30 px-8 py-4 text-[13px] font-bold uppercase tracking-[0.2em] text-paper transition-colors hover:border-paper hover:bg-white/10"
               >
-                Demander une date
+                Parler d&apos;un projet
               </Link>
             </MagneticElement>
             <MagneticElement strength={0.15}>
               <Link
-                href="/gallery"
-                className="inline-block rounded-full border border-paper/20 px-8 py-4 text-[13px] font-bold uppercase tracking-[0.2em] text-paper transition-all hover:border-paper hover:bg-white/10"
+                href="/signature"
+                className="inline-block px-2 py-4 text-[13px] font-semibold uppercase tracking-[0.18em] text-paper/70 underline-offset-4 transition-colors hover:text-paper hover:underline"
               >
-                Revoir le portfolio
+                Voir les séries
               </Link>
             </MagneticElement>
           </div>

@@ -24,6 +24,48 @@ const textInputSelector = [
 const galleryItemSelector = "[data-cursor='gallery-item']";
 const darkSurfaceSelector = "[data-cursor-surface='dark']";
 
+let colorProbeContext = null;
+let darkCache = { target: null, result: false, time: 0 };
+
+// Normalise n'importe quelle couleur CSS (rgb, oklab...) en [r, g, b, a] via un canvas 1x1.
+function parseCssColor(value) {
+  if (!colorProbeContext) {
+    colorProbeContext = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+    colorProbeContext.canvas.width = 1;
+    colorProbeContext.canvas.height = 1;
+  }
+
+  colorProbeContext.clearRect(0, 0, 1, 1);
+  colorProbeContext.fillStyle = "#000";
+  colorProbeContext.fillStyle = value;
+  colorProbeContext.fillRect(0, 0, 1, 1);
+  const [r, g, b, a] = colorProbeContext.getImageData(0, 0, 1, 1).data;
+  return [r, g, b, a / 255];
+}
+
+// Remonte les parents jusqu'au premier fond assez opaque et dit s'il est sombre.
+function isDarkBackground(target) {
+  const now = performance.now();
+  if (darkCache.target === target && now - darkCache.time < 250) {
+    return darkCache.result;
+  }
+
+  let result = false;
+  for (let node = target; node instanceof Element; node = node.parentElement) {
+    const color = getComputedStyle(node).backgroundColor;
+    if (!color || color === "transparent") continue;
+
+    const [r, g, b, a] = parseCssColor(color);
+    if (a < 0.5) continue;
+
+    result = (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.45;
+    break;
+  }
+
+  darkCache = { target, result, time: now };
+  return result;
+}
+
 function getCursorMode(target) {
   if (!(target instanceof Element)) {
     return "default";
@@ -37,7 +79,7 @@ function getCursorMode(target) {
     return "gallery-item";
   }
 
-  if (target.closest(darkSurfaceSelector)) {
+  if (target.closest(darkSurfaceSelector) || isDarkBackground(target)) {
     return target.closest(interactiveSelector) ? "dark-interactive" : "dark-default";
   }
 
@@ -85,7 +127,9 @@ export default function CustomCursor() {
   
   const stateRef = useRef(cursorMode);
   const resizeTimeoutRef = useRef(null);
-  
+  const pointerRef = useRef(null);
+  const scrollTimeoutRef = useRef(null);
+
   const supportsFinePointer = useSyncExternalStore(subscribeToFinePointerQuery, getFinePointerSnapshot, () => false);
   const isEnabled = supportsFinePointer && !reduceMotion;
   const isCursorActive = isEnabled && !isTemporarilyPaused;
@@ -118,6 +162,7 @@ export default function CustomCursor() {
     
     x.set(event.clientX);
     y.set(event.clientY);
+    pointerRef.current = { x: event.clientX, y: event.clientY };
 
     if (!isVisible) {
       setIsVisible(true);
@@ -176,6 +221,21 @@ export default function CustomCursor() {
       }
     };
 
+    // Le fond peut changer sous une souris immobile (defilement, transition de couleur du body).
+    const resyncUnderPointer = () => {
+      const pointer = pointerRef.current;
+      if (!pointer) return;
+      darkCache.target = null;
+      syncCursorState(document.elementFromPoint(pointer.x, pointer.y));
+    };
+
+    const handleScroll = () => {
+      resyncUnderPointer();
+      window.clearTimeout(scrollTimeoutRef.current);
+      scrollTimeoutRef.current = window.setTimeout(resyncUnderPointer, 1200);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerdown", handlePointerDown);
     window.addEventListener("pointerup", handlePointerUp);
@@ -185,6 +245,8 @@ export default function CustomCursor() {
     window.addEventListener("orientationchange", pauseCursorAfterViewportChange);
 
     return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.clearTimeout(scrollTimeoutRef.current);
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerdown", handlePointerDown);
       window.removeEventListener("pointerup", handlePointerUp);

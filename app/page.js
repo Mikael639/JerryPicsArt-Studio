@@ -1,22 +1,24 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import HomePageExperience from "../components/home/HomePageExperience";
-import { defaultPortfolioCategory, portfolioCategories } from "../lib/categories";
+import { defaultPortfolioCategory } from "../lib/categories";
 import { getPhotoObjectPosition } from "../lib/photoPresentation";
 import { getPublicPhotos } from "../lib/photoRepository";
 import { getSiteUrl, siteConfig, toAbsoluteUrl } from "../lib/siteConfig";
+import { buildPageMetadata } from "../lib/seo";
 import { getHomeCopy } from "../lib/siteSettings";
 
 const FEATURED_ROTATION_INTERVAL_MS = 30 * 60 * 1000;
 
-export const metadata = {
-  title: "Accueil",
-  description:
-    "Portfolio photo editorial de Jerrypicsart pour events, Fashion Week, celebrities, studio et fashion wedding.",
-  alternates: {
-    canonical: "/",
-  },
-};
+export async function generateMetadata() {
+  return buildPageMetadata({
+    title: "JerryPicsArt — Photographe éditorial à Paris, mariages et événements",
+    description:
+      "Photographe éditorial à Paris : Fashion Week, mariages haut de gamme et événements d'entreprise. Un accompagnement de A à Z.",
+    path: "/",
+    imageFrom: (photo) => photo.roles?.includes("hero"),
+  });
+}
 
 const fallbackByCategory = {
   Events: "/images/mariage/5.jpg",
@@ -29,8 +31,8 @@ const fallbackByCategory = {
 const defaultFallbackPhoto = {
   id: "fallback-photo",
   src: "/images/mariage/5.jpg",
-  alt: "Photographie Jerrypicsart",
-  title: "Selection Jerrypicsart",
+  alt: "Photographie JerryPicsArt",
+  title: "Sélection JerryPicsArt",
   category: "Portfolio",
   roles: [],
   objectPosition: "center center",
@@ -59,7 +61,7 @@ function getFallbackSrc(category) {
 
 function normalizePhoto(photo) {
   const category = photo?.category || "Portfolio";
-  const title = photo?.title || "Selection Jerrypicsart";
+  const title = photo?.title || "Sélection JerryPicsArt";
   const src = hasRenderableSource(photo?.src) ? photo.src : getFallbackSrc(category);
 
   return {
@@ -190,6 +192,12 @@ function collectMixedPhotos(
   return taken;
 }
 
+function pickDoorPhoto(photos, category, excludeIds) {
+  const candidates = photos.filter((photo) => photo.category === category && !excludeIds.has(photo.id));
+  const featured = candidates.find((photo) => photo.roles?.includes("featured"));
+  return featured || candidates[0] || null;
+}
+
 export default async function HomePage() {
   let sourcePhotos = [];
 
@@ -201,48 +209,22 @@ export default async function HomePage() {
 
   const photos = (sourcePhotos.length ? sourcePhotos : [defaultFallbackPhoto]).map(normalizePhoto);
 
-  const heroPhoto = normalizePhoto(getFirstPhotoByRole(photos, "hero") || defaultFallbackPhoto);
-  const featuredPool = rotatePhotosByTimeWindow(photos.filter((photo) => photo.roles?.includes("featured")));
-  const editorialPool = [...featuredPool, ...photos];
-  const alternateCategories = Array.from(
-    new Set(photos.map((photo) => photo.category).filter((category) => category && category !== heroPhoto.category))
+  const heroPool = photos.filter((photo) => photo.category === "Fashion Week & Celebrities");
+  const heroPhoto = normalizePhoto(
+    getFirstPhotoByRole(heroPool, "hero") || getFirstPhotoByRole(photos, "hero") || heroPool[0] || defaultFallbackPhoto
   );
-  const supportingPreferredCategories = alternateCategories.length
-    ? [...alternateCategories, heroPhoto.category]
-    : [heroPhoto.category];
-  const featuredPreferredCategories = alternateCategories.length
-    ? [...alternateCategories, heroPhoto.category]
-    : [heroPhoto.category];
-
-  const supportingPhotos = collectMixedPhotos(editorialPool, 2, {
+  const supportingPhotos = collectMixedPhotos(rotatePhotosByTimeWindow(photos.filter((photo) => photo.roles?.includes("featured"))), 2, {
     excludeIds: [heroPhoto.id],
-    preferredCategories: supportingPreferredCategories,
+    preferredCategories: ["Events", "Fashion Wedding"],
     fallbackPhoto: heroPhoto,
   });
-  const featuredPhotos = collectMixedPhotos(editorialPool, 4, {
-    excludeIds: [heroPhoto.id],
-    preferredCategories: featuredPreferredCategories,
-    fallbackPhoto: supportingPhotos[0] || heroPhoto,
-  });
-  const servicesBackground = normalizePhoto(
-    getFirstPhotoByRole(photos, "servicesBackground") || supportingPhotos[0] || heroPhoto
-  );
-  const identityPhoto =
-    normalizePhoto(getFirstPhotoByRole(photos, "approachImage")) ||
-    collectMixedPhotos(photos, 1, {
-      excludeIds: [heroPhoto.id, servicesBackground.id, ...featuredPhotos.map((photo) => photo.id)],
-      preferredCategories: alternateCategories.length
-        ? [heroPhoto.category, ...alternateCategories]
-        : [heroPhoto.category],
-      fallbackPhoto: supportingPhotos[0] || heroPhoto,
-    })[0];
-  const closingPhoto = collectPhotos(
-    photos,
-    1,
-    [heroPhoto.id, servicesBackground.id, identityPhoto.id, ...featuredPhotos.map((photo) => photo.id)],
-    identityPhoto || heroPhoto
-  )[0];
-  const categories = portfolioCategories.filter((category) => photos.some((photo) => photo.category === category));
+  const usedIds = new Set([heroPhoto.id, ...supportingPhotos.map((photo) => photo.id)]);
+  const doorPhotos = {
+    evenements: pickDoorPhoto(photos, "Events", usedIds),
+    mariage: pickDoorPhoto(photos, "Fashion Wedding", usedIds),
+    entreprises: pickDoorPhoto(photos, "Studio", usedIds),
+  };
+
   const jsonLd = [
     {
       "@context": "https://schema.org",
@@ -260,9 +242,9 @@ export default async function HomePage() {
       url: getSiteUrl(),
       description: siteConfig.description,
       image: heroPhoto?.src?.startsWith("http") ? heroPhoto.src : toAbsoluteUrl(heroPhoto?.src || "/images/shot-01.svg"),
+      areaServed: ["Paris", "Île-de-France", "France"],
       sameAs: siteConfig.socialLinks.map((link) => link.href),
-      serviceType: categories.length ? categories : siteConfig.categoryLabels,
-      knowsAbout: siteConfig.categoryLabels,
+      knowsAbout: ["Photographie de mode", "Photographie de mariage", "Photographie d'événement"],
     },
   ];
 
@@ -277,11 +259,7 @@ export default async function HomePage() {
       <HomePageExperience
         heroPhoto={heroPhoto}
         supportingPhotos={supportingPhotos}
-        featuredPhotos={featuredPhotos}
-        identityPhoto={identityPhoto}
-        servicesBackground={servicesBackground}
-        closingPhoto={closingPhoto}
-        categories={categories}
+        doorPhotos={doorPhotos}
         cinematicPool={photos}
         siteText={await getHomeCopy()}
       />
