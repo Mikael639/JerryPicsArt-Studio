@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+
 import AdminPhotosClient from "../../../components/admin/AdminPhotosClient";
 import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from "../../../lib/adminAuth";
 import { listContactMessages } from "../../../lib/contactStore";
@@ -11,6 +12,11 @@ import {
   getHomeCopy,
   getMaintenanceMode,
 } from "../../../lib/siteSettings";
+
+export const metadata = {
+  title: "Administration | JerryPicsArt",
+  robots: { index: false, follow: false },
+};
 
 export default async function AdminPhotosPage() {
   const cookieStore = await cookies();

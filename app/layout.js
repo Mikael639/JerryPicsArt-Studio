@@ -117,8 +117,8 @@ export default async function RootLayout({ children }) {
             <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_70%_30%,rgba(188,125,79,0.18),transparent_42%)]" />
             <NoiseOverlay />
             <CustomCursor />
-            <Navbar />
-            <main className={`w-full pt-20 ${isAdmin ? "pb-16" : ""}`}>{children}</main>
+            {!isAdmin ? <Navbar /> : null}
+            <main className={`w-full ${isAdmin ? "pb-16 pt-6" : "pt-20"}`}>{children}</main>
             {!isAdmin ? <ThemeScroll /> : null}
             {!isAdmin ? <Footer /> : null}
             {!isAdmin ? <Analytics /> : null}
