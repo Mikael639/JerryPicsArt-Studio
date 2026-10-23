@@ -1,29 +1,16 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { Fragment, useActionState, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { submitContactForm } from "../app/contact/actions";
 import { initialContactFormState } from "../app/contact/constants";
-import {
-  audienceOptions,
-  budgetOptions,
-  guestOptions,
-  serviceOptions,
-  sourceOptions,
-} from "../lib/contactValidation";
+import { budgetOptions, getQuoteType, quoteTypeList, sourceOptions } from "../lib/quoteTypes";
 import { trackEvent } from "../lib/analytics";
 import SubmitButton from "./SubmitButton";
 import CustomSelect from "./CustomSelect";
 
 const PLACEHOLDER = "Choisir…";
-
-// Pré-remplissage selon le paramètre ?type= de l'URL.
-const PRESETS = {
-  mariage: { audience: "Particulier (mariage)", serviceType: "Mariage" },
-  evenement: { audience: "Agence événementielle", serviceType: "Événement" },
-  entreprise: { audience: "Entreprise", serviceType: "Événement d'entreprise" },
-};
 
 const inputClass =
   "w-full rounded-xl border border-line/18 bg-paper/88 px-4 py-3 outline-none transition focus:border-accent focus:bg-white";
@@ -75,23 +62,58 @@ function FieldError({ message }) {
   return message ? <span className="text-xs text-red-700">{message}</span> : null;
 }
 
+function TypePicker({ value, onChange, error }) {
+  return (
+    <div className="space-y-3 md:col-span-2">
+      <p className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Quel est votre projet ?</p>
+      <div role="radiogroup" aria-label="Type de devis" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {quoteTypeList.map((type) => {
+          const active = value === type.id;
+          return (
+            <button
+              key={type.id}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => {
+                onChange(type.id);
+                trackEvent("devis_type_choisi", { type: type.id });
+              }}
+              className={`flex h-full flex-col gap-1.5 rounded-inset border px-5 py-4 text-left transition-all duration-300 ${
+                active
+                  ? "border-ink bg-ink text-paper shadow-[0_18px_48px_rgba(12,10,8,0.18)]"
+                  : "border-line/20 bg-white/60 text-ink hover:border-ink/40 hover:bg-white"
+              }`}
+            >
+              <span className="font-serif text-xl leading-tight">{type.label}</span>
+              <span className={`text-[13px] leading-snug ${active ? "text-paper/70" : "text-ink/55"}`}>{type.description}</span>
+            </button>
+          );
+        })}
+      </div>
+      <FieldError message={error} />
+    </div>
+  );
+}
+
 export default function ContactForm({ type = "" }) {
   const formRef = useRef(null);
   const [formState, formAction] = useActionState(submitContactForm, initialContactFormState);
+  const [selectedType, setSelectedType] = useState(getQuoteType(type) ? type : "");
   const [isSuccessDismissed, setIsSuccessDismissed] = useState(false);
   const [lastStatus, setLastStatus] = useState("idle");
   const errors = formState.errors || {};
   const status = formState.status || "idle";
   const message = formState.message || "";
   const showSuccessCard = status === "success" && !isSuccessDismissed;
-  const preset = PRESETS[type] || {};
+  const config = getQuoteType(selectedType);
 
   // Modèle React 19 : dériver l'état pendant le rendu.
   if (status !== lastStatus) {
     setLastStatus(status);
     if (status === "success") {
       setIsSuccessDismissed(false);
-      trackEvent("formulaire_envoye", { qualification: formState.qualification || "inconnue" });
+      trackEvent("formulaire_envoye", { type: selectedType, qualification: formState.qualification || "inconnue" });
     }
   }
 
@@ -109,6 +131,9 @@ export default function ContactForm({ type = "" }) {
     );
   }
 
+  const audiences = config?.audiences || [];
+  const singleAudience = audiences.length === 1 ? audiences[0] : "";
+
   return (
     <form
       ref={formRef}
@@ -116,160 +141,188 @@ export default function ContactForm({ type = "" }) {
       action={formAction}
       className="grid scroll-mt-32 gap-5 rounded-inset border border-line/12 bg-white/52 p-6 md:grid-cols-2 md:p-7"
     >
-      <div className="space-y-3 rounded-inset border border-line/10 bg-paper/70 p-5 md:col-span-2">
-        <p className="text-[11px] uppercase tracking-[0.24em] text-ink/48">Demande de devis</p>
-        <h2 className="font-serif text-3xl leading-tight md:text-4xl">Parlez-moi du contexte et du rendu attendu.</h2>
-        <p className="max-w-2xl text-sm leading-relaxed text-ink/65 md:text-base">
-          Date, lieu, type de prestation et ambiance recherchée suffisent pour lancer un échange clair.
+      <input type="hidden" name="type" value={selectedType} />
+
+      <TypePicker value={selectedType} onChange={setSelectedType} error={errors.type} />
+
+      {!config ? (
+        <p className="rounded-inset border border-line/10 bg-paper/70 p-5 text-sm leading-relaxed text-ink/65 md:col-span-2">
+          Choisissez votre projet pour afficher le formulaire adapté.
         </p>
-      </div>
+      ) : (
+        <Fragment>
+          <div className="space-y-3 rounded-inset border border-line/10 bg-paper/70 p-5 md:col-span-2">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-ink/48">Demande de devis : {config.label}</p>
+            <h2 className="font-serif text-3xl leading-tight md:text-4xl">Parlez-moi de votre projet.</h2>
+          </div>
 
-      <div className="md:col-span-2">
-        <CustomSelect
-          name="audience"
-          label="Vous êtes"
-          options={[PLACEHOLDER, ...audienceOptions]}
-          defaultValue={preset.audience || PLACEHOLDER}
-          error={errors.audience}
-        />
-        <FieldError message={errors.audience} />
-      </div>
+          <div key={`audience-${selectedType}`} className="md:col-span-2">
+            {singleAudience ? (
+              <input type="hidden" name="audience" value={singleAudience} />
+            ) : (
+              <>
+                <CustomSelect
+                  name="audience"
+                  label="Vous êtes"
+                  options={[PLACEHOLDER, ...audiences]}
+                  defaultValue={PLACEHOLDER}
+                  error={errors.audience}
+                />
+                <FieldError message={errors.audience} />
+              </>
+            )}
+          </div>
 
-      <label className="space-y-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Nom et prénom</span>
-        <input name="name" autoComplete="name" aria-invalid={Boolean(errors.name)} className={inputClass} required />
-        <FieldError message={errors.name} />
-      </label>
+          <label className="space-y-2">
+            <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Nom et prénom</span>
+            <input name="name" autoComplete="name" aria-invalid={Boolean(errors.name)} className={inputClass} required />
+            <FieldError message={errors.name} />
+          </label>
 
-      <label className="space-y-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">E-mail</span>
-        <input name="email" type="email" autoComplete="email" aria-invalid={Boolean(errors.email)} className={inputClass} required />
-        <FieldError message={errors.email} />
-      </label>
+          <label className="space-y-2">
+            <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">E-mail</span>
+            <input name="email" type="email" autoComplete="email" aria-invalid={Boolean(errors.email)} className={inputClass} required />
+            <FieldError message={errors.email} />
+          </label>
 
-      <label className="space-y-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Téléphone</span>
-        <input
-          name="phone"
-          autoComplete="tel"
-          inputMode="tel"
-          aria-invalid={Boolean(errors.phone)}
-          className={inputClass}
-          placeholder="Facultatif"
-        />
-        <FieldError message={errors.phone} />
-      </label>
+          <label className="space-y-2">
+            <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Téléphone</span>
+            <input
+              name="phone"
+              autoComplete="tel"
+              inputMode="tel"
+              aria-invalid={Boolean(errors.phone)}
+              className={inputClass}
+              placeholder="Facultatif"
+            />
+            <FieldError message={errors.phone} />
+          </label>
 
-      <div>
-        <CustomSelect
-          name="serviceType"
-          label="Type de prestation"
-          options={[PLACEHOLDER, ...serviceOptions]}
-          defaultValue={preset.serviceType || PLACEHOLDER}
-          error={errors.serviceType}
-        />
-        <FieldError message={errors.serviceType} />
-      </div>
+          {config.fields.map((field) =>
+            field.kind === "select" ? (
+              <div key={`${selectedType}-${field.name}`}>
+                <CustomSelect
+                  name={`extra_${field.name}`}
+                  label={field.label}
+                  options={[PLACEHOLDER, ...field.options]}
+                  defaultValue={PLACEHOLDER}
+                  error={errors[field.name]}
+                />
+                <FieldError message={errors[field.name]} />
+              </div>
+            ) : (
+              <label key={`${selectedType}-${field.name}`} className="space-y-2">
+                <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">{field.label}</span>
+                <input
+                  name={`extra_${field.name}`}
+                  aria-invalid={Boolean(errors[field.name])}
+                  className={inputClass}
+                  placeholder={field.placeholder}
+                  required={field.required}
+                />
+                <FieldError message={errors[field.name]} />
+              </label>
+            )
+          )}
 
-      <label className="space-y-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Date de l&apos;événement</span>
-        <input name="eventDate" type="date" aria-invalid={Boolean(errors.eventDate)} className={inputClass} required />
-        <FieldError message={errors.eventDate} />
-      </label>
+          <label className="space-y-2">
+            <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">{config.dateLabel}</span>
+            <input
+              name="eventDate"
+              type="date"
+              aria-invalid={Boolean(errors.eventDate)}
+              className={inputClass}
+              required={config.dateRequired}
+            />
+            <FieldError message={errors.eventDate} />
+          </label>
 
-      <label className="space-y-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Lieu</span>
-        <input
-          name="location"
-          autoComplete="address-level2"
-          aria-invalid={Boolean(errors.location)}
-          className={inputClass}
-          placeholder="Ville, salle, lieu…"
-          required
-        />
-        <FieldError message={errors.location} />
-      </label>
+          {config.locationLabel ? (
+            <label className="space-y-2">
+              <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">{config.locationLabel}</span>
+              <input
+                name="location"
+                autoComplete="address-level2"
+                aria-invalid={Boolean(errors.location)}
+                className={inputClass}
+                placeholder="Ville, salle, lieu…"
+                required={config.locationRequired}
+              />
+              <FieldError message={errors.location} />
+            </label>
+          ) : null}
 
-      <div>
-        <CustomSelect
-          name="guests"
-          label="Nombre d'invités"
-          options={[PLACEHOLDER, ...guestOptions]}
-          defaultValue={PLACEHOLDER}
-          error={errors.guests}
-        />
-        <FieldError message={errors.guests} />
-      </div>
+          <div>
+            <CustomSelect
+              name="budget"
+              label="Budget indicatif"
+              options={[PLACEHOLDER, ...budgetOptions]}
+              defaultValue={PLACEHOLDER}
+              error={errors.budget}
+            />
+            <FieldError message={errors.budget} />
+          </div>
 
-      <div>
-        <CustomSelect
-          name="budget"
-          label="Budget indicatif"
-          options={[PLACEHOLDER, ...budgetOptions]}
-          defaultValue={PLACEHOLDER}
-          error={errors.budget}
-        />
-        <FieldError message={errors.budget} />
-      </div>
+          <div>
+            <CustomSelect
+              name="source"
+              label="Comment m'avez-vous connu ?"
+              options={[PLACEHOLDER, ...sourceOptions]}
+              defaultValue={PLACEHOLDER}
+              error={errors.source}
+            />
+            <FieldError message={errors.source} />
+          </div>
 
-      <div>
-        <CustomSelect
-          name="source"
-          label="Comment m'avez-vous connu ?"
-          options={[PLACEHOLDER, ...sourceOptions]}
-          defaultValue={PLACEHOLDER}
-          error={errors.source}
-        />
-        <FieldError message={errors.source} />
-      </div>
+          <label className="space-y-2 md:col-span-2">
+            <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Message</span>
+            <textarea
+              name="project"
+              rows={6}
+              aria-invalid={Boolean(errors.project)}
+              className="w-full rounded-[1.2rem] border border-line/18 bg-paper/88 px-4 py-3 outline-none transition focus:border-accent focus:bg-white"
+              placeholder="Ambiance recherchée, contraintes utiles, références…"
+              required
+            />
+            <FieldError message={errors.project} />
+          </label>
 
-      <label className="space-y-2 md:col-span-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Message</span>
-        <textarea
-          name="project"
-          rows={6}
-          aria-invalid={Boolean(errors.project)}
-          className="w-full rounded-[1.2rem] border border-line/18 bg-paper/88 px-4 py-3 outline-none transition focus:border-accent focus:bg-white"
-          placeholder="Type de projet, ambiance recherchée, contraintes utiles…"
-          required
-        />
-        <FieldError message={errors.project} />
-      </label>
+          <div className="space-y-2 md:col-span-2">
+            <label className="flex items-start gap-3 text-sm leading-relaxed text-ink/75">
+              <input
+                type="checkbox"
+                name="consent"
+                required
+                aria-invalid={Boolean(errors.consent)}
+                className="mt-1 h-4 w-4 shrink-0 accent-[var(--accent)]"
+              />
+              <span>
+                J&apos;accepte que mes données soient utilisées pour répondre à ma demande.{" "}
+                <Link href="/confidentialite" className="underline underline-offset-4 hover:text-ink">
+                  Politique de confidentialité
+                </Link>
+              </span>
+            </label>
+            <FieldError message={errors.consent} />
+          </div>
 
-      <div className="space-y-2 md:col-span-2">
-        <label className="flex items-start gap-3 text-sm leading-relaxed text-ink/75">
-          <input
-            type="checkbox"
-            name="consent"
-            required
-            aria-invalid={Boolean(errors.consent)}
-            className="mt-1 h-4 w-4 shrink-0 accent-[var(--accent)]"
-          />
-          <span>
-            J&apos;accepte que mes données soient utilisées pour répondre à ma demande.{" "}
-            <Link href="/confidentialite" className="underline underline-offset-4 hover:text-ink">
-              Politique de confidentialité
-            </Link>
-          </span>
-        </label>
-        <FieldError message={errors.consent} />
-      </div>
+          <div className="flex flex-wrap items-center gap-3 md:col-span-2">
+            <SubmitButton
+              idleLabel="Envoyer la demande"
+              pendingLabel="Envoi…"
+              className="w-fit rounded-full bg-ink px-6 py-3 text-sm uppercase tracking-[0.18em] text-paper transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
+            />
 
-      <div className="flex flex-wrap items-center gap-3 md:col-span-2">
-        <SubmitButton
-          idleLabel="Envoyer la demande"
-          pendingLabel="Envoi…"
-          className="w-fit rounded-full bg-ink px-6 py-3 text-sm uppercase tracking-[0.18em] text-paper transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
-        />
+            <p className="text-sm text-ink/55">Réponse sous 24 à 48 h.</p>
 
-        <p className="text-sm text-ink/55">Réponse sous 24 à 48 h.</p>
-
-        {message && status !== "success" ? (
-          <p aria-live="polite" className="text-sm text-red-700">
-            {message}
-          </p>
-        ) : null}
-      </div>
+            {message && status !== "success" ? (
+              <p aria-live="polite" className="text-sm text-red-700">
+                {message}
+              </p>
+            ) : null}
+          </div>
+        </Fragment>
+      )}
     </form>
   );
 }

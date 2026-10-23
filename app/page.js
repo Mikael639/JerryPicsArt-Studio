@@ -12,7 +12,7 @@ const FEATURED_ROTATION_INTERVAL_MS = 30 * 60 * 1000;
 
 export async function generateMetadata() {
   return buildPageMetadata({
-    title: "JerryPicsArt — Photographe éditorial à Paris, mariages et événements",
+    title: "JerryPicsArt | Photographe éditorial à Paris, mariages et événements",
     description:
       "Photographe éditorial à Paris : Fashion Week, mariages haut de gamme et événements d'entreprise. Un accompagnement de A à Z.",
     path: "/",

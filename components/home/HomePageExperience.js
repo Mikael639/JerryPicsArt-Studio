@@ -472,6 +472,7 @@ export default function HomePageExperience({
         title="Parlons de votre projet"
         text="Mariage, soirée ou événement d'entreprise : quelques lignes suffisent. Réponse sous 24 à 48 h."
         event="devis_accueil_final"
+        themeSwitch={false}
       />
     </div>
   );

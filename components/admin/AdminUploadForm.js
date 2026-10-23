@@ -69,7 +69,7 @@ export default function AdminUploadForm({
       <div className="border-b border-line/10 pb-4">
         <h2 className="font-serif text-3xl">Ajouter des photos</h2>
         <p className="mt-2 text-sm text-ink/65">
-          Glisse tes photos ici ou clique pour parcourir tes fichiers.
+          Glissez vos photos ici ou cliquez pour parcourir vos fichiers.
         </p>
       </div>
 
@@ -80,13 +80,13 @@ export default function AdminUploadForm({
             <input
               value={uploadForm.title}
               onChange={(event) => setUploadForm((current) => ({ ...current, title: event.target.value }))}
-              placeholder="Ex: Shooting Studio #1"
+              placeholder="Ex. : Shooting Studio #1"
               className="w-full rounded-xl border border-line/25 bg-paper px-4 py-2 outline-none focus:border-accent"
             />
           </label>
-          
+
           <label className="block space-y-2">
-            <span className="text-xs font-bold uppercase tracking-widest text-ink/40">Description / Alt</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-ink/40">Description / texte alternatif</span>
             <input
               value={uploadForm.alt}
               onChange={(event) => setUploadForm((current) => ({ ...current, alt: event.target.value }))}
@@ -96,7 +96,7 @@ export default function AdminUploadForm({
           </label>
 
           <label className="block space-y-2">
-            <span className="text-xs font-bold uppercase tracking-widest text-ink/40">Thème / Catégorie</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-ink/40">Thème / catégorie</span>
             <select
               value={uploadForm.category}
               onChange={(event) => setUploadForm((current) => ({ ...current, category: event.target.value }))}
@@ -135,8 +135,8 @@ export default function AdminUploadForm({
                 <polyline points="17 8 12 3 7 8" />
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
-              <p className="mt-4 text-sm font-medium text-ink/70">Glisse tes photos ici</p>
-              <p className="text-xs text-ink/45">ou clique pour parcourir</p>
+              <p className="mt-4 text-sm font-medium text-ink/70">Glissez vos photos ici</p>
+              <p className="text-xs text-ink/45">ou cliquez pour parcourir</p>
             </div>
           </div>
           <p className="text-right text-[10px] uppercase tracking-wider text-ink/40">
@@ -200,7 +200,7 @@ export default function AdminUploadForm({
         </div>
 
         <div className="flex items-center gap-4">
-          <label className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-ink/60 cursor-pointer hover:text-ink">
+          <label className="flex cursor-pointer items-center gap-2 text-xs font-medium uppercase tracking-wider text-ink/60 hover:text-ink">
             <input
               type="checkbox"
               className="accent-ink"
@@ -214,7 +214,7 @@ export default function AdminUploadForm({
             disabled={isUploading || uploadForm.files.length === 0}
             className="rounded-full bg-ink px-10 py-3 text-xs font-bold uppercase tracking-widest text-paper transition-all hover:bg-accent disabled:opacity-40"
           >
-            {isUploading ? "Upload en cours..." : "Publier maintenant"}
+            {isUploading ? "Envoi en cours..." : "Publier maintenant"}
           </button>
         </div>
       </div>

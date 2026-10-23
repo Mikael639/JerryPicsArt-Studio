@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 const SESSION_KEY = "jp_intro_seen";
 
 export default function IntroSplash() {
+  const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(true);
   const [isLeaving, setIsLeaving] = useState(false);
 
@@ -24,7 +26,7 @@ export default function IntroSplash() {
     };
   }, []);
 
-  if (!isVisible) return null;
+  if (!isVisible || pathname?.startsWith("/admin")) return null;
 
   return (
     <div

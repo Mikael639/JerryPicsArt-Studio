@@ -13,7 +13,7 @@ export default function Faq({ items, title = "Questions fréquentes" }) {
   };
 
   return (
-    <section aria-label={`${title} — ${siteConfig.name}`} className="mx-auto max-w-4xl px-4 md:px-8">
+    <section aria-label={`${title} ${siteConfig.name}`} className="mx-auto max-w-4xl px-4 md:px-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-5xl">{title}</h2>
       <div className="mt-8 divide-y divide-line/12 border-y border-line/12">

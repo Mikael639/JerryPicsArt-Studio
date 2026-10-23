@@ -50,7 +50,7 @@ export default function Series({ serie, withBridge = false, priority = false }) 
             onClick={() => setActiveIndex(index)}
             data-cursor="gallery-item"
             aria-label={`Ouvrir la photo : ${photo.alt}`}
-            className="group relative block aspect-[4/5] overflow-hidden rounded-[0.8rem] bg-ink text-left"
+            className="group relative block aspect-[4/5] overflow-hidden rounded-[0.8rem] bg-neutral-900 text-left"
           >
             <Image
               src={photo.src}

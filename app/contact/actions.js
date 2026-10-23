@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { createContactMessage } from "../../lib/contactStore";
 import { sendContactEmails } from "../../lib/contactEmail";
 import { QUALIFICATION, qualifyRequest, validateContactInput } from "../../lib/contactValidation";
+import { getQuoteType } from "../../lib/quoteTypes";
 import { consumeRateLimit } from "../../lib/rateLimit";
 
 const CONTACT_SEND_ERROR_MESSAGE =
@@ -35,12 +36,13 @@ function getStringValue(formData, key, fallback = "") {
   return typeof value === "string" ? value : fallback;
 }
 
-// Les nouveaux champs sont regroupés en tête du message pour ne pas modifier la base existante.
+// Les champs propres au type de devis sont regroupés en tête du message pour ne pas modifier la base existante.
 function composeProject(fields, qualification) {
   return [
     `Statut : [${qualification}]`,
+    `Type de devis : ${fields.typeLabel}`,
     `Vous êtes : ${fields.audience}`,
-    `Nombre d'invités : ${fields.guests}`,
+    ...fields.details.map(([label, value]) => `${label} : ${value}`),
     `Comment m'a connu : ${fields.source}`,
     "",
     "Message :",
@@ -60,15 +62,21 @@ export async function submitContactForm(_previousState, formData) {
     };
   }
 
+  const quoteType = getQuoteType(getStringValue(formData, "type"));
+  const extra = {};
+  for (const field of quoteType?.fields || []) {
+    extra[field.name] = getStringValue(formData, `extra_${field.name}`);
+  }
+
   const validation = validateContactInput({
+    type: getStringValue(formData, "type"),
+    extra,
     audience: getStringValue(formData, "audience"),
     name: getStringValue(formData, "name"),
     email: getStringValue(formData, "email"),
     phone: getStringValue(formData, "phone"),
-    serviceType: getStringValue(formData, "serviceType"),
     eventDate: getStringValue(formData, "eventDate"),
     location: getStringValue(formData, "location"),
-    guests: getStringValue(formData, "guests"),
     budget: getStringValue(formData, "budget"),
     source: getStringValue(formData, "source"),
     project: getStringValue(formData, "project"),

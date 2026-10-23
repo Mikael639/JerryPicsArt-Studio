@@ -1,21 +1,16 @@
 import LegalPage from "../../components/ui/LegalPage";
-import { showPlaceholders } from "../../data/placeholders";
 import { siteConfig } from "../../lib/siteConfig";
 import { buildPageMetadata } from "../../lib/seo";
 
 export async function generateMetadata() {
   return buildPageMetadata({
-    title: "Mentions légales — JerryPicsArt",
+    title: "Mentions légales | JerryPicsArt",
     description: "Mentions légales du site JerryPicsArt, photographe éditorial à Paris.",
     path: "/mentions-legales",
   });
 }
 
 export default function MentionsLegalesPage() {
-  const hebergeur = showPlaceholders
-    ? "Vercel Inc. [À FOURNIR : vérifier l'adresse actuelle de Vercel]"
-    : "Vercel Inc.";
-
   return (
     <LegalPage
       title="Mentions légales"
@@ -33,7 +28,9 @@ export default function MentionsLegalesPage() {
         },
         {
           titre: "Hébergeur",
-          paragraphes: [hebergeur],
+          paragraphes: [
+            "Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis (https://vercel.com).",
+          ],
         },
         {
           titre: "Propriété intellectuelle",

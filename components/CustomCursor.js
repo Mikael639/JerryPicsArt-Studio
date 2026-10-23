@@ -22,7 +22,7 @@ const textInputSelector = [
 ].join(", ");
 
 const galleryItemSelector = "[data-cursor='gallery-item']";
-const darkSurfaceSelector = "[data-cursor-surface='dark']";
+const darkSurfaceSelector = "[data-cursor-surface='dark'], [data-theme-section='dark'], .dark-chapter, footer";
 
 let colorProbeContext = null;
 let darkCache = { target: null, result: false, time: 0 };
@@ -66,6 +66,13 @@ function isDarkBackground(target) {
   return result;
 }
 
+function isOnDarkSurface(target) {
+  if (target.closest(".theme-default")) {
+    return isDarkBackground(target);
+  }
+  return Boolean(target.closest(darkSurfaceSelector)) || isDarkBackground(target);
+}
+
 function getCursorMode(target) {
   if (!(target instanceof Element)) {
     return "default";
@@ -79,7 +86,7 @@ function getCursorMode(target) {
     return "gallery-item";
   }
 
-  if (target.closest(darkSurfaceSelector) || isDarkBackground(target)) {
+  if (isOnDarkSurface(target)) {
     return target.closest(interactiveSelector) ? "dark-interactive" : "dark-default";
   }
 
@@ -124,7 +131,7 @@ export default function CustomCursor() {
   const [isPressed, setIsPressed] = useState(false);
   const [cursorMode, setCursorMode] = useState("default");
   const [isTemporarilyPaused, setIsTemporarilyPaused] = useState(false);
-  
+
   const stateRef = useRef(cursorMode);
   const resizeTimeoutRef = useRef(null);
   const pointerRef = useRef(null);
@@ -133,10 +140,10 @@ export default function CustomCursor() {
   const supportsFinePointer = useSyncExternalStore(subscribeToFinePointerQuery, getFinePointerSnapshot, () => false);
   const isEnabled = supportsFinePointer && !reduceMotion;
   const isCursorActive = isEnabled && !isTemporarilyPaused;
-  
+
   const x = useMotionValue(-100);
   const y = useMotionValue(-100);
-  
+
   // Ressort ultra-réactif et léger
   const springX = useSpring(x, { stiffness: 800, damping: 40, mass: 0.1 });
   const springY = useSpring(y, { stiffness: 800, damping: 40, mass: 0.1 });
@@ -159,7 +166,7 @@ export default function CustomCursor() {
     if (isTemporarilyPaused) {
       setIsTemporarilyPaused(false);
     }
-    
+
     x.set(event.clientX);
     y.set(event.clientY);
     pointerRef.current = { x: event.clientX, y: event.clientY };
@@ -221,7 +228,7 @@ export default function CustomCursor() {
       }
     };
 
-    // Le fond peut changer sous une souris immobile (defilement, transition de couleur du body).
+    // Le fond peut changer sous une souris immobile (défilement, transition de couleur du body).
     const resyncUnderPointer = () => {
       const pointer = pointerRef.current;
       if (!pointer) return;
@@ -266,11 +273,8 @@ export default function CustomCursor() {
   const isInteractive = cursorMode === "interactive" || cursorMode === "dark-interactive";
   const isGalleryItem = cursorMode === "gallery-item";
   const shouldHide = !isVisible || cursorMode === "hidden";
-  
-  const cursorSize =
-    isGalleryItem ? 84 :
-    isInteractive ? 48 :
-    24;
+
+  const cursorSize = isGalleryItem ? 84 : isInteractive ? 48 : 24;
 
   return (
     <motion.div
@@ -292,7 +296,9 @@ export default function CustomCursor() {
     >
       <motion.div
         className={`flex items-center justify-center rounded-full border shadow-sm backdrop-blur-[6px] ${
-          isDarkSurface ? "border-white/55 bg-white/12 shadow-white/10" : "border-ink/20 bg-ink/5"
+          isDarkSurface
+            ? "border-white/70 bg-white/15 shadow-white/10"
+            : "border-ink/40 bg-ink/8"
         }`}
         animate={{
           width: cursorSize,
@@ -311,7 +317,9 @@ export default function CustomCursor() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
-            className="text-ink font-bold text-[10px] tracking-[0.2em] leading-none uppercase"
+            className={`font-bold text-[10px] tracking-[0.2em] leading-none uppercase ${
+              isDarkSurface ? "text-white" : "text-ink"
+            }`}
           >
             VOIR
           </motion.span>

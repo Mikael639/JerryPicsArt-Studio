@@ -97,13 +97,28 @@ button {
   z-index: 10;
 }
 
-/* Bandeau defilant des partenaires */
-.partners-track {
-  animation: partners-scroll 20s linear infinite;
+/* Chapitre sombre : inverse les couleurs du site pour tout le contenu qu'il contient. */
+.dark-chapter {
+  --ink: #fafafa;
+  --paper: #0c0a08;
+  --line: #fafafa;
+  --accent: #b07f5a;
+  --color-white: rgba(255, 255, 255, 0.07);
+  color: #fafafa;
 }
 
-.partners-track:hover {
-  animation-play-state: paused;
+/* Rétablit les couleurs d'origine à l'intérieur d'un chapitre sombre (cartes qui ont leur propre fond). */
+.dark-chapter .theme-default {
+  --ink: #111111;
+  --paper: #fafafa;
+  --line: #2a2a2a;
+  --accent: #8f5730;
+  --color-white: #ffffff;
+}
+
+/* Bandeau defilant des partenaires */
+.partners-track {
+  animation: partners-scroll 14s linear infinite;
 }
 
 .partners-mask {

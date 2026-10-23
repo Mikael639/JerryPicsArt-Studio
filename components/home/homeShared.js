@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { stats } from "../../data/stats";
 
@@ -78,17 +79,68 @@ export function StatsSection({ reduceMotion, items = stats }) {
 // Logos blancs sur fond transparent, déposés dans public/images/partners/.
 // `size` règle la hauteur (classes Tailwind) pour équilibrer les logos entre eux.
 export const partners = [
-  { name: "Taptap Send", logo: "/images/partners/taptap-send.png", size: "h-16 md:h-20", width: 191, height: 169 },
-  { name: "Sofitel Le Scribe", logo: "/images/partners/le-scribe.png", size: "h-14 md:h-16", width: 332, height: 124 },
-  { name: "Rolling Stone Africa", logo: "/images/partners/rolling-stone-africa.png", size: "h-10 md:h-12", width: 900, height: 179 },
-  { name: "Les Flammes", logo: "/images/partners/les-flammes.png", size: "h-14 md:h-16", width: 486, height: 220 },
-  { name: "NWE", logo: "/images/partners/nwe.png", size: "h-16 md:h-20", width: 524, height: 545 },
-  { name: "Galeries Lafayette", logo: "/images/partners/galeries-lafayette.png", size: "h-14 md:h-16", width: 900, height: 472 },
-  { name: "Printemps", logo: "/images/partners/printemps.png", size: "h-8 md:h-9", width: 342, height: 49 },
+  { name: "Taptap Send", logo: "/images/partners/taptap-send.png", size: "h-20 md:h-24", width: 191, height: 169 },
+  { name: "Sofitel Le Scribe", logo: "/images/partners/le-scribe.png", size: "h-16 md:h-20", width: 332, height: 124 },
+  { name: "Rolling Stone Africa", logo: "/images/partners/rolling-stone-africa.png", size: "h-12 md:h-14", width: 900, height: 179 },
+  { name: "Les Flammes", logo: "/images/partners/les-flammes.png", size: "h-16 md:h-20", width: 486, height: 220 },
+  { name: "NWE", logo: "/images/partners/nwe.png", size: "h-20 md:h-24", width: 524, height: 545 },
+  { name: "Galeries Lafayette", logo: "/images/partners/galeries-lafayette.png", size: "h-16 md:h-20", width: 900, height: 472 },
+  { name: "Printemps", logo: "/images/partners/printemps.png", size: "h-10 md:h-11", width: 342, height: 49 },
 ];
+
+// Au survol, le défilement ralentit sans jamais s'arrêter ; hors survol il reprend son allure.
+function useMarqueeSlowdown(trackRef, containerRef, slowRate = 0.3) {
+  useEffect(() => {
+    const track = trackRef.current;
+    const container = containerRef.current;
+    if (!track || !container) return undefined;
+
+    let rate = 1;
+    let target = 1;
+    let frame = 0;
+    let last = 0;
+
+    // Lissage dépendant du temps : même ressenti quelle que soit la fréquence d'affichage.
+    const tick = (now) => {
+      const delta = last ? Math.min(now - last, 100) : 16;
+      last = now;
+      rate += (target - rate) * (1 - Math.exp(-delta / 220));
+      if (Math.abs(target - rate) < 0.005) rate = target;
+      track.getAnimations().forEach((animation) => {
+        animation.playbackRate = rate;
+      });
+      if (rate !== target) {
+        frame = window.requestAnimationFrame(tick);
+      } else {
+        last = 0;
+      }
+    };
+
+    const setTarget = (value) => {
+      target = value;
+      window.cancelAnimationFrame(frame);
+      last = 0;
+      frame = window.requestAnimationFrame(tick);
+    };
+
+    const slow = () => setTarget(slowRate);
+    const fast = () => setTarget(1);
+
+    container.addEventListener("mouseenter", slow);
+    container.addEventListener("mouseleave", fast);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      container.removeEventListener("mouseenter", slow);
+      container.removeEventListener("mouseleave", fast);
+    };
+  }, [trackRef, containerRef, slowRate]);
+}
 
 export function PartnersSection({ reduceMotion, items = partners }) {
   const loop = [...items, ...items];
+  const trackRef = useRef(null);
+  const containerRef = useRef(null);
+  useMarqueeSlowdown(trackRef, containerRef);
 
   return (
     <section className="mx-auto max-w-7xl px-4 md:px-8">
@@ -100,13 +152,13 @@ export function PartnersSection({ reduceMotion, items = partners }) {
           </h2>
         </div>
 
-        <div className="partners-mask relative overflow-hidden rounded-panel border border-white/10 bg-white/[0.03] py-10 backdrop-blur-sm">
-          <ul className={`flex w-max items-center gap-16 px-8 md:gap-24 ${reduceMotion ? "" : "partners-track"}`}>
+        <div ref={containerRef} className="partners-mask relative overflow-hidden rounded-panel border border-white/10 bg-white/[0.03] py-12 backdrop-blur-sm">
+          <ul ref={trackRef} className={`flex w-max items-center gap-16 px-8 md:gap-24 ${reduceMotion ? "" : "partners-track"}`}>
             {loop.map((partner, index) => (
               <li
                 key={`${partner.name}-${index}`}
                 aria-hidden={index >= items.length ? "true" : undefined}
-                className="flex h-20 shrink-0 items-center opacity-65 transition duration-500 hover:opacity-100"
+                className="flex h-24 shrink-0 items-center opacity-65 transition duration-500 hover:opacity-100"
               >
                 <Image
                   src={partner.logo}
