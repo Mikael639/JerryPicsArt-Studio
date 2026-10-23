@@ -19,7 +19,7 @@ export default function BridgeCta({ serie }) {
         </TrackedLink>
         <Link
           href="/mariage"
-          className="text-[12px] font-semibold uppercase tracking-[0.16em] text-ink/60 underline-offset-4 transition-colors hover:text-ink hover:underline"
+          className="-my-2.5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.16em] text-ink/60 underline-offset-4 transition-colors hover:text-ink hover:underline"
         >
           … ou pour votre mariage
         </Link>

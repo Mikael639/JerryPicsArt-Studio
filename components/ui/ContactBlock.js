@@ -31,7 +31,7 @@ export default function ContactBlock({
             {secondary ? (
               <Link
                 href={secondary.href}
-                className="text-[13px] font-semibold uppercase tracking-[0.18em] text-paper/70 underline-offset-4 transition-colors hover:text-paper hover:underline"
+                className="-my-2.5 py-2.5 text-[13px] font-semibold uppercase tracking-[0.18em] text-paper/70 underline-offset-4 transition-colors hover:text-paper hover:underline"
               >
                 {secondary.label}
               </Link>

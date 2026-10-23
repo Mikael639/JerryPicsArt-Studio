@@ -26,7 +26,7 @@ export default function PageIntro({ eyebrow, title, lead, bridge, cta, secondary
             {secondary ? (
               <Link
                 href={secondary.href}
-                className="text-[13px] font-semibold uppercase tracking-[0.18em] text-ink/60 underline-offset-4 transition-colors hover:text-ink hover:underline"
+                className="-my-2.5 py-2.5 text-[13px] font-semibold uppercase tracking-[0.18em] text-ink/60 underline-offset-4 transition-colors hover:text-ink hover:underline"
               >
                 {secondary.label}
               </Link>

@@ -115,7 +115,7 @@ export default function Series({ serie, withBridge = false, priority = false }) 
             <button
               type="button"
               onClick={() => setMode((current) => (current === "carousel" ? "grid" : "carousel"))}
-              className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink/60 underline-offset-4 transition-colors hover:text-ink hover:underline"
+              className="-my-2.5 py-2.5 text-[11px] font-bold uppercase tracking-[0.2em] text-ink/60 underline-offset-4 transition-colors hover:text-ink hover:underline"
             >
               {mode === "carousel" ? "Voir en grille" : "Voir en défilé"}
             </button>
