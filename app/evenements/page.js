@@ -3,6 +3,7 @@ import Series from "../../components/ui/Series";
 import OfferCards from "../../components/ui/OfferCards";
 import Faq from "../../components/ui/Faq";
 import ContactBlock from "../../components/ui/ContactBlock";
+import DarkChapter from "../../components/ui/DarkChapter";
 import Reveal from "../../components/ui/Reveal";
 import { findSeriesBySlugs, pickSeries } from "../../data/series";
 import { showPlaceholders } from "../../data/placeholders";
@@ -71,7 +72,7 @@ export default async function EvenementsPage() {
   const others = pickSeries(all, "evenement").filter((serie) => !proofSlugs.has(serie.slug)).slice(0, 3);
 
   return (
-    <div className="page-shell space-y-16 pb-20 md:space-y-24">
+    <div className="page-shell space-y-16 md:space-y-24">
       <PageIntro
         eyebrow="Événements"
         title="Photographe événementiel à Paris : soirées, lancements, galas"
@@ -102,33 +103,35 @@ export default async function EvenementsPage() {
         ))}
       </div>
 
-      <section className="mx-auto max-w-7xl space-y-8 px-4 md:px-8">
-        <Reveal>
-          <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-5xl">Offre</h2>
-        </Reveal>
-        <OfferCards offers={offers} columns="md:grid-cols-2" />
-        <div className="grid gap-3 md:grid-cols-2">
-          {options.map((option) => (
-            <div key={option.titre} className="flex items-center justify-between gap-4 rounded-inset border border-line/15 bg-white/50 px-6 py-4">
-              <span className="font-serif text-xl">Option : {option.titre.toLowerCase()}</span>
-              <span className="font-serif text-2xl">{option.prix}</span>
-            </div>
-          ))}
-        </div>
-        <p className="text-base text-ink/65">
-          Sélection express le soir même en option. Galerie complète sous 7 jours.
-          {showPlaceholders ? <span className="ml-2 text-accent">[À FOURNIR : confirmer le délai de livraison complète]</span> : null}
-        </p>
-      </section>
+      <DarkChapter>
+        <section className="mx-auto max-w-7xl space-y-8 px-4 md:px-8">
+          <Reveal>
+            <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-5xl">Offre</h2>
+          </Reveal>
+          <OfferCards offers={offers} columns="md:grid-cols-2" />
+          <div className="grid gap-3 md:grid-cols-2">
+            {options.map((option) => (
+              <div key={option.titre} className="flex items-center justify-between gap-4 rounded-inset border border-line/15 bg-white/50 px-6 py-4">
+                <span className="font-serif text-xl">Option : {option.titre.toLowerCase()}</span>
+                <span className="font-serif text-2xl">{option.prix}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-base text-ink/65">
+            Sélection express le soir même en option. Galerie complète sous 7 jours.
+            {showPlaceholders ? <span className="ml-2 text-accent">[À FOURNIR : confirmer le délai de livraison complète]</span> : null}
+          </p>
+        </section>
 
-      <Faq items={faq} />
+        <Faq items={faq} />
 
-      <ContactBlock
-        title="Parlons de votre événement"
-        text="Date, lieu et format suffisent pour recevoir un devis. Réponse sous 24 à 48 h."
-        href="/contact?type=evenement"
-        event="devis_evenement_final"
-      />
+        <ContactBlock
+          title="Parlons de votre événement"
+          text="Date, lieu et format suffisent pour recevoir un devis. Réponse sous 24 à 48 h."
+          href="/contact?type=evenement"
+          event="devis_evenement_final"
+        />
+      </DarkChapter>
     </div>
   );
 }

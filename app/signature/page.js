@@ -2,6 +2,7 @@ import PageIntro from "../../components/ui/PageIntro";
 import ReferencesBand from "../../components/ui/ReferencesBand";
 import Series from "../../components/ui/Series";
 import ContactBlock from "../../components/ui/ContactBlock";
+import DarkChapter from "../../components/ui/DarkChapter";
 import { findSeriesBySlugs, pickSeries } from "../../data/series";
 import { loadSeries } from "../../lib/loadSeries";
 import { buildPageMetadata } from "../../lib/seo";
@@ -25,7 +26,7 @@ export default async function SignaturePage() {
     .slice(0, 10);
 
   return (
-    <div className="page-shell space-y-16 pb-20 md:space-y-24">
+    <div className="page-shell space-y-16 md:space-y-24">
       <PageIntro
         eyebrow="Signature"
         title="Fashion Week de Paris : défilés, maisons et personnalités"
@@ -36,19 +37,27 @@ export default async function SignaturePage() {
       <ReferencesBand />
 
       <div className="space-y-20 md:space-y-28">
-        {series.map((serie, index) => (
+        {series.slice(0, 5).map((serie, index) => (
           <Series key={serie.slug} serie={serie} withBridge priority={index === 0} />
         ))}
       </div>
 
-      <ContactBlock
-        title="Le même regard pour votre événement"
-        text="Lancement, soirée, gala ou mariage : parlons de votre projet."
-        label="Le même regard pour votre événement"
-        href="/evenements"
-        event="bridge_cta_signature_final"
-        secondary={{ href: "/mariage", label: "ou pour votre mariage" }}
-      />
+      <DarkChapter>
+        <div className="space-y-20 md:space-y-28">
+          {series.slice(5).map((serie) => (
+            <Series key={serie.slug} serie={serie} withBridge />
+          ))}
+        </div>
+
+        <ContactBlock
+          title="Le même regard pour votre événement"
+          text="Lancement, soirée, gala ou mariage : parlons de votre projet."
+          label="Le même regard pour votre événement"
+          href="/evenements"
+          event="bridge_cta_signature_final"
+          secondary={{ href: "/mariage", label: "ou pour votre mariage" }}
+        />
+      </DarkChapter>
     </div>
   );
 }

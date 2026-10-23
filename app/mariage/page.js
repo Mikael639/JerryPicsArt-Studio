@@ -5,6 +5,7 @@ import OfferCards from "../../components/ui/OfferCards";
 import Faq from "../../components/ui/Faq";
 import Testimonials from "../../components/ui/Testimonials";
 import ContactBlock from "../../components/ui/ContactBlock";
+import DarkChapter from "../../components/ui/DarkChapter";
 import Reveal from "../../components/ui/Reveal";
 import { pickSeries } from "../../data/series";
 import { showPlaceholders } from "../../data/placeholders";
@@ -117,7 +118,7 @@ export default async function MariagePage() {
   const series = pickSeries(await loadSeries(), "mariage", 3);
 
   return (
-    <div className="page-shell space-y-16 pb-20 md:space-y-24">
+    <div className="page-shell space-y-16 md:space-y-24">
       <PageIntro
         eyebrow="Mariage"
         title="Photographe de mariage haut de gamme à Paris"
@@ -137,36 +138,38 @@ export default async function MariagePage() {
         ) : null}
       </div>
 
-      <section className="mx-auto max-w-7xl space-y-8 px-4 md:px-8">
-        <Reveal className="max-w-3xl space-y-3">
-          <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-5xl">
-            L&apos;expérience, du premier rendez-vous à la livraison
-          </h2>
-          <p className="text-base leading-relaxed text-ink/65 md:text-lg">
-            Vous êtes accompagnés du début à la fin, pour vous projeter sereinement.
-          </p>
-        </Reveal>
-        <Steps steps={steps} />
-      </section>
+      <DarkChapter>
+        <section className="mx-auto max-w-7xl space-y-8 px-4 md:px-8">
+          <Reveal className="max-w-3xl space-y-3">
+            <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-5xl">
+              L&apos;expérience, du premier rendez-vous à la livraison
+            </h2>
+            <p className="text-base leading-relaxed text-ink/65 md:text-lg">
+              Vous êtes accompagnés du début à la fin, pour vous projeter sereinement.
+            </p>
+          </Reveal>
+          <Steps steps={steps} />
+        </section>
 
-      <section className="mx-auto max-w-7xl space-y-8 px-4 md:px-8">
-        <Reveal>
-          <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-5xl">Trois formules</h2>
-        </Reveal>
-        <OfferCards offers={offers} />
-      </section>
+        <section className="mx-auto max-w-7xl space-y-8 px-4 md:px-8">
+          <Reveal>
+            <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-5xl">Trois formules</h2>
+          </Reveal>
+          <OfferCards offers={offers} />
+        </section>
 
-      <Faq items={faq} />
+        <Faq items={faq} />
 
-      <Testimonials prestation="mariage" title="Ce que disent les mariés" />
+        <Testimonials prestation="mariage" title="Ce que disent les mariés" />
 
-      <ContactBlock
-        title="Votre date est-elle disponible ?"
-        text="Indiquez la date et le lieu de votre mariage. Réponse sous 24 à 48 h."
-        label="Vérifier ma date"
-        href="/contact?type=mariage"
-        event="verifier_ma_date_final"
-      />
+        <ContactBlock
+          title="Votre date est-elle disponible ?"
+          text="Indiquez la date et le lieu de votre mariage. Réponse sous 24 à 48 h."
+          label="Vérifier ma date"
+          href="/contact?type=mariage"
+          event="verifier_ma_date_final"
+        />
+      </DarkChapter>
     </div>
   );
 }

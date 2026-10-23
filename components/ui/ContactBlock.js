@@ -9,7 +9,7 @@ export default function ContactBlock({
   href = "/contact",
   event,
   secondary,
-  themeSwitch = true,
+  themeSwitch = false,
 }) {
   return (
     <section data-theme-section={themeSwitch ? "dark" : undefined} className="mx-auto max-w-7xl px-4 pt-12 md:px-8 md:pt-20">

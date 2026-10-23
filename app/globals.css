@@ -97,6 +97,16 @@ button {
   z-index: 10;
 }
 
+/* Chapitre sombre : inverse les couleurs du site pour tout le contenu qu'il contient. */
+.dark-chapter {
+  --ink: #fafafa;
+  --paper: #0c0a08;
+  --line: #fafafa;
+  --accent: #b07f5a;
+  --color-white: rgba(255, 255, 255, 0.07);
+  color: #fafafa;
+}
+
 /* Bandeau defilant des partenaires */
 .partners-track {
   animation: partners-scroll 14s linear infinite;
