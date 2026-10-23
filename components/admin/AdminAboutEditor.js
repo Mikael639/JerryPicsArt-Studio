@@ -38,16 +38,15 @@ export default function AdminAboutEditor({ aboutCopy, onSave, isSaving }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-8 rounded-2xl border border-line/20 bg-white/65 p-6">
       <div className="border-b border-line/10 pb-4">
-        <h2 className="font-serif text-3xl">Page À Propos</h2>
-        <p className="mt-2 text-sm text-ink/65">Gère ta bio, tes valeurs et ton parcours.</p>
+        <h2 className="font-serif text-3xl">Page À propos</h2>
+        <p className="mt-2 text-sm text-ink/65">Gérez votre biographie, vos valeurs et votre parcours.</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Hero Section */}
         <div className="space-y-4 md:col-span-2">
           <h3 className="text-xs font-bold uppercase tracking-widest text-ink/40">Introduction</h3>
           <label className="block space-y-2">
-            <span className="text-xs font-medium text-ink/50">Titre principal (Headline)</span>
+            <span className="text-xs font-medium text-ink/50">Titre principal</span>
             <input
               type="text"
               value={localCopy.headline}
@@ -66,9 +65,8 @@ export default function AdminAboutEditor({ aboutCopy, onSave, isSaving }) {
           </label>
         </div>
 
-        {/* Story Section */}
         <div className="space-y-4 md:col-span-2">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-ink/40">Parcours & Histoire</h3>
+          <h3 className="text-xs font-bold uppercase tracking-widest text-ink/40">Parcours & histoire</h3>
           <label className="block space-y-2">
             <span className="text-xs font-medium text-ink/50">Titre de la section parcours</span>
             <input
@@ -108,14 +106,13 @@ export default function AdminAboutEditor({ aboutCopy, onSave, isSaving }) {
           </div>
         </div>
 
-        {/* Values Section */}
         <div className="space-y-4 md:col-span-2">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-ink/40">Valeurs (3 items)</h3>
+          <h3 className="text-xs font-bold uppercase tracking-widest text-ink/40">Valeurs (3 piliers)</h3>
           <div className="grid gap-4 md:grid-cols-3">
             {localCopy.values.map((val, index) => (
               <div key={index} className="space-y-3 rounded-xl border border-line/10 bg-paper/50 p-4">
                 <label className="block space-y-1">
-                  <span className="text-[10px] font-bold uppercase text-ink/40">Label {index + 1}</span>
+                  <span className="text-[10px] font-bold uppercase text-ink/40">Libellé {index + 1}</span>
                   <input
                     type="text"
                     value={val.label}
@@ -137,7 +134,6 @@ export default function AdminAboutEditor({ aboutCopy, onSave, isSaving }) {
           </div>
         </div>
 
-        {/* Manifesto & Conviction */}
         <div className="space-y-4">
           <h3 className="text-xs font-bold uppercase tracking-widest text-ink/40">Manifeste</h3>
           <label className="block space-y-2">
@@ -183,13 +179,16 @@ export default function AdminAboutEditor({ aboutCopy, onSave, isSaving }) {
         </div>
       </div>
 
-      <div className="flex justify-end pt-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-4">
+        <a href="/a-propos" target="_blank" rel="noreferrer" className="rounded-full border border-line/25 px-5 py-2.5 text-sm hover:border-ink">
+          Voir la page À propos
+        </a>
         <button
           type="submit"
           disabled={isSaving}
           className="rounded-full bg-ink px-8 py-3 text-sm font-bold uppercase tracking-widest text-paper transition-all hover:bg-accent disabled:opacity-50"
         >
-          {isSaving ? "Enregistrement..." : "Enregistrer la page À Propos"}
+          {isSaving ? "Enregistrement..." : "Enregistrer la page À propos"}
         </button>
       </div>
     </form>

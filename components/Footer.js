@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { siteConfig } from "../lib/siteConfig";
 
 function scrollToTop() {
@@ -9,6 +10,8 @@ function scrollToTop() {
 }
 
 export default function Footer() {
+  const pathname = usePathname();
+  if (pathname?.startsWith("/admin")) return null;
   const year = new Date().getFullYear();
 
   return (

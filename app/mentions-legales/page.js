@@ -1,5 +1,4 @@
 import LegalPage from "../../components/ui/LegalPage";
-import { showPlaceholders } from "../../data/placeholders";
 import { siteConfig } from "../../lib/siteConfig";
 import { buildPageMetadata } from "../../lib/seo";
 
@@ -12,10 +11,6 @@ export async function generateMetadata() {
 }
 
 export default function MentionsLegalesPage() {
-  const hebergeur = showPlaceholders
-    ? "Vercel Inc. [À FOURNIR : vérifier l'adresse actuelle de Vercel]"
-    : "Vercel Inc.";
-
   return (
     <LegalPage
       title="Mentions légales"
@@ -33,7 +28,9 @@ export default function MentionsLegalesPage() {
         },
         {
           titre: "Hébergeur",
-          paragraphes: [hebergeur],
+          paragraphes: [
+            "Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis (https://vercel.com).",
+          ],
         },
         {
           titre: "Propriété intellectuelle",

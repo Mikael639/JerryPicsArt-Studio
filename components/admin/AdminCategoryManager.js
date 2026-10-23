@@ -18,7 +18,7 @@ export default function AdminCategoryManager({ categories, onSave, isSaving }) {
   };
 
   const handleRemove = (cat) => {
-    if (confirm(`Es-tu sûr de vouloir supprimer la catégorie "${cat}" ? Les photos liées à cette catégorie ne seront pas supprimées mais perdront leur étiquette.`)) {
+    if (confirm(`Voulez-vous vraiment supprimer la catégorie « ${cat} » ? Les photos liées à cette catégorie ne seront pas supprimées mais perdront leur étiquette.`)) {
       setLocalCategories(localCategories.filter((c) => c !== cat));
     }
   };
@@ -35,14 +35,14 @@ export default function AdminCategoryManager({ categories, onSave, isSaving }) {
   return (
     <div className="space-y-6 rounded-2xl border border-line/20 bg-white/65 p-6">
       <div className="border-b border-line/10 pb-4">
-        <h2 className="font-serif text-3xl">Gestion des Thèmes</h2>
-        <p className="mt-2 text-sm text-ink/65">Ajoute ou modifie les catégories de ton portfolio.</p>
+        <h2 className="font-serif text-3xl">Gestion des thèmes</h2>
+        <p className="mt-2 text-sm text-ink/65">Ajoutez ou modifiez les catégories de votre portfolio.</p>
       </div>
 
       <form onSubmit={handleAdd} className="flex gap-2">
         <input
           type="text"
-          placeholder="Nouveau thème (ex: Portrait, Mariage...)"
+          placeholder="Nouveau thème (ex. Portrait, Mariage...)"
           value={newCategory}
           onChange={(e) => setNewCategory(e.target.value)}
           className="flex-1 rounded-xl border border-line/25 bg-paper px-4 py-2 outline-none focus:border-accent"
@@ -68,6 +68,7 @@ export default function AdminCategoryManager({ categories, onSave, isSaving }) {
               className="bg-transparent font-serif text-xl outline-none focus:text-accent"
             />
             <button
+              type="button"
               onClick={() => handleRemove(cat)}
               className="text-xs font-bold uppercase tracking-widest text-red-500 hover:text-red-700"
             >

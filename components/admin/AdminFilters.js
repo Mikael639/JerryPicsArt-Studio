@@ -16,12 +16,12 @@ export default function AdminFilters({
         <input
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
-          placeholder="Titre, alt, categorie, role..."
+          placeholder="Titre, alt, catégorie, rôle..."
           className="w-full rounded-lg border border-line/25 bg-paper px-3 py-2 outline-none focus:border-accent"
         />
       </label>
       <label className="space-y-2">
-        <span className="text-xs uppercase tracking-[0.2em] text-ink/55">Categorie</span>
+        <span className="text-xs uppercase tracking-[0.2em] text-ink/55">Catégorie</span>
         <select
           value={categoryFilter}
           onChange={(event) => setCategoryFilter(event.target.value)}
@@ -47,14 +47,14 @@ export default function AdminFilters({
         </select>
       </label>
       <label className="space-y-2">
-        <span className="text-xs uppercase tracking-[0.2em] text-ink/55">Etat</span>
+        <span className="text-xs uppercase tracking-[0.2em] text-ink/55">État</span>
         <select
           value={publishFilter}
           onChange={(event) => setPublishFilter(event.target.value)}
           className="w-full rounded-lg border border-line/25 bg-paper px-3 py-2 outline-none focus:border-accent"
         >
           <option value="all">Tous</option>
-          <option value="published">Publiees</option>
+          <option value="published">Publiées</option>
           <option value="draft">Brouillons</option>
         </select>
       </label>

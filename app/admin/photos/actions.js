@@ -25,13 +25,15 @@ import {
 import {
   getAboutCopy,
   getCategories,
+  getHomeCopy,
+  getMaintenanceMode,
   updateAboutCopy,
   updateCategories,
   updateHomeCopy,
   updateMaintenanceMode,
 } from "../../../lib/siteSettings";
 
-function unauthorizedResult(message = "Unauthorized.") {
+function unauthorizedResult(message = "Session expirée ou non autorisée.") {
   return createActionResult({ ok: false, message });
 }
 
@@ -83,7 +85,7 @@ export async function loginAdminAction(credentials) {
   if (!isAdminConfigured()) {
     return createActionResult({
       ok: false,
-      message: "Admin auth is not configured. Set ADMIN_USERNAME, ADMIN_PASSWORD and ADMIN_SESSION_SECRET.",
+      message: "L'authentification admin n'est pas configurée (ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_SESSION_SECRET).",
     });
   }
 
@@ -91,15 +93,25 @@ export async function loginAdminAction(credentials) {
   const password = typeof credentials?.password === "string" ? credentials.password : "";
 
   if (!validateAdminCredentials(username, password)) {
-    return createActionResult({ ok: false, message: "Invalid credentials." });
+    return createActionResult({ ok: false, message: "Identifiants invalides." });
   }
 
   const cookieStore = await cookies();
   cookieStore.set(ADMIN_COOKIE_NAME, createAdminSessionToken(username), getAdminCookieOptions());
-  const photos = await getAdminPhotos();
-  const messages = await listContactMessages();
+  const [photos, messages, categories, homeCopy, aboutCopy, maintenanceMode] = await Promise.all([
+    getAdminPhotos(),
+    listContactMessages(),
+    getCategories(),
+    getHomeCopy(),
+    getAboutCopy(),
+    getMaintenanceMode(),
+  ]);
 
-  return createActionResult({ ok: true, message: "Connexion admin reussie.", data: { photos, messages } });
+  return createActionResult({
+    ok: true,
+    message: "Connexion à l'espace d'administration réussie.",
+    data: { photos, messages, categories, homeCopy, aboutCopy, maintenanceMode },
+  });
 }
 
 export async function logoutAdminAction() {
@@ -109,7 +121,7 @@ export async function logoutAdminAction() {
     maxAge: 0,
   });
 
-  return createActionResult({ ok: true, message: "Deconnecte." });
+  return createActionResult({ ok: true, message: "Déconnecté." });
 }
 
 export async function uploadAdminPhotosAction(formData) {
@@ -117,7 +129,7 @@ export async function uploadAdminPhotosAction(formData) {
   if (!cookieStore) return unauthorizedResult();
 
   if (!isAdminStorageConfigured()) {
-    return createActionResult({ ok: false, message: "Supabase is not configured yet." });
+    return createActionResult({ ok: false, message: "Le stockage Supabase / R2 n'est pas encore configuré." });
   }
 
   const filesFromForm = formData.getAll("files");
@@ -127,21 +139,21 @@ export async function uploadAdminPhotosAction(formData) {
     .filter((value) => typeof value !== "string");
 
   if (files.length === 0) {
-    return createActionResult({ ok: false, message: "At least one photo file is required." });
+    return createActionResult({ ok: false, message: "Veuillez sélectionner au moins une image." });
   }
 
   if (files.length > MAX_BULK_UPLOAD_COUNT) {
-    return createActionResult({ ok: false, message: `Max ${MAX_BULK_UPLOAD_COUNT} photos per upload.` });
+    return createActionResult({ ok: false, message: `Maximum ${MAX_BULK_UPLOAD_COUNT} photos par envoi.` });
   }
 
   const invalidFile = files.find((file) => !file.type?.startsWith("image/"));
   if (invalidFile) {
-    return createActionResult({ ok: false, message: "Only image files are allowed." });
+    return createActionResult({ ok: false, message: "Seuls les fichiers image sont acceptés." });
   }
 
   const oversizedFile = files.find((file) => file.size > MAX_UPLOAD_FILE_SIZE_BYTES);
   if (oversizedFile) {
-    return createActionResult({ ok: false, message: "One file exceeds the 15MB limit." });
+    return createActionResult({ ok: false, message: "Un fichier dépasse la limite de 15 Mo." });
   }
 
   try {
@@ -160,11 +172,11 @@ export async function uploadAdminPhotosAction(formData) {
     const photos = await getAdminPhotos();
     return createActionResult({
       ok: true,
-      message: `${created.length || files.length} photo(s) ajoutee(s).`,
+      message: `${created.length || files.length} photo(s) ajoutée(s).`,
       data: photos,
     });
   } catch (error) {
-    return createActionResult({ ok: false, message: error.message || "Unable to create photo." });
+    return createActionResult({ ok: false, message: error.message || "Impossible d'ajouter la photo." });
   }
 }
 
@@ -174,7 +186,7 @@ export async function updateAdminPhotoAction(input) {
 
   const id = toStringValue(input?.id);
   if (!id) {
-    return createActionResult({ ok: false, message: "Photo id is required." });
+    return createActionResult({ ok: false, message: "Identifiant de photo manquant." });
   }
 
   try {
@@ -191,9 +203,9 @@ export async function updateAdminPhotoAction(input) {
     revalidatePublicPhotoViews();
     revalidateAdminViews();
     const photos = await getAdminPhotos();
-    return createActionResult({ ok: true, message: "Photo mise a jour.", data: photos });
+    return createActionResult({ ok: true, message: "Photo mise à jour.", data: photos });
   } catch (error) {
-    return createActionResult({ ok: false, message: error.message || "Unable to update photo." });
+    return createActionResult({ ok: false, message: error.message || "Impossible de mettre à jour la photo." });
   }
 }
 
@@ -203,7 +215,7 @@ export async function deleteAdminPhotoAction(id) {
 
   const photoId = toStringValue(id);
   if (!photoId) {
-    return createActionResult({ ok: false, message: "Photo id is required." });
+    return createActionResult({ ok: false, message: "Identifiant de photo manquant." });
   }
 
   try {
@@ -211,9 +223,9 @@ export async function deleteAdminPhotoAction(id) {
     revalidatePublicPhotoViews();
     revalidateAdminViews();
     const photos = await getAdminPhotos();
-    return createActionResult({ ok: true, message: "Photo supprimee.", data: photos });
+    return createActionResult({ ok: true, message: "Photo supprimée.", data: photos });
   } catch (error) {
-    return createActionResult({ ok: false, message: error.message || "Unable to delete photo." });
+    return createActionResult({ ok: false, message: error.message || "Impossible de supprimer la photo." });
   }
 }
 
@@ -225,9 +237,9 @@ export async function reorderAdminPhotosAction(items) {
     const photos = await reorderAdminPhotos(items);
     revalidatePublicPhotoViews();
     revalidateAdminViews();
-    return createActionResult({ ok: true, message: "Ordre des photos enregistre.", data: photos });
+    return createActionResult({ ok: true, message: "Ordre des photos enregistré.", data: photos });
   } catch (error) {
-    return createActionResult({ ok: false, message: error.message || "Unable to reorder photos." });
+    return createActionResult({ ok: false, message: error.message || "Impossible d'enregistrer l'ordre des photos." });
   }
 }
 
@@ -238,9 +250,9 @@ export async function updateContactStatusAction(id, status) {
   try {
     const messages = await updateContactMessageStatus(id, status);
     revalidateAdminViews();
-    return createActionResult({ ok: true, message: "Message mis a jour.", data: messages });
+    return createActionResult({ ok: true, message: "Statut du message mis à jour.", data: messages });
   } catch (error) {
-    return createActionResult({ ok: false, message: error.message || "Unable to update message." });
+    return createActionResult({ ok: false, message: error.message || "Impossible de mettre à jour le message." });
   }
 }
 
@@ -253,9 +265,9 @@ export async function updateHomeCopyAction(input) {
     revalidateTag("site-settings");
     revalidatePath("/");
     revalidateAdminViews();
-    return createActionResult({ ok: true, message: "Textes du site enregistres.", data: copy });
+    return createActionResult({ ok: true, message: "Textes de l'accueil enregistrés.", data: copy });
   } catch (error) {
-    return createActionResult({ ok: false, message: error.message || "Unable to update site copy." });
+    return createActionResult({ ok: false, message: error.message || "Impossible d'enregistrer les textes de l'accueil." });
   }
 }
 
@@ -268,9 +280,9 @@ export async function updateAboutCopyAction(input) {
     revalidateTag("site-settings");
     revalidatePath("/a-propos");
     revalidateAdminViews();
-    return createActionResult({ ok: true, message: "Textes de la page A Propos enregistres.", data: copy });
+    return createActionResult({ ok: true, message: "Textes de la page À propos enregistrés.", data: copy });
   } catch (error) {
-    return createActionResult({ ok: false, message: error.message || "Unable to update about copy." });
+    return createActionResult({ ok: false, message: error.message || "Impossible d'enregistrer la page À propos." });
   }
 }
 
@@ -283,9 +295,9 @@ export async function updateCategoriesAction(input) {
     revalidateTag("site-settings");
     revalidatePublicPhotoViews();
     revalidateAdminViews();
-    return createActionResult({ ok: true, message: "Categories enregistrees.", data: categories });
+    return createActionResult({ ok: true, message: "Thèmes enregistrés.", data: categories });
   } catch (error) {
-    return createActionResult({ ok: false, message: error.message || "Unable to update categories." });
+    return createActionResult({ ok: false, message: error.message || "Impossible d'enregistrer les thèmes." });
   }
 }
 
@@ -298,9 +310,13 @@ export async function updateMaintenanceModeAction(isEnabled) {
     revalidateTag("site-settings");
     revalidatePath("/", "layout");
     revalidateAdminViews();
-    return createActionResult({ ok: true, message: `Mode maintenance ${status ? "active" : "desactive"}.`, data: status });
+    return createActionResult({
+      ok: true,
+      message: `Mode maintenance ${status ? "activé" : "désactivé"}.`,
+      data: status,
+    });
   } catch (error) {
-    return createActionResult({ ok: false, message: error.message || "Unable to update maintenance mode." });
+    return createActionResult({ ok: false, message: error.message || "Impossible de modifier le mode maintenance." });
   }
 }
 
@@ -311,8 +327,8 @@ export async function deleteContactMessageAction(id) {
   try {
     const messages = await deleteContactMessage(id);
     revalidateAdminViews();
-    return createActionResult({ ok: true, message: "Message supprime definitivement.", data: messages });
+    return createActionResult({ ok: true, message: "Message supprimé définitivement.", data: messages });
   } catch (error) {
-    return createActionResult({ ok: false, message: error.message || "Unable to delete message." });
+    return createActionResult({ ok: false, message: error.message || "Impossible de supprimer le message." });
   }
 }

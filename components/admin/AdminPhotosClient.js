@@ -3,37 +3,41 @@
 import { startTransition, useEffect, useMemo, useState } from "react";
 import {
   deleteAdminPhotoAction,
+  deleteContactMessageAction,
   loginAdminAction,
   logoutAdminAction,
   reorderAdminPhotosAction,
+  updateAboutCopyAction,
   updateAdminPhotoAction,
+  updateCategoriesAction,
   updateContactStatusAction,
-  deleteContactMessageAction,
+  updateHomeCopyAction,
+  updateMaintenanceModeAction,
   uploadAdminPhotosAction,
 } from "../../app/admin/photos/actions";
+import { compressImageFiles, formatFileSize } from "../../lib/imageCompression";
+import AdminAboutEditor from "./AdminAboutEditor";
+import AdminCategoryManager from "./AdminCategoryManager";
 import AdminDashboard from "./AdminDashboard";
 import AdminFeedback from "./AdminFeedback";
-import AdminFilters from "./AdminFilters";
 import AdminLoginForm from "./AdminLoginForm";
 import AdminMessagesPanel from "./AdminMessagesPanel";
 import AdminPhotosTable from "./AdminPhotosTable";
+import AdminSiteTextEditor from "./AdminSiteTextEditor";
 import AdminThemeGuide from "./AdminThemeGuide";
 import AdminUploadForm from "./AdminUploadForm";
 import {
   categories as staticCategories,
-  categoryFilters as staticCategoryFilters,
   initialUploadForm,
   maxBulkUploadCount,
   maxHeroPhotoCount,
   roleOptions,
 } from "./constants";
-import { compressImageFiles, formatFileSize } from "../../lib/imageCompression";
 
-const tabs = [
-  { id: "photos", label: "Photos" },
-  { id: "upload", label: "Ajouter" },
-  { id: "messages", label: "Messages" },
-  { id: "themes", label: "Aide" },
+const settingsSubTabs = [
+  { id: "accueil", label: "Page d'accueil", description: "Titre et sous-titre du hero" },
+  { id: "a-propos", label: "Page À propos", description: "Biographie, histoire, valeurs et manifeste" },
+  { id: "themes", label: "Catégories & guide", description: "Gestion des thèmes et correspondance des pages" },
 ];
 
 export default function AdminPhotosClient({
@@ -41,23 +45,38 @@ export default function AdminPhotosClient({
   initialPhotos = [],
   initialMessages = [],
   initialCategories = [],
+  initialHomeCopy = { heroTitle: "", heroSubtitle: "" },
+  initialAboutCopy = {
+    headline: "",
+    subheadline: "",
+    storyTitle: "",
+    storyParagraphs: [],
+    values: [],
+    manifestoTitle: "",
+    manifestoText: "",
+    convictionTitle: "",
+    convictionText: "",
+  },
+  initialMaintenanceMode = false,
 }) {
   const [authForm, setAuthForm] = useState({ username: "admin", password: "" });
   const [isAuthenticated, setIsAuthenticated] = useState(initialAuthenticated);
   const [photos, setPhotos] = useState(initialPhotos);
   const [messages, setMessages] = useState(initialMessages);
   const [categories, setCategories] = useState(initialCategories?.length > 0 ? initialCategories : staticCategories);
+  const [homeCopy, setHomeCopy] = useState(initialHomeCopy);
+  const [aboutCopy, setAboutCopy] = useState(initialAboutCopy);
+  const [maintenanceMode, setMaintenanceMode] = useState(initialMaintenanceMode);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [uploadForm, setUploadForm] = useState(initialUploadForm);
   const [isUploading, setIsUploading] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [busyId, setBusyId] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("Toutes");
-  const [publishFilter, setPublishFilter] = useState("all");
-  const [heroFilter, setHeroFilter] = useState("all");
   const [fileInputKey, setFileInputKey] = useState(0);
   const [activeTab, setActiveTab] = useState("photos");
+  const [selectedUniverse, setSelectedUniverse] = useState("all");
+  const [settingsSubTab, setSettingsSubTab] = useState("accueil");
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
@@ -67,36 +86,33 @@ export default function AdminPhotosClient({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const filteredPhotos = useMemo(() => {
-    const normalizedQuery = searchQuery.trim().toLowerCase();
-
-    return photos.filter((photo) => {
-      const matchesCategory = categoryFilter === "Toutes" ? true : photo.category === categoryFilter;
-      const matchesPublishState =
-        publishFilter === "all" ? true : publishFilter === "published" ? photo.isPublished : !photo.isPublished;
-      const isHeroPhoto = (photo.roles || []).includes("hero");
-      const matchesHeroState = heroFilter === "all" ? true : heroFilter === "hero" ? isHeroPhoto : !isHeroPhoto;
-      const matchesQuery = !normalizedQuery
-        ? true
-        : [photo.title, photo.alt, photo.category, ...(photo.roles || [])]
-            .filter(Boolean)
-            .join(" ")
-            .toLowerCase()
-            .includes(normalizedQuery);
-
-      return matchesCategory && matchesPublishState && matchesHeroState && matchesQuery;
-    });
-  }, [categoryFilter, heroFilter, photos, publishFilter, searchQuery]);
-
   const heroPhotoCount = useMemo(
     () => photos.filter((photo) => (photo.roles || []).includes("hero")).length,
     [photos]
   );
 
+  const pendingMessagesCount = useMemo(
+    () => messages.filter((m) => m.status === "new" || m.status === "soon").length,
+    [messages]
+  );
+
+  const mainTabs = [
+    { id: "overview", label: "Vue d'ensemble" },
+    { id: "photos", label: "Photothèque", badge: photos.length },
+    { id: "upload", label: "Ajouter des photos" },
+    { id: "messages", label: "Demandes de devis", badge: pendingMessagesCount || messages.length },
+    { id: "settings", label: "Textes & réglages" },
+  ];
+
+  function openUniverseInPhototheque(universeId) {
+    setSelectedUniverse(universeId);
+    setActiveTab("photos");
+  }
+
   function showHeroLimitMessage() {
     setStatusMessage("");
     setErrorMessage(
-      `Le diaporama d'accueil est limite a ${maxHeroPhotoCount} photos. Retire une image d'accueil avant d'en ajouter une autre.`
+      `Le diaporama d'accueil est limité à ${maxHeroPhotoCount} photos. Retirez une image d'accueil avant d'en ajouter une autre.`
     );
   }
 
@@ -117,17 +133,21 @@ export default function AdminPhotosClient({
       const result = await loginAdminAction(authForm);
 
       if (!result.ok) {
-        setErrorMessage(result.message || "Login failed.");
+        setErrorMessage(result.message || "Échec de la connexion.");
         return;
       }
 
       setIsAuthenticated(true);
       setPhotos(result.data?.photos || result.data || []);
       setMessages(result.data?.messages || []);
-      setStatusMessage(result.message || "Connexion admin reussie.");
+      if (result.data?.categories?.length > 0) setCategories(result.data.categories);
+      if (result.data?.homeCopy) setHomeCopy(result.data.homeCopy);
+      if (result.data?.aboutCopy) setAboutCopy(result.data.aboutCopy);
+      if (typeof result.data?.maintenanceMode === "boolean") setMaintenanceMode(result.data.maintenanceMode);
+      setStatusMessage(result.message || "Connexion à l'espace d'administration réussie.");
     } catch (error) {
       setIsAuthenticated(false);
-      setErrorMessage(error?.message || "Impossible de charger l'admin.");
+      setErrorMessage(error?.message || "Impossible de charger l'espace d'administration.");
     }
   }
 
@@ -137,7 +157,7 @@ export default function AdminPhotosClient({
     setPhotos([]);
     setMessages([]);
     setErrorMessage("");
-    setStatusMessage(result.message || "Deconnecte.");
+    setStatusMessage(result.message || "Déconnecté.");
   }
 
   function toggleUploadRole(role) {
@@ -161,7 +181,7 @@ export default function AdminPhotosClient({
   async function handleUpload(event) {
     event.preventDefault();
     if (!uploadForm.files.length) {
-      setErrorMessage("Ajoute au moins un fichier image avant de publier.");
+      setErrorMessage("Ajoutez au moins un fichier image avant de publier.");
       return;
     }
 
@@ -171,13 +191,13 @@ export default function AdminPhotosClient({
     }
 
     if (uploadForm.files.length > maxBulkUploadCount) {
-      setErrorMessage(`Tu peux envoyer max ${maxBulkUploadCount} photos en meme temps.`);
+      setErrorMessage(`Vous pouvez envoyer au maximum ${maxBulkUploadCount} photos en même temps.`);
       return;
     }
 
     setIsUploading(true);
     setErrorMessage("");
-    setStatusMessage("Preparation et allegement des images...");
+    setStatusMessage("Préparation et allègement des images...");
 
     let uploadFiles = uploadForm.files;
     try {
@@ -186,16 +206,16 @@ export default function AdminPhotosClient({
 
       if (compression.compressedCount > 0) {
         setStatusMessage(
-          `${compression.compressedCount} image(s) allegee(s) : ${formatFileSize(compression.originalSize)} -> ${formatFileSize(
+          `${compression.compressedCount} image(s) allégée(s) : ${formatFileSize(compression.originalSize)} -> ${formatFileSize(
             compression.compressedSize
-          )}. Upload en cours...`
+          )}. Envoi en cours...`
         );
       } else {
-        setStatusMessage("Images deja legeres. Upload en cours...");
+        setStatusMessage("Images déjà légères. Envoi en cours...");
       }
     } catch (error) {
       setIsUploading(false);
-      setErrorMessage(error?.message || "Impossible d'alleger les images avant l'upload.");
+      setErrorMessage(error?.message || "Impossible d'alléger les images avant l'envoi.");
       return;
     }
 
@@ -213,16 +233,18 @@ export default function AdminPhotosClient({
     const result = await uploadAdminPhotosAction(formData);
 
     if (!result.ok) {
-      setErrorMessage(result.message || "Upload failed.");
+      setErrorMessage(result.message || "Échec de l'envoi.");
       setIsUploading(false);
       return;
     }
 
+    const uploadedCategory = uploadForm.category;
     setUploadForm(initialUploadForm);
     setFileInputKey((current) => current + 1);
     setPhotos(result.data || []);
+    setSelectedUniverse(uploadedCategory || "all");
     setActiveTab("photos");
-    setStatusMessage(result.message || `${uploadForm.files.length} photo(s) ajoutee(s).`);
+    setStatusMessage(result.message || `${uploadForm.files.length} photo(s) ajoutée(s).`);
     setIsUploading(false);
   }
 
@@ -240,13 +262,13 @@ export default function AdminPhotosClient({
 
     if (!result.ok) {
       setPhotos((current) => current.map((photo) => (photo.id === id ? previousPhoto : photo)));
-      setErrorMessage(result.message || "Update failed.");
+      setErrorMessage(result.message || "Impossible de mettre à jour la photo.");
       return;
     }
 
     setPhotos(result.data || []);
     setErrorMessage("");
-    setStatusMessage(result.message || "Photo mise a jour.");
+    setStatusMessage(result.message || "Photo mise à jour.");
   }
 
   async function deletePhoto(id) {
@@ -264,13 +286,13 @@ export default function AdminPhotosClient({
 
     if (!result.ok) {
       setPhotos(previousPhotos);
-      setErrorMessage(result.message || "Delete failed.");
+      setErrorMessage(result.message || "Impossible de supprimer la photo.");
       return;
     }
 
     setPhotos(result.data || []);
     setErrorMessage("");
-    setStatusMessage(result.message || "Photo supprimee.");
+    setStatusMessage(result.message || "Photo supprimée.");
   }
 
   async function reorderPhotos(items) {
@@ -290,7 +312,7 @@ export default function AdminPhotosClient({
     }
 
     setPhotos(result.data || []);
-    setStatusMessage(result.message || "Ordre enregistre.");
+    setStatusMessage(result.message || "Ordre enregistré.");
   }
 
   async function updateMessageStatus(id, status) {
@@ -300,12 +322,12 @@ export default function AdminPhotosClient({
     const result = await updateContactStatusAction(id, status);
     if (!result.ok) {
       setMessages(previousMessages);
-      setErrorMessage(result.message || "Impossible de mettre a jour le message.");
+      setErrorMessage(result.message || "Impossible de mettre à jour le message.");
       return;
     }
 
     setMessages(result.data || []);
-    setStatusMessage(result.message || "Message mis a jour.");
+    setStatusMessage(result.message || "Statut du message mis à jour.");
   }
 
   async function deleteMessage(id) {
@@ -320,7 +342,77 @@ export default function AdminPhotosClient({
     }
 
     setMessages(result.data || []);
-    setStatusMessage(result.message || "Message supprime.");
+    setStatusMessage(result.message || "Message supprimé.");
+  }
+
+  async function handleSaveHomeCopy(event) {
+    event.preventDefault();
+    setIsSavingSettings(true);
+    setErrorMessage("");
+    setStatusMessage("");
+
+    const result = await updateHomeCopyAction(homeCopy);
+    setIsSavingSettings(false);
+
+    if (!result.ok) {
+      setErrorMessage(result.message || "Impossible d'enregistrer les textes de l'accueil.");
+      return;
+    }
+
+    setHomeCopy(result.data || homeCopy);
+    setStatusMessage(result.message || "Textes de l'accueil enregistrés.");
+  }
+
+  async function handleSaveAboutCopy(nextAboutCopy) {
+    setIsSavingSettings(true);
+    setErrorMessage("");
+    setStatusMessage("");
+
+    const result = await updateAboutCopyAction(nextAboutCopy);
+    setIsSavingSettings(false);
+
+    if (!result.ok) {
+      setErrorMessage(result.message || "Impossible d'enregistrer la page À propos.");
+      return;
+    }
+
+    setAboutCopy(result.data || nextAboutCopy);
+    setStatusMessage(result.message || "Textes de la page À propos enregistrés.");
+  }
+
+  async function handleSaveCategories(nextCategories) {
+    setIsSavingSettings(true);
+    setErrorMessage("");
+    setStatusMessage("");
+
+    const result = await updateCategoriesAction(nextCategories);
+    setIsSavingSettings(false);
+
+    if (!result.ok) {
+      setErrorMessage(result.message || "Impossible d'enregistrer les thèmes.");
+      return;
+    }
+
+    setCategories(result.data || nextCategories);
+    setStatusMessage(result.message || "Thèmes enregistrés.");
+  }
+
+  async function handleToggleMaintenance() {
+    const nextValue = !maintenanceMode;
+    setIsSavingSettings(true);
+    setErrorMessage("");
+    setStatusMessage("");
+
+    const result = await updateMaintenanceModeAction(nextValue);
+    setIsSavingSettings(false);
+
+    if (!result.ok) {
+      setErrorMessage(result.message || "Impossible de modifier le mode maintenance.");
+      return;
+    }
+
+    setMaintenanceMode(Boolean(result.data));
+    setStatusMessage(result.message || `Mode maintenance ${nextValue ? "activé" : "désactivé"}.`);
   }
 
   if (!isAuthenticated) {
@@ -330,72 +422,112 @@ export default function AdminPhotosClient({
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 px-4 pb-16 pt-10 md:px-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="mx-auto max-w-7xl space-y-6 px-4 pb-20 pt-8 md:px-8 md:pt-12">
+      {/* EN-TÊTE ÉDITORIAL DE L'ADMIN */}
+      <header className="flex flex-wrap items-end justify-between gap-4 rounded-card border border-line/15 bg-white/80 p-6 shadow-[0_18px_60px_rgba(12,10,8,0.04)] backdrop-blur-sm md:p-8">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.28em] text-ink/45">Espace photographe</p>
-          <h1 className="font-serif text-5xl leading-tight">Admin Jerrypicsart</h1>
+          <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-ink/45">Espace photographe</p>
+          <h1 className="mt-2 font-serif text-4xl leading-none tracking-[-0.03em] md:text-5xl">
+            Administration JerryPicsArt
+          </h1>
+          <p className="mt-2 text-sm text-ink/60">
+            Gérez vos {photos.length} photos classées par univers et par série, vos demandes de devis et vos textes.
+          </p>
         </div>
-        <div className="flex flex-wrap gap-3">
-          <a href="/signature" target="_blank" className="rounded-full border border-line/30 px-4 py-2 text-sm hover:border-ink">
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            type="button"
+            disabled={isSavingSettings}
+            onClick={handleToggleMaintenance}
+            className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] transition ${
+              maintenanceMode
+                ? "border-amber-400 bg-amber-100 text-amber-900"
+                : "border-line/20 bg-paper text-ink/70 hover:border-ink"
+            }`}
+          >
+            {maintenanceMode ? "Maintenance : active" : "Maintenance : inactive"}
+          </button>
+          <a
+            href="/"
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full border border-line/20 bg-paper px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-ink transition hover:border-ink hover:bg-white"
+          >
             Voir le site
           </a>
           <button
             type="button"
             onClick={handleLogout}
-            className="rounded-full border border-line/30 px-4 py-2 text-sm hover:border-ink"
+            className="rounded-full border border-line/20 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-ink/70 transition hover:border-ink hover:text-ink"
           >
-            Deconnexion
+            Déconnexion
           </button>
         </div>
-      </div>
+      </header>
 
-      <AdminDashboard photos={photos} messages={messages} categories={categories} onSelectTab={setActiveTab} />
+      {/* COMPTEURS CLÉS & VUE D'ENSEMBLE */}
+      <AdminDashboard
+        photos={photos}
+        messages={messages}
+        categories={categories}
+        onSelectTab={setActiveTab}
+        onOpenUniverse={openUniverseInPhototheque}
+        showDetails={activeTab === "overview"}
+      />
+
       <AdminFeedback errorMessage={errorMessage} statusMessage={statusMessage} />
 
-      <nav className="no-scrollbar flex gap-2 overflow-x-auto rounded-2xl border border-line/20 bg-white/55 p-2">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveTab(tab.id)}
-            className={`whitespace-nowrap rounded-full px-4 py-2 text-sm transition ${
-              activeTab === tab.id ? "bg-ink text-paper" : "text-ink/65 hover:bg-white"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* NAVIGATION PRINCIPALE (ONGLETS DE NIVEAU 1) */}
+      <nav
+        aria-label="Sections de l'administration"
+        className="no-scrollbar flex gap-2 overflow-x-auto rounded-2xl border border-line/15 bg-white/75 p-2 shadow-[0_8px_30px_rgba(12,10,8,0.03)]"
+      >
+        {mainTabs.map((tab) => {
+          const active = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-[0.16em] transition ${
+                active ? "bg-ink text-paper shadow-sm" : "text-ink/65 hover:bg-paper hover:text-ink"
+              }`}
+            >
+              {tab.label}
+              {typeof tab.badge === "number" ? (
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] ${
+                    active ? "bg-white/20 text-paper" : "bg-ink/8 text-ink/70"
+                  }`}
+                >
+                  {tab.badge}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
       </nav>
 
+      {/* ONGLET 2 : PHOTOTHÈQUE HIÉRARCHISÉE (UNIVERS -> SÉRIES -> VUES) */}
       {activeTab === "photos" ? (
-        <>
-          <AdminFilters
-            categoryFilter={categoryFilter}
-            categoryFilters={["Toutes", ...categories]}
-            heroFilter={heroFilter}
-            publishFilter={publishFilter}
-            searchQuery={searchQuery}
-            setCategoryFilter={setCategoryFilter}
-            setHeroFilter={setHeroFilter}
-            setPublishFilter={setPublishFilter}
-            setSearchQuery={setSearchQuery}
-          />
-          <AdminPhotosTable
-            busyId={busyId}
-            categories={categories}
-            deletePhoto={deletePhoto}
-            filteredPhotos={filteredPhotos}
-            heroPhotoCount={heroPhotoCount}
-            maxHeroPhotoCount={maxHeroPhotoCount}
-            onHeroLimit={showHeroLimitMessage}
-            onReorder={reorderPhotos}
-            roleOptions={roleOptions}
-            updatePhoto={updatePhoto}
-          />
-        </>
+        <AdminPhotosTable
+          busyId={busyId}
+          categories={categories}
+          deletePhoto={deletePhoto}
+          photos={photos}
+          heroPhotoCount={heroPhotoCount}
+          maxHeroPhotoCount={maxHeroPhotoCount}
+          onHeroLimit={showHeroLimitMessage}
+          onReorder={reorderPhotos}
+          roleOptions={roleOptions}
+          updatePhoto={updatePhoto}
+          selectedUniverse={selectedUniverse}
+          setSelectedUniverse={setSelectedUniverse}
+        />
       ) : null}
 
+      {/* ONGLET 3 : AJOUTER DES PHOTOS */}
       {activeTab === "upload" ? (
         <AdminUploadForm
           categories={categories}
@@ -412,19 +544,72 @@ export default function AdminPhotosClient({
         />
       ) : null}
 
+      {/* ONGLET 4 : DEMANDES DE DEVIS */}
       {activeTab === "messages" ? (
-        <AdminMessagesPanel 
-          messages={messages} 
-          onUpdateStatus={updateMessageStatus} 
+        <AdminMessagesPanel
+          messages={messages}
+          onUpdateStatus={updateMessageStatus}
           onDeleteMessage={deleteMessage}
         />
       ) : null}
 
-      {activeTab === "themes" ? <AdminThemeGuide categories={categories} /> : null}
+      {/* ONGLET 5 : TEXTES & RÉGLAGES (AVEC SOUS-ONGLETS) */}
+      {activeTab === "settings" ? (
+        <div className="space-y-6">
+          <div className="grid gap-3 rounded-2xl border border-line/15 bg-white/75 p-4 md:grid-cols-3">
+            {settingsSubTabs.map((sub) => {
+              const active = settingsSubTab === sub.id;
+              return (
+                <button
+                  key={sub.id}
+                  type="button"
+                  onClick={() => setSettingsSubTab(sub.id)}
+                  className={`rounded-xl border p-4 text-left transition ${
+                    active
+                      ? "border-ink bg-ink text-paper shadow-[0_12px_30px_rgba(12,10,8,0.14)]"
+                      : "border-line/15 bg-paper/60 text-ink hover:border-ink/35 hover:bg-white"
+                  }`}
+                >
+                  <p className="font-serif text-xl">{sub.label}</p>
+                  <p className={`mt-1 text-xs ${active ? "text-paper/70" : "text-ink/55"}`}>{sub.description}</p>
+                </button>
+              );
+            })}
+          </div>
+
+          {settingsSubTab === "accueil" ? (
+            <AdminSiteTextEditor
+              homeCopy={homeCopy}
+              setHomeCopy={setHomeCopy}
+              onSave={handleSaveHomeCopy}
+              isSaving={isSavingSettings}
+            />
+          ) : null}
+
+          {settingsSubTab === "a-propos" ? (
+            <AdminAboutEditor
+              aboutCopy={aboutCopy}
+              onSave={handleSaveAboutCopy}
+              isSaving={isSavingSettings}
+            />
+          ) : null}
+
+          {settingsSubTab === "themes" ? (
+            <div className="space-y-6">
+              <AdminCategoryManager
+                categories={categories}
+                onSave={handleSaveCategories}
+                isSaving={isSavingSettings}
+              />
+              <AdminThemeGuide categories={categories} />
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <button
         type="button"
-        aria-label="Remonter en haut de la page admin"
+        aria-label="Remonter en haut de la page d'administration"
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         className={`fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full border border-line/15 bg-paper/90 text-ink shadow-[0_18px_52px_rgba(12,10,8,0.18)] backdrop-blur-xl transition duration-300 hover:bg-ink hover:text-paper md:bottom-8 md:right-8 ${
           showScrollTop ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0"

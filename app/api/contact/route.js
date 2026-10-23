@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createContactMessage, listContactMessages } from "../../../lib/contactStore";
 import { sendContactEmails } from "../../../lib/contactEmail";
-import { validateContactInput } from "../../../lib/contactValidation";
+import { qualifyRequest, validateContactInput } from "../../../lib/contactValidation";
 import { consumeRateLimit } from "../../../lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -27,7 +27,7 @@ export async function POST(request) {
     return NextResponse.json(
       {
         ok: false,
-        message: "Trop de tentatives. Réessaye dans quelques minutes.",
+        message: "Trop de tentatives. Veuillez réessayer dans quelques minutes.",
       },
       {
         status: 429,
@@ -67,7 +67,10 @@ export async function POST(request) {
 
   let emailResult;
   try {
-    emailResult = await sendContactEmails(created);
+    emailResult = await sendContactEmails(created, {
+      ...validation.sanitized,
+      qualification: qualifyRequest(validation.sanitized),
+    });
   } catch (error) {
     console.error("Contact API email delivery failed", error);
     return NextResponse.json(

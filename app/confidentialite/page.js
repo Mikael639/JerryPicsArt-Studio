@@ -1,5 +1,4 @@
 import LegalPage from "../../components/ui/LegalPage";
-import { showPlaceholders } from "../../data/placeholders";
 import { siteConfig } from "../../lib/siteConfig";
 import { buildPageMetadata } from "../../lib/seo";
 
@@ -12,10 +11,6 @@ export async function generateMetadata() {
 }
 
 export default function ConfidentialitePage() {
-  const duree = showPlaceholders
-    ? "[À FOURNIR : durée de conservation des données]"
-    : "Elles sont conservées le temps nécessaire au traitement de votre demande, puis supprimées.";
-
   return (
     <LegalPage
       title="Politique de confidentialité"
@@ -35,7 +30,9 @@ export default function ConfidentialitePage() {
         },
         {
           titre: "Durée de conservation",
-          paragraphes: [duree],
+          paragraphes: [
+            "Vos données sont conservées le temps nécessaire au traitement de votre demande, et au maximum 3 ans à compter de notre dernier échange.",
+          ],
         },
         {
           titre: "Vos droits",

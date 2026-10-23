@@ -6,6 +6,7 @@ import Reveal from "../../components/ui/Reveal";
 import OfferCards from "../../components/ui/OfferCards";
 import ContactBlock from "../../components/ui/ContactBlock";
 import DarkChapter from "../../components/ui/DarkChapter";
+import TrackedLink from "../../components/ui/TrackedLink";
 import { pickSeries } from "../../data/series";
 import { loadSeries } from "../../lib/loadSeries";
 import { buildPageMetadata } from "../../lib/seo";
@@ -47,8 +48,7 @@ export default async function EntreprisesPage() {
         eyebrow="Entreprises & lieux"
         title="Photographe pour événements d'entreprise et lieux de réception à Paris"
         lead="Un photographe fiable pour vos événements et vos clients."
-        cta={{ href: "/dossier-b2b-jerrypicsart.pdf", label: "Télécharger le dossier B2B", event: "telechargement_dossier_b2b" }}
-        secondary={{ href: "/contact?type=entreprise", label: "Réserver un appel de 15 minutes" }}
+        cta={{ href: "/contact?type=entreprise", label: "Réserver un appel de 15 minutes", event: "appel_15_minutes" }}
       />
 
       <ReferencesBand />
@@ -136,13 +136,13 @@ export default async function EntreprisesPage() {
                 téléphone.
               </p>
             </div>
-            <a
+            <TrackedLink
               href="/dossier-b2b-jerrypicsart.pdf"
-              download
+              event="telechargement_dossier_b2b"
               className="mx-auto inline-flex flex-col items-center rounded-full border border-ink px-7 py-3.5 text-[12px] font-bold uppercase tracking-[0.18em] text-ink transition-colors hover:bg-ink hover:text-paper md:mx-0"
             >
               Télécharger le PDF
-            </a>
+            </TrackedLink>
           </Reveal>
         </section>
 
