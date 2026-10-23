@@ -12,23 +12,23 @@ const UNIVERS_BY_CATEGORY = {
 };
 
 const SERIES_META = [
-  { match: /^hcw 260128 elie saab/, slug: "elie-saab-haute-couture", titre: "Défilé Elie Saab — Haute Couture", saison: "Haute Couture, 28 janvier 2026", lieu: "Paris", date: 20260128, priority: true, alt: "Invités au défilé Elie Saab, Semaine de la Haute Couture, Paris" },
-  { match: /^imane ayissi hcw 260126/, slug: "imane-ayissi-haute-couture", titre: "Défilé Imane Ayissi — Haute Couture", saison: "Haute Couture, 26 janvier 2026", lieu: "Paris", date: 20260126, alt: "Invités au défilé Imane Ayissi, Semaine de la Haute Couture, Paris" },
+  { match: /^hcw 260128 elie saab/, slug: "elie-saab-haute-couture", titre: "Défilé Elie Saab, Haute Couture", saison: "Haute Couture, 28 janvier 2026", lieu: "Paris", date: 20260128, priority: true, alt: "Invités au défilé Elie Saab, Semaine de la Haute Couture, Paris" },
+  { match: /^imane ayissi hcw 260126/, slug: "imane-ayissi-haute-couture", titre: "Défilé Imane Ayissi, Haute Couture", saison: "Haute Couture, 26 janvier 2026", lieu: "Paris", date: 20260126, alt: "Invités au défilé Imane Ayissi, Semaine de la Haute Couture, Paris" },
   { match: /^hcw 260127/, slug: "haute-couture-27-janvier-2026", titre: "Semaine de la Haute Couture", saison: "27 janvier 2026", lieu: "Paris", date: 20260127, alt: "Invités de la Semaine de la Haute Couture, Paris" },
   { match: /^hcw 260126/, slug: "haute-couture-26-janvier-2026", titre: "Semaine de la Haute Couture", saison: "26 janvier 2026", lieu: "Paris", date: 20260126, alt: "Invités de la Semaine de la Haute Couture, Paris" },
-  { match: /^pfw 260306/, slug: "pfw-mars-2026", titre: "Paris Fashion Week — mars 2026", saison: "6 mars 2026", lieu: "Paris", date: 20260306, alt: "Invités de la Paris Fashion Week, mars 2026" },
-  { match: /^pfw 290925/, slug: "pfw-septembre-2025", titre: "Paris Fashion Week — septembre 2025", saison: "29 septembre 2025", lieu: "Paris", date: 20250929, alt: "Invités de la Paris Fashion Week, septembre 2025" },
-  { match: /^pfw 011025/, slug: "pfw-octobre-2025", titre: "Paris Fashion Week — octobre 2025", saison: "1er octobre 2025", lieu: "Paris", date: 20251001, alt: "Invités de la Paris Fashion Week, octobre 2025" },
-  { match: /^pfw 061025/, slug: "pfw-6-octobre-2025", titre: "Paris Fashion Week — octobre 2025", saison: "6 octobre 2025", lieu: "Paris", date: 20251006, alt: "Invités de la Paris Fashion Week, octobre 2025" },
-  { match: /^pfw 060325/, slug: "pfw-mars-2025", titre: "Paris Fashion Week — mars 2025", saison: "6 mars 2025", lieu: "Paris", date: 20250306, alt: "Invités de la Paris Fashion Week, mars 2025" },
-  { match: /^pfw lemaire/, slug: "lemaire", titre: "Défilé Lemaire — Paris Fashion Week", lieu: "Paris", alt: "Invités au défilé Lemaire, Paris Fashion Week" },
-  { match: /^pfw celebrites/, slug: "pfw-celebrites", titre: "Paris Fashion Week — célébrités", lieu: "Paris", alt: "Personnalité photographiée pendant la Paris Fashion Week" },
+  { match: /^pfw 260306/, slug: "pfw-mars-2026", titre: "Paris Fashion Week, mars 2026", saison: "6 mars 2026", lieu: "Paris", date: 20260306, alt: "Invités de la Paris Fashion Week, mars 2026" },
+  { match: /^pfw 290925/, slug: "pfw-septembre-2025", titre: "Paris Fashion Week, septembre 2025", saison: "29 septembre 2025", lieu: "Paris", date: 20250929, alt: "Invités de la Paris Fashion Week, septembre 2025" },
+  { match: /^pfw 011025/, slug: "pfw-octobre-2025", titre: "Paris Fashion Week, octobre 2025", saison: "1er octobre 2025", lieu: "Paris", date: 20251001, alt: "Invités de la Paris Fashion Week, octobre 2025" },
+  { match: /^pfw 061025/, slug: "pfw-6-octobre-2025", titre: "Paris Fashion Week, octobre 2025", saison: "6 octobre 2025", lieu: "Paris", date: 20251006, alt: "Invités de la Paris Fashion Week, octobre 2025" },
+  { match: /^pfw 060325/, slug: "pfw-mars-2025", titre: "Paris Fashion Week, mars 2025", saison: "6 mars 2025", lieu: "Paris", date: 20250306, alt: "Invités de la Paris Fashion Week, mars 2025" },
+  { match: /^pfw lemaire/, slug: "lemaire", titre: "Défilé Lemaire, Paris Fashion Week", lieu: "Paris", alt: "Invités au défilé Lemaire, Paris Fashion Week" },
+  { match: /^pfw celebrites/, slug: "pfw-celebrites", titre: "Paris Fashion Week, célébrités", lieu: "Paris", alt: "Personnalité photographiée pendant la Paris Fashion Week" },
   { match: /^amiri guest/, slug: "amiri", titre: "Invités du défilé Amiri", lieu: "Paris", priority: true, alt: "Invités au défilé Amiri, Paris" },
   { match: /^michael rainey jr/, slug: "michael-rainey-jr", titre: "Michael Rainey Jr.", lieu: "Paris", priority: true, alt: "Michael Rainey Jr. photographié à Paris" },
   { match: /^djany flammes 2026/, slug: "les-flammes-2026", titre: "Les Flammes 2026", saison: "2026", priority: true, alt: "Invités de la cérémonie Les Flammes 2026" },
   { match: /^flammes 2025/, slug: "les-flammes-2025", titre: "Les Flammes 2025", saison: "2025", priority: true, alt: "Invités de la cérémonie Les Flammes 2025" },
   { match: /^joya l avant premiere/, slug: "joya-l-avant-premiere", titre: "Avant-première Joya L", priority: true, alt: "Invités de l'avant-première Joya L, Paris" },
-  { match: /^djany lawson paris/, slug: "djany-lawson-paris", titre: "Djany Lawson — Paris", lieu: "Paris", alt: "Invités d'une soirée Djany Lawson, Paris" },
+  { match: /^djany lawson paris/, slug: "djany-lawson-paris", titre: "Djany Lawson à Paris", lieu: "Paris", alt: "Invités d'une soirée Djany Lawson, Paris" },
   { match: /^d in paris/, slug: "d-in-paris", titre: "D in Paris", lieu: "Paris", alt: "Invités de l'événement D in Paris" },
   { match: /^event$/, slug: "soirees-a-paris", titre: "Soirées à Paris", lieu: "Paris", alt: "Invités lors d'une soirée privée à Paris" },
 ];
@@ -124,7 +124,7 @@ export function buildSeries(rawPhotos, { minImages = 3 } = {}) {
     const isStudio = univers === "entreprise";
     const titre =
       meta?.titre ||
-      (isWedding ? "Mariages — sélection" : isStudio ? "Portrait et contenu de marque" : cleanTitle(group.photos[0].title));
+      (isWedding ? "Sélection de mariages" : isStudio ? "Portrait et contenu de marque" : cleanTitle(group.photos[0].title));
     const altBase =
       meta?.alt ||
       (isWedding

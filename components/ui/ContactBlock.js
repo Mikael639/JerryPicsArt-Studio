@@ -9,9 +9,10 @@ export default function ContactBlock({
   href = "/contact",
   event,
   secondary,
+  themeSwitch = true,
 }) {
   return (
-    <section className="mx-auto max-w-7xl px-4 md:px-8">
+    <section data-theme-section={themeSwitch ? "dark" : undefined} className="mx-auto max-w-7xl px-4 pt-12 md:px-8 md:pt-20">
       <div
         data-cursor-surface="dark"
         className="relative overflow-hidden rounded-feature border border-line/12 bg-[linear-gradient(135deg,#171310,#302720)] p-8 text-paper shadow-[0_48px_128px_rgba(12,10,8,0.2)] md:p-14"

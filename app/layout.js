@@ -6,6 +6,7 @@ import SmoothScroll from "../components/SmoothScroll";
 import NoiseOverlay from "../components/NoiseOverlay";
 import IntroSplash from "../components/IntroSplash";
 import Footer from "../components/Footer";
+import ThemeScroll from "../components/ThemeScroll";
 import { Analytics } from "@vercel/analytics/next";
 import { getSiteUrl, siteConfig, toAbsoluteUrl } from "../lib/siteConfig";
 import { getMaintenanceMode } from "../lib/siteSettings";
@@ -46,7 +47,7 @@ export const metadata = {
         url: toAbsoluteUrl("/opengraph-image"),
         width: 1200,
         height: 630,
-        alt: `${siteConfig.name} — portfolio photo`,
+        alt: `Portfolio photo de ${siteConfig.name}`,
       },
     ],
   },
@@ -118,6 +119,7 @@ export default async function RootLayout({ children }) {
             <CustomCursor />
             <Navbar />
             <main className={`w-full pt-20 ${isAdmin ? "pb-16" : ""}`}>{children}</main>
+            {!isAdmin ? <ThemeScroll /> : null}
             {!isAdmin ? <Footer /> : null}
             {!isAdmin ? <Analytics /> : null}
           </div>

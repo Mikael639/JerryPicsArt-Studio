@@ -113,17 +113,31 @@ export default async function EntreprisesPage() {
       </div>
 
       <section className="mx-auto max-w-7xl px-4 md:px-8">
-        <Reveal className="flex flex-col gap-6 rounded-card border border-line/15 bg-white/60 p-8 md:flex-row md:items-center md:justify-between md:p-10">
-          <div className="max-w-xl space-y-2">
-            <h2 className="font-serif text-3xl tracking-tight">Le dossier B2B</h2>
-            <p className="text-base leading-relaxed text-ink/70">
-              Prestations, tarifs et conditions réunis dans un seul document.
+        <Reveal className="grid items-center gap-8 overflow-hidden rounded-panel border border-line/15 bg-white/60 p-8 md:grid-cols-[auto_1fr_auto] md:gap-12 md:p-12">
+          <div
+            aria-hidden="true"
+            className="relative mx-auto flex h-48 w-36 flex-col justify-between rounded-[0.9rem] border border-line/20 bg-paper p-4 shadow-[0_24px_60px_rgba(12,10,8,0.14)] md:mx-0 md:h-56 md:w-40"
+          >
+            <span className="font-serif text-lg leading-tight text-ink">JerryPicsArt</span>
+            <span className="space-y-1.5">
+              <span className="block h-px w-full bg-ink/20" />
+              <span className="block h-px w-4/5 bg-ink/20" />
+              <span className="block h-px w-3/5 bg-ink/20" />
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-accent">Dossier B2B</span>
+          </div>
+          <div className="space-y-3 text-center md:text-left">
+            <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-ink/45">Document à partager</p>
+            <h2 className="font-serif text-3xl leading-tight tracking-tight md:text-4xl">Le dossier B2B de JerryPicsArt</h2>
+            <p className="max-w-xl text-base leading-relaxed text-ink/70">
+              Un document à transmettre à vos équipes, à votre direction ou à vos clients. Format PDF, lisible sur
+              téléphone.
             </p>
           </div>
           <a
             href="/dossier-b2b-jerrypicsart.pdf"
             download
-            className="inline-block rounded-full border border-ink px-7 py-3.5 text-[12px] font-bold uppercase tracking-[0.18em] text-ink transition-colors hover:bg-ink hover:text-paper"
+            className="mx-auto inline-flex flex-col items-center rounded-full border border-ink px-7 py-3.5 text-[12px] font-bold uppercase tracking-[0.18em] text-ink transition-colors hover:bg-ink hover:text-paper md:mx-0"
           >
             Télécharger le PDF
           </a>

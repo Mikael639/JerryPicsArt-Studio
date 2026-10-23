@@ -152,7 +152,7 @@ export default function ContactForm({ type = "" }) {
       ) : (
         <Fragment>
           <div className="space-y-3 rounded-inset border border-line/10 bg-paper/70 p-5 md:col-span-2">
-            <p className="text-[11px] uppercase tracking-[0.24em] text-ink/48">Demande de devis — {config.label}</p>
+            <p className="text-[11px] uppercase tracking-[0.24em] text-ink/48">Demande de devis : {config.label}</p>
             <h2 className="font-serif text-3xl leading-tight md:text-4xl">Parlez-moi de votre projet.</h2>
           </div>
 

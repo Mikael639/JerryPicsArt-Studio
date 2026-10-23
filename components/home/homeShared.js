@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { stats } from "../../data/stats";
 
@@ -87,8 +88,59 @@ export const partners = [
   { name: "Printemps", logo: "/images/partners/printemps.png", size: "h-8 md:h-9", width: 342, height: 49 },
 ];
 
+// Au survol, le défilement ralentit sans jamais s'arrêter ; hors survol il reprend son allure.
+function useMarqueeSlowdown(trackRef, containerRef, slowRate = 0.3) {
+  useEffect(() => {
+    const track = trackRef.current;
+    const container = containerRef.current;
+    if (!track || !container) return undefined;
+
+    let rate = 1;
+    let target = 1;
+    let frame = 0;
+    let last = 0;
+
+    // Lissage dépendant du temps : même ressenti quelle que soit la fréquence d'affichage.
+    const tick = (now) => {
+      const delta = last ? Math.min(now - last, 100) : 16;
+      last = now;
+      rate += (target - rate) * (1 - Math.exp(-delta / 220));
+      if (Math.abs(target - rate) < 0.005) rate = target;
+      track.getAnimations().forEach((animation) => {
+        animation.playbackRate = rate;
+      });
+      if (rate !== target) {
+        frame = window.requestAnimationFrame(tick);
+      } else {
+        last = 0;
+      }
+    };
+
+    const setTarget = (value) => {
+      target = value;
+      window.cancelAnimationFrame(frame);
+      last = 0;
+      frame = window.requestAnimationFrame(tick);
+    };
+
+    const slow = () => setTarget(slowRate);
+    const fast = () => setTarget(1);
+
+    container.addEventListener("mouseenter", slow);
+    container.addEventListener("mouseleave", fast);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      container.removeEventListener("mouseenter", slow);
+      container.removeEventListener("mouseleave", fast);
+    };
+  }, [trackRef, containerRef, slowRate]);
+}
+
 export function PartnersSection({ reduceMotion, items = partners }) {
   const loop = [...items, ...items];
+  const trackRef = useRef(null);
+  const containerRef = useRef(null);
+  useMarqueeSlowdown(trackRef, containerRef);
 
   return (
     <section className="mx-auto max-w-7xl px-4 md:px-8">
@@ -100,8 +152,8 @@ export function PartnersSection({ reduceMotion, items = partners }) {
           </h2>
         </div>
 
-        <div className="partners-mask relative overflow-hidden rounded-panel border border-white/10 bg-white/[0.03] py-10 backdrop-blur-sm">
-          <ul className={`flex w-max items-center gap-16 px-8 md:gap-24 ${reduceMotion ? "" : "partners-track"}`}>
+        <div ref={containerRef} className="partners-mask relative overflow-hidden rounded-panel border border-white/10 bg-white/[0.03] py-10 backdrop-blur-sm">
+          <ul ref={trackRef} className={`flex w-max items-center gap-16 px-8 md:gap-24 ${reduceMotion ? "" : "partners-track"}`}>
             {loop.map((partner, index) => (
               <li
                 key={`${partner.name}-${index}`}

@@ -8,7 +8,7 @@ import { buildPageMetadata } from "../../lib/seo";
 
 export async function generateMetadata() {
   return buildPageMetadata({
-    title: "Photographe Fashion Week Paris — défilés, maisons et célébrités",
+    title: "Photographe Fashion Week Paris : défilés, maisons et célébrités",
     description:
       "Séries photo de la Fashion Week de Paris : défilés, invités et personnalités. Le regard éditorial de JerryPicsArt.",
     path: "/signature",
@@ -28,7 +28,7 @@ export default async function SignaturePage() {
     <div className="page-shell space-y-16 pb-20 md:space-y-24">
       <PageIntro
         eyebrow="Signature"
-        title="Fashion Week de Paris — défilés, maisons et personnalités"
+        title="Fashion Week de Paris : défilés, maisons et personnalités"
         lead="Depuis plusieurs saisons, je photographie les défilés, les invités et les personnalités de la Fashion Week de Paris."
         bridge="La même exigence guide chacun de mes mariages et de mes événements."
       />

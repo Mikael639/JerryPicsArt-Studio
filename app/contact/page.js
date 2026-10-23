@@ -3,7 +3,7 @@ import { buildPageMetadata } from "../../lib/seo";
 
 export async function generateMetadata() {
   return buildPageMetadata({
-    title: "Contact et devis — JerryPicsArt",
+    title: "Contact et devis | JerryPicsArt",
     description:
       "Demandez un devis pour votre mariage, votre événement ou votre événement d'entreprise à Paris. Réponse sous 24 à 48 h.",
     path: "/contact",

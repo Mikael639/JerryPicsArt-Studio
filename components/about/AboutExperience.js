@@ -68,7 +68,7 @@ export default function AboutExperience({ aboutCopy = defaultAboutCopy }) {
       <div className="bg-paper pt-12">
         <section className="mx-auto max-w-7xl px-4 md:px-8 grid min-h-[calc(100vh-8rem)] gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-end pb-20">
           <motion.div className="space-y-8 pb-2" {...getRevealProps(reduceMotion)}>
-            <p className="text-[11px] font-medium uppercase tracking-[0.34em] text-ink/50">Derrière l&apos;objectif — {siteConfig.legalName}</p>
+            <p className="text-[11px] font-medium uppercase tracking-[0.34em] text-ink/50">Derrière l&apos;objectif, {siteConfig.legalName}</p>
             <h1 className="max-w-4xl font-serif text-5xl leading-[0.92] tracking-[-0.05em] md:text-7xl xl:text-8xl text-ink">
               {headline}
             </h1>
@@ -185,7 +185,7 @@ export default function AboutExperience({ aboutCopy = defaultAboutCopy }) {
         ) : null}
       </section>
 
-      <section className="overflow-hidden rounded-feature border border-line/12 bg-[linear-gradient(135deg,rgba(18,15,12,0.98),rgba(29,33,41,0.96))] p-8 text-paper shadow-[0_32px_96px_rgba(12,10,8,0.18)] md:p-12 lg:p-16">
+      <section data-theme-section="dark" className="overflow-hidden rounded-feature border border-line/12 bg-[linear-gradient(135deg,rgba(18,15,12,0.98),rgba(29,33,41,0.96))] p-8 text-paper shadow-[0_32px_96px_rgba(12,10,8,0.18)] md:p-12 lg:p-16">
         <motion.div className="grid gap-12 lg:grid-cols-[1.08fr_0.92fr] lg:items-center" {...getRevealProps(reduceMotion)}>
           <div className="space-y-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-paper/40">Manifeste</p>

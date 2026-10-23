@@ -99,11 +99,7 @@ button {
 
 /* Bandeau defilant des partenaires */
 .partners-track {
-  animation: partners-scroll 20s linear infinite;
-}
-
-.partners-track:hover {
-  animation-play-state: paused;
+  animation: partners-scroll 14s linear infinite;
 }
 
 .partners-mask {

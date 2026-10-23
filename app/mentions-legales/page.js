@@ -5,7 +5,7 @@ import { buildPageMetadata } from "../../lib/seo";
 
 export async function generateMetadata() {
   return buildPageMetadata({
-    title: "Mentions légales — JerryPicsArt",
+    title: "Mentions légales | JerryPicsArt",
     description: "Mentions légales du site JerryPicsArt, photographe éditorial à Paris.",
     path: "/mentions-legales",
   });

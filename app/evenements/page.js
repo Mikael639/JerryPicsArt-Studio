@@ -11,7 +11,7 @@ import { buildPageMetadata } from "../../lib/seo";
 
 export async function generateMetadata() {
   return buildPageMetadata({
-    title: "Photographe événementiel à Paris — soirées, lancements, galas",
+    title: "Photographe événementiel à Paris : soirées, lancements, galas",
     description:
       "Photographe pour vos soirées, lancements et galas à Paris. Sélection express le soir même en option. Devis sous 48 h.",
     path: "/evenements",
@@ -74,7 +74,7 @@ export default async function EvenementsPage() {
     <div className="page-shell space-y-16 pb-20 md:space-y-24">
       <PageIntro
         eyebrow="Événements"
-        title="Photographe événementiel à Paris — soirées, lancements, galas"
+        title="Photographe événementiel à Paris : soirées, lancements, galas"
         lead="L'énergie de vos événements, livrée à temps pour vos réseaux."
         bridge="La même exigence que sur les défilés de la Fashion Week, pour votre lancement ou votre soirée."
         cta={{ href: "/contact?type=evenement", label: "Demander un devis", event: "devis_evenement" }}

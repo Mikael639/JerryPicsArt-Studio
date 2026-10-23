@@ -5,7 +5,7 @@ import { buildPageMetadata } from "../../lib/seo";
 
 export async function generateMetadata() {
   return buildPageMetadata({
-    title: "Politique de confidentialité — JerryPicsArt",
+    title: "Politique de confidentialité | JerryPicsArt",
     description: "Comment JerryPicsArt utilise les données recueillies par le formulaire de contact.",
     path: "/confidentialite",
   });

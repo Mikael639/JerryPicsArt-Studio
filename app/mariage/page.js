@@ -13,7 +13,7 @@ import { buildPageMetadata } from "../../lib/seo";
 
 export async function generateMetadata() {
   return buildPageMetadata({
-    title: "Photographe de mariage haut de gamme à Paris — JerryPicsArt",
+    title: "Photographe de mariage haut de gamme à Paris | JerryPicsArt",
     description:
       "Votre mariage photographié comme un éditorial. Formules à partir de 1 500 €. Vérifiez la disponibilité de votre date.",
     path: "/mariage",
