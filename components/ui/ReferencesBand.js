@@ -27,11 +27,14 @@ export default function ReferencesBand({ tone = "light", className = "" }) {
               <p className={`text-[11px] font-bold uppercase tracking-[0.32em] ${dark ? "text-paper/45" : "text-ink/45"}`}>
                 {column.titre}
               </p>
-              <ul className="space-y-2.5">
+              <ul className="flex flex-wrap justify-center gap-x-6 gap-y-1.5 md:block md:space-y-2.5">
                 {references
                   .filter((item) => item.groupe === column.groupe)
                   .map((item) => (
-                    <li key={item.nom} className="font-serif text-2xl leading-snug tracking-tight md:text-[1.7rem]">
+                    <li
+                      key={item.nom}
+                      className="font-serif text-xl leading-snug tracking-tight md:text-[1.7rem]"
+                    >
                       {item.nom}
                     </li>
                   ))}

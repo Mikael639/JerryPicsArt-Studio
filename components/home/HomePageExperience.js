@@ -44,7 +44,7 @@ const DEFAULT_HERO_SUBTITLE =
   "Le regard des défilés pour vos mariages, vos soirées et vos événements d'entreprise. Un accompagnement du premier rendez-vous à la livraison.";
 
 const method = [
-  { titre: "Repérage et brief", texte: "Nous cadrons vos attentes, le lieu, le déroulé et l'usage des images." },
+  { titre: "Repérage et brief", texte: "Nous définissons ensemble vos attentes, le lieu, le déroulé et l'usage des images." },
   { titre: "Présence discrète le jour J", texte: "Je m'efface au milieu de vos invités pour garder des scènes naturelles." },
   { titre: "Livraison soignée, dans les délais annoncés", texte: "Des images retouchées une à une, livrées dans une galerie privée." },
 ];
@@ -149,8 +149,14 @@ export default function HomePageExperience({
         trigger: section,
         start: "top center",
         end: "bottom center",
-        onEnter: () => gsap.to(document.body, { backgroundColor: "#0c0a08", duration: 1 }),
-        onLeaveBack: () => gsap.to(document.body, { backgroundColor: "#fefdfa", duration: 1 }),
+        onEnter: () => {
+          document.documentElement.dataset.theme = "dark";
+          gsap.to(document.body, { backgroundColor: "#0c0a08", duration: 1 });
+        },
+        onLeaveBack: () => {
+          delete document.documentElement.dataset.theme;
+          gsap.to(document.body, { backgroundColor: "#fefdfa", duration: 1 });
+        },
       });
     });
 
@@ -412,7 +418,7 @@ export default function HomePageExperience({
         <MotionBlock reduceMotion={reduceMotion} className="mb-10 max-w-3xl space-y-4">
           <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-ink/45">Prestations</p>
           <h2 id="portes-titre" className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-6xl">
-            Un même regard, trois façons de travailler ensemble.
+            Ce que je photographie.
           </h2>
         </MotionBlock>
         <div className="grid gap-5 md:grid-cols-3">
@@ -456,7 +462,7 @@ export default function HomePageExperience({
         <MotionBlock reduceMotion={reduceMotion} className="mb-10 max-w-3xl space-y-4">
           <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-paper/55">Méthode</p>
           <h2 id="methode-titre" className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] text-paper md:text-6xl">
-            Une méthode simple, en trois temps.
+            Comment je travaille.
           </h2>
         </MotionBlock>
         <Steps tone="dark" columns="md:grid-cols-3" steps={method} />

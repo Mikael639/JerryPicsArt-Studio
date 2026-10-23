@@ -25,8 +25,14 @@ export default function ThemeScroll() {
           trigger: section,
           start: "top 45%",
           end: "bottom top",
-          onEnter: () => gsap.to(document.body, { backgroundColor: DARK_BACKGROUND, duration: 0.9, overwrite: true }),
-          onLeaveBack: () => gsap.to(document.body, { backgroundColor: LIGHT_BACKGROUND, duration: 0.9, overwrite: true }),
+          onEnter: () => {
+            document.documentElement.dataset.theme = "dark";
+            gsap.to(document.body, { backgroundColor: DARK_BACKGROUND, duration: 0.9, overwrite: true });
+          },
+          onLeaveBack: () => {
+            delete document.documentElement.dataset.theme;
+            gsap.to(document.body, { backgroundColor: LIGHT_BACKGROUND, duration: 0.9, overwrite: true });
+          },
         })
       );
     });
@@ -49,6 +55,7 @@ export default function ThemeScroll() {
       triggers.forEach((trigger) => trigger.kill());
       gsap.killTweensOf(document.body);
       gsap.set(document.body, { clearProps: "backgroundColor" });
+      delete document.documentElement.dataset.theme;
     };
   }, [pathname]);
 

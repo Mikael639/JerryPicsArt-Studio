@@ -116,6 +116,14 @@ button {
   --color-white: #ffffff;
 }
 
+/* En-tête : suit le mode sombre quand le fond de la page est sombre. */
+html[data-theme="dark"] header {
+  --ink: #fafafa;
+  --paper: #0c0a08;
+  --line: #fafafa;
+  --color-white: rgba(255, 255, 255, 0.08);
+}
+
 /* Bandeau defilant des partenaires */
 .partners-track {
   animation: partners-scroll 14s linear infinite;

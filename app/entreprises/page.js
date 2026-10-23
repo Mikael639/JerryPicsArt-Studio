@@ -71,7 +71,7 @@ export default async function EntreprisesPage() {
 
       <section className="mx-auto max-w-7xl space-y-8 px-4 md:px-8">
         <Reveal>
-          <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-5xl">Un déroulé en quatre étapes</h2>
+          <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-5xl">Comment ça se passe</h2>
         </Reveal>
         <Steps steps={steps} />
       </section>

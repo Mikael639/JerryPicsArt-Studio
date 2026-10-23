@@ -50,7 +50,7 @@ export function StatsSection({ reduceMotion, items = stats }) {
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-ink/40">Repères</p>
             <h2 className="mt-3 max-w-2xl font-serif text-3xl leading-tight tracking-[-0.03em] md:text-5xl">
-              Quelques repères pour situer mon travail.
+              Mon travail en quelques chiffres.
             </h2>
           </div>
         </div>
