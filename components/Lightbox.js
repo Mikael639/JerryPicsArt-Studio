@@ -24,8 +24,8 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
     if (!activePhoto || typeof window === "undefined") return;
     const url = window.location.href;
     const shareData = {
-      title: activePhoto.title || "Jerrypicsart",
-      text: activePhoto.alt || activePhoto.title || "Photographie Jerrypicsart",
+      title: activePhoto.title || "JerryPicsArt",
+      text: activePhoto.alt || activePhoto.title || "Photographie JerryPicsArt",
       url,
     };
     try {
@@ -39,7 +39,7 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
         setShareFeedback("Partage indisponible");
       }
     } catch {
-      setShareFeedback("Partage annule");
+      setShareFeedback("Partage annulé");
     }
     window.setTimeout(() => setShareFeedback(""), 2400);
   }, [activePhoto]);
@@ -123,7 +123,7 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
 
             {/* Logo / Studio name */}
             <span className="text-[11px] font-bold uppercase tracking-[0.4em] text-white/30">
-              Jerrypicsart
+              JerryPicsArt
             </span>
 
             {/* Counter — editorial large number */}

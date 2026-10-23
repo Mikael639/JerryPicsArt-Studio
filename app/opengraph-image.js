@@ -56,7 +56,7 @@ export default async function OpengraphImage() {
           }}
         >
           <span>{siteConfig.name}</span>
-          <span>Portfolio editorial</span>
+          <span>Portfolio éditorial</span>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 840 }}>

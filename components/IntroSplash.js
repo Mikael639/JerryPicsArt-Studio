@@ -10,8 +10,8 @@ export default function IntroSplash() {
 
   useEffect(() => {
     if (sessionStorage.getItem(SESSION_KEY)) {
-      setIsVisible(false);
-      return undefined;
+      const frame = window.requestAnimationFrame(() => setIsVisible(false));
+      return () => window.cancelAnimationFrame(frame);
     }
 
     sessionStorage.setItem(SESSION_KEY, "1");
@@ -58,7 +58,7 @@ export default function IntroSplash() {
           </svg>
         </div>
         <p className="font-serif text-[clamp(2.7rem,8vw,5.8rem)] leading-none tracking-normal text-ink">
-          Jerrypicsart
+          JerryPicsArt
         </p>
         <div className="mt-8 flex w-full items-center gap-4">
           <span className="text-[10px] font-bold uppercase tracking-[0.32em] text-ink/35">Chargement</span>

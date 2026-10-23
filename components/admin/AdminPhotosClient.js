@@ -337,7 +337,7 @@ export default function AdminPhotosClient({
           <h1 className="font-serif text-5xl leading-tight">Admin Jerrypicsart</h1>
         </div>
         <div className="flex flex-wrap gap-3">
-          <a href="/gallery" target="_blank" className="rounded-full border border-line/30 px-4 py-2 text-sm hover:border-ink">
+          <a href="/signature" target="_blank" className="rounded-full border border-line/30 px-4 py-2 text-sm hover:border-ink">
             Voir le site
           </a>
           <button

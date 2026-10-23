@@ -46,8 +46,11 @@ function createActionResult({ ok, message, data = null }) {
 function revalidatePublicPhotoViews() {
   revalidateTag("public-photos");
   revalidatePath("/");
-  revalidatePath("/gallery");
-  revalidatePath("/about");
+  revalidatePath("/signature");
+  revalidatePath("/evenements");
+  revalidatePath("/mariage");
+  revalidatePath("/entreprises");
+  revalidatePath("/a-propos");
   revalidatePath("/contact");
 }
 
@@ -263,7 +266,7 @@ export async function updateAboutCopyAction(input) {
   try {
     const copy = await updateAboutCopy(input);
     revalidateTag("site-settings");
-    revalidatePath("/about");
+    revalidatePath("/a-propos");
     revalidateAdminViews();
     return createActionResult({ ok: true, message: "Textes de la page A Propos enregistres.", data: copy });
   } catch (error) {

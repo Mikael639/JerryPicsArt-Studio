@@ -10,14 +10,15 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import MagneticElement from "../MagneticElement";
 import {
   MotionBlock,
-  PhotoTile,
   PartnersSection,
   StatsSection,
-  TestimonialsSection,
-  specialties,
-  getRevealProps,
   wordRevealVariant,
 } from "./homeShared";
+import ReferencesBand from "../ui/ReferencesBand";
+import Steps from "../ui/Steps";
+import Testimonials from "../ui/Testimonials";
+import ContactBlock from "../ui/ContactBlock";
+import TrackedLink from "../ui/TrackedLink";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -38,24 +39,50 @@ function getHeroPriority(photo) {
   );
 }
 
+const DEFAULT_HERO_TITLE = "Photographe éditorial à Paris, de la Fashion Week à vos événements";
+const DEFAULT_HERO_SUBTITLE =
+  "Le regard des défilés pour vos mariages, vos soirées et vos événements d'entreprise. Un accompagnement du premier rendez-vous à la livraison.";
+
+const method = [
+  { titre: "Repérage et brief", texte: "Nous cadrons vos attentes, le lieu, le déroulé et l'usage des images." },
+  { titre: "Présence discrète le jour J", texte: "Je m'efface au milieu de vos invités pour garder des scènes naturelles." },
+  { titre: "Livraison soignée, dans les délais annoncés", texte: "Des images retouchées une à une, livrées dans une galerie privée." },
+];
+
 export default function HomePageExperience({
   heroPhoto,
   supportingPhotos,
-  featuredPhotos,
-  identityPhoto,
-  servicesBackground,
-  closingPhoto,
-  categories,
+  doorPhotos = {},
   cinematicPool = [],
   siteText = {},
 }) {
   const reduceMotion = useReducedMotion();
   const [useCalmHeroMotion, setUseCalmHeroMotion] = useState(false);
-  const galleryCategories = categories.filter(Boolean).slice(0, 4);
-  const marriageFeature =
-    featuredPhotos.find((photo) => photo?.category === "Fashion Wedding") ||
-    supportingPhotos.find((photo) => photo?.category === "Fashion Wedding") ||
-    featuredPhotos[0];
+  const heroTitle = siteText.heroTitle || DEFAULT_HERO_TITLE;
+  const heroSubtitle = siteText.heroSubtitle || DEFAULT_HERO_SUBTITLE;
+  const doors = [
+    {
+      href: "/evenements",
+      titre: "Événements",
+      texte: "La même exigence que sur les défilés, pour vos lancements et vos soirées.",
+      lien: "Voir les événements",
+      photo: doorPhotos.evenements,
+    },
+    {
+      href: "/mariage",
+      titre: "Mariage",
+      texte: "Le regard de la Fashion Week, pour votre mariage.",
+      lien: "Voir le mariage",
+      photo: doorPhotos.mariage,
+    },
+    {
+      href: "/entreprises",
+      titre: "Entreprises & lieux",
+      texte: "Un photographe fiable à recommander à vos clients.",
+      lien: "Voir l'offre entreprises",
+      photo: doorPhotos.entreprises,
+    },
+  ];
   const cinematicPhotos = useMemo(() => {
     const seen = new Set();
     const heroPool = cinematicPool.filter((photo) => photo?.roles?.includes("hero"));
@@ -81,9 +108,6 @@ export default function HomePageExperience({
   const activeMobileHeroPosition = activeHeroPhoto.mobileObjectPosition || DEFAULT_MOBILE_HERO_POSITION;
   const nextHeroPhoto =
     shuffledPhotos.length > 1 ? shuffledPhotos[(activeHeroIndex + 1) % shuffledPhotos.length] : null;
-  const activeHeroCategoryHref = activeHeroPhoto?.category
-    ? `/gallery?category=${encodeURIComponent(activeHeroPhoto.category)}`
-    : "/gallery";
   const containerRef = useRef(null);
   const visibleHeroDots = shuffledPhotos.slice(0, 5);
   const shouldCalmHeroMotion = reduceMotion || useCalmHeroMotion;
@@ -242,52 +266,37 @@ export default function HomePageExperience({
             }}
             className="max-w-4xl text-paper"
           >
-            <motion.p
-              variants={wordRevealVariant}
-              className="max-w-[18rem] text-[10px] font-semibold uppercase tracking-[0.28em] text-paper/62 sm:max-w-none sm:text-[11px] sm:tracking-[0.4em]"
-            >
-              {siteText.eyebrow || "Jerrypicsart portfolio editorial"}
-            </motion.p>
-
             <motion.h1
               variants={wordRevealVariant}
-              className="mt-5 max-w-[14ch] font-serif text-5xl font-medium leading-[0.95] tracking-[-0.03em] text-paper [text-wrap:balance] [text-shadow:0_2px_30px_rgba(12,10,8,0.45)] sm:mt-6 sm:max-w-[16ch] sm:text-6xl md:text-7xl xl:text-[5.5rem]"
+              className="max-w-[18ch] font-serif text-4xl font-medium leading-[0.98] tracking-[-0.03em] text-paper [text-wrap:balance] [text-shadow:0_2px_30px_rgba(12,10,8,0.45)] sm:text-5xl md:text-6xl xl:text-[4.5rem]"
             >
-              {siteText.heroTitle || "La mode, le mariage et les moments qui comptent."}
+              {heroTitle}
             </motion.h1>
 
-            <motion.div variants={wordRevealVariant} className="mt-6 flex flex-wrap gap-3 hero-content-reveal sm:mt-8">
-              <MagneticElement strength={0.25}>
-                <Link
-                  href="/gallery"
-                  className="inline-block rounded-full bg-paper px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.18em] text-ink shadow-2xl transition-colors hover:bg-accent hover:text-paper sm:px-8 sm:py-4 sm:text-[13px] sm:tracking-[0.22em]"
-                >
-                  {siteText.primaryCta || "Explorer l'edit"}
-                </Link>
-              </MagneticElement>
-              <MagneticElement strength={0.15}>
-                <Link
-                  href="/contact"
-                  className="inline-block rounded-full border border-paper/30 px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.18em] text-paper backdrop-blur-md transition-all hover:border-paper hover:bg-paper/10 sm:px-8 sm:py-4 sm:text-[13px] sm:tracking-[0.22em]"
-                >
-                  {siteText.secondaryCta || "Parler d'une date"}
-                </Link>
-              </MagneticElement>
-            </motion.div>
+            <motion.p
+              variants={wordRevealVariant}
+              className="mt-5 max-w-2xl text-base leading-relaxed text-paper/80 [text-shadow:0_1px_18px_rgba(12,10,8,0.5)] md:text-lg"
+            >
+              {heroSubtitle}
+            </motion.p>
 
-            {galleryCategories.length ? (
-              <motion.div variants={wordRevealVariant} className="mt-6 hidden flex-wrap gap-3 sm:flex">
-                {galleryCategories.map((category) => (
-                  <Link
-                    key={category}
-                    href={`/gallery?category=${encodeURIComponent(category)}`}
-                    className="rounded-full border border-paper/20 bg-black/20 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-paper/78 backdrop-blur-md transition hover:border-paper/40 hover:bg-paper/10 hover:text-paper"
-                  >
-                    {category}
-                  </Link>
-                ))}
-              </motion.div>
-            ) : null}
+            <motion.div variants={wordRevealVariant} className="mt-7 flex flex-wrap items-center gap-x-8 gap-y-4 hero-content-reveal">
+              <MagneticElement strength={0.25}>
+                <TrackedLink
+                  href="/contact"
+                  event="devis_accueil_hero"
+                  className="inline-block rounded-full bg-paper px-7 py-3.5 text-[12px] font-bold uppercase tracking-[0.18em] text-ink shadow-2xl transition-colors hover:bg-accent hover:text-paper sm:px-8 sm:py-4 sm:text-[13px] sm:tracking-[0.22em]"
+                >
+                  Demander un devis
+                </TrackedLink>
+              </MagneticElement>
+              <Link
+                href="/signature"
+                className="text-[12px] font-semibold uppercase tracking-[0.18em] text-paper/80 underline-offset-4 transition-colors hover:text-paper hover:underline sm:text-[13px]"
+              >
+                Voir les séries Fashion Week
+              </Link>
+            </motion.div>
 
             {shuffledPhotos.length > 1 ? (
               <motion.div variants={wordRevealVariant} className="mt-5 flex max-w-xl items-center gap-2 sm:gap-3">
@@ -332,17 +341,6 @@ export default function HomePageExperience({
               </motion.div>
             ) : null}
 
-            {activeHeroPhoto?.category ? (
-              <motion.div variants={wordRevealVariant} className="mt-4">
-                <Link
-                  href={activeHeroCategoryHref}
-                  className="group inline-flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.24em] text-paper/55 transition hover:text-paper"
-                >
-                  Voir cette serie
-                  <span className="h-px w-8 bg-paper/30 transition-all duration-300 group-hover:w-12" />
-                </Link>
-              </motion.div>
-            ) : null}
           </motion.div>
 
           <motion.div
@@ -373,7 +371,7 @@ export default function HomePageExperience({
 
             <div className="rounded-card border border-white/10 bg-black/40 p-6 text-paper/90 shadow-2xl backdrop-blur-xl">
               <div className="flex items-center justify-between gap-4">
-                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/40">Direction</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/50">Fashion Week</p>
                 {shuffledPhotos.length > 1 ? (
                   <div className="flex items-center gap-2">
                     {visibleHeroDots.map((photo, index) => (
@@ -392,13 +390,6 @@ export default function HomePageExperience({
                   </div>
                 ) : null}
               </div>
-              <p className="mt-4 font-serif text-2xl leading-tight text-paper">
-                {siteText.directionTitle || "Luxe discret, intensite juste."}
-              </p>
-              <p className="mt-4 text-sm leading-relaxed text-paper/70">
-                {siteText.directionText ||
-                  "Des silhouettes fortes, des receptions habitees et une retouche qui reste au service des personnes, des lieux et du rythme."}
-              </p>
             </div>
           </motion.div>
         </div>
@@ -415,256 +406,73 @@ export default function HomePageExperience({
         `}</style>
       </section>
 
-      {marriageFeature ? (
-        <section className="mx-auto max-w-7xl px-4 md:px-8">
-          <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr] xl:items-start">
-            <PhotoTile
-              photo={marriageFeature}
-              className="mx-auto min-h-[42rem] w-full max-w-3xl xl:mx-0 xl:max-w-none lg:min-h-[56rem]"
-              sizes="(max-width: 1280px) 100vw, 42vw"
-              reduceMotion={reduceMotion}
-              imagePosition="center 22%"
-            />
+      <ReferencesBand />
 
-            <MotionBlock
-              reduceMotion={reduceMotion}
-              delay={0.12}
-              className="self-start rounded-panel border border-line/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.88),rgba(255,255,255,0.56))] p-8 shadow-[0_32px_96px_rgba(12,10,8,0.04)] backdrop-blur-md md:p-10 lg:p-12"
-            >
-              <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-ink/40">
-                {siteText.weddingEyebrow || "Fashion Wedding"}
-              </p>
-              <h3 className="mt-5 max-w-lg font-serif text-3xl leading-[1.02] tracking-[-0.04em] md:text-5xl">
-                {siteText.weddingTitle || "Une elegance tenue, des images pensees pour durer."}
-              </h3>
-              <p className="mt-6 max-w-xl text-base leading-relaxed text-ink/60 md:text-lg">
-                {siteText.weddingText ||
-                  "Entre allure, emotion et presence, chaque image cherche un equilibre sobre, fort et intemporel."}
-              </p>
-              <div className="mt-10 flex flex-wrap gap-4">
-                <MagneticElement strength={0.15}>
-                  <Link
-                    href="/gallery?category=Fashion%20Wedding"
-                    className="inline-block rounded-full border border-line/20 px-6 py-3 text-[12px] font-bold uppercase tracking-[0.2em] text-ink transition-colors hover:border-ink hover:bg-white"
-                  >
-                    Voir l&apos;édit complet
-                  </Link>
-                </MagneticElement>
-                <MagneticElement strength={0.2}>
-                  <Link
-                    href="/contact"
-                    className="inline-block rounded-full bg-ink px-6 py-3 text-[12px] font-bold uppercase tracking-[0.2em] text-paper transition-colors hover:bg-accent"
-                  >
-                    Réserver une date
-                  </Link>
-                </MagneticElement>
-              </div>
+      <section className="mx-auto max-w-7xl px-4 md:px-8" aria-labelledby="portes-titre">
+        <MotionBlock reduceMotion={reduceMotion} className="mb-10 max-w-3xl space-y-4">
+          <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-ink/45">Prestations</p>
+          <h2 id="portes-titre" className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-6xl">
+            Un même regard, trois façons de travailler ensemble.
+          </h2>
+        </MotionBlock>
+        <div className="grid gap-5 md:grid-cols-3">
+          {doors.map((door, index) => (
+            <MotionBlock key={door.href} reduceMotion={reduceMotion} delay={index * 0.08} className="h-full">
+              <Link
+                href={door.href}
+                className="group relative flex h-full min-h-[26rem] flex-col justify-end overflow-hidden rounded-card border border-line/12 bg-ink text-paper md:min-h-[32rem]"
+              >
+                {door.photo ? (
+                  <Image
+                    src={door.photo.src}
+                    alt={door.photo.alt}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover transition duration-[1.4s] ease-out group-hover:scale-[1.05]"
+                    style={{ objectPosition: door.photo.objectPosition || "center center" }}
+                    quality={85}
+                  />
+                ) : null}
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(12,10,8,0.05),rgba(12,10,8,0.82))]" />
+                <div className="relative space-y-3 p-7">
+                  <h3 className="font-serif text-3xl tracking-tight">{door.titre}</h3>
+                  <p className="text-base leading-relaxed text-paper/80">{door.texte}</p>
+                  <span className="inline-flex items-center gap-3 pt-2 text-[11px] font-bold uppercase tracking-[0.22em] text-paper/80">
+                    {door.lien}
+                    <span className="h-px w-8 bg-paper/50 transition-all duration-300 group-hover:w-14" />
+                  </span>
+                </div>
+              </Link>
             </MotionBlock>
-          </div>
-        </section>
-      ) : null}
-
-      <section data-cursor-surface="dark" className="mx-auto max-w-7xl px-4 md:px-8 color-transition-section">
-        <div className="grid gap-16 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
-          <MotionBlock reduceMotion={reduceMotion} className="space-y-8">
-            <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-paper/55">Approche</p>
-            <h2 className="max-w-2xl font-serif text-5xl leading-[0.96] tracking-[-0.04em] text-paper md:text-7xl">
-              De la silhouette au moment partagé.
-            </h2>
-            <div className="space-y-6">
-              <p className="max-w-xl text-base leading-relaxed text-paper/82 md:text-xl">
-                Jerrypicsart travaille la mode et le mariage avec une même ligne&nbsp;: de la tenue, de la
-                clarté et une vraie sensation de présence.
-              </p>
-              <p className="max-w-xl text-base leading-relaxed text-paper/68 md:text-lg">
-                Chaque série cherche l&apos;équilibre entre désirabilité, respiration dans le cadre et finition
-                éditoriale.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-4">
-              <MagneticElement strength={0.15}>
-                <Link
-                  href="/about"
-                  className="inline-block rounded-full border border-paper/22 px-6 py-3 text-[12px] font-bold uppercase tracking-[0.2em] text-paper transition-colors hover:border-paper hover:bg-paper/10"
-                >
-                  Notre manifeste
-                </Link>
-              </MagneticElement>
-              <MagneticElement strength={0.2}>
-                <Link
-                  href="/contact"
-                  className="inline-block rounded-full bg-ink px-6 py-3 text-[12px] font-bold uppercase tracking-[0.2em] text-paper transition-colors hover:bg-accent"
-                >
-                  Envoyer un brief
-                </Link>
-              </MagneticElement>
-            </div>
-          </MotionBlock>
-
-          <MotionBlock
-            reduceMotion={reduceMotion}
-            delay={0.15}
-            className="relative min-h-[28rem] overflow-hidden rounded-panel border border-line/10 bg-ink shadow-2xl lg:min-h-[40rem]"
-          >
-            <Image
-              src={identityPhoto.src}
-              alt={identityPhoto.alt}
-              fill
-              sizes="(max-width: 1024px) 100vw, 54vw"
-              className="parallax-img object-cover transition-transform duration-[2s] hover:scale-[1.05] scale-[1.15]"
-              style={{ objectPosition: identityPhoto.objectPosition || "center center" }}
-              quality={90}
-            />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(12,10,8,0),rgba(12,10,8,0.72))]" />
-            <div className="absolute bottom-6 right-6 max-w-xs rounded-inset border border-white/12 bg-black/40 p-6 text-paper shadow-2xl backdrop-blur-md md:bottom-10 md:right-10 md:p-8">
-              <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/40">Intention</p>
-              <p className="mt-3 font-serif text-2xl leading-tight">L&apos;élégance vient du rythme, jamais du décoratif.</p>
-            </div>
-          </MotionBlock>
+          ))}
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 md:px-8">
-        <div data-cursor-surface="dark" className="relative overflow-hidden rounded-feature border border-line/12 bg-ink text-paper shadow-2xl">
-          <Image
-            src={servicesBackground.src}
-            alt={servicesBackground.alt}
-            fill
-            sizes="100vw"
-            className="parallax-img object-cover opacity-75 transition-transform duration-[3s] hover:scale-[1.10] scale-[1.15]"
-            style={{ objectPosition: servicesBackground.objectPosition || "center center" }}
-            quality={90}
-          />
-          <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(12,10,8,0.82),rgba(12,10,8,0.52)_50%,rgba(12,10,8,0.86))]" />
-
-          <div className="relative grid gap-12 px-6 py-12 md:px-12 md:py-16 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
-            <MotionBlock reduceMotion={reduceMotion} className="space-y-6">
-              <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-white/55">Expertises</p>
-              <h2 className="max-w-xl font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-6xl">
-                Là où l&apos;image doit être à la fois belle, utile et mémorable.
-              </h2>
-              <p className="max-w-md text-base leading-relaxed text-paper/78 md:text-lg">
-                Des events a la Fashion Week, des celebrities au studio, la meme exigence visuelle s&apos;applique&nbsp;:
-                clarte et sens du moment.
-              </p>
-            </MotionBlock>
-
-            <div
-              className="overflow-hidden rounded-card border border-white/10 bg-black/20 backdrop-blur-md relative group-hover-within"
-              onMouseMove={(e) => {
-                const { left, top } = e.currentTarget.getBoundingClientRect();
-                const x = e.clientX - left;
-                const y = e.clientY - top;
-                e.currentTarget.style.setProperty("--x", `${x}px`);
-                e.currentTarget.style.setProperty("--y", `${y}px`);
-              }}
-            >
-              <div
-                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 spotlight-bg"
-                style={{
-                  background: `radial-gradient(600px circle at var(--x) var(--y), rgba(255,255,255,0.12), transparent 45%)`,
-                }}
-              />
-
-              <style jsx>{`
-                .group-hover-within:hover .spotlight-bg {
-                  opacity: 1;
-                }
-              `}</style>
-
-              {specialties.map((item, index) => (
-                <motion.div
-                  key={item.title}
-                  className="group grid gap-4 border-b border-white/5 px-6 py-8 last:border-b-0 hover:bg-white/5 transition-colors md:grid-cols-[auto_1fr_auto] md:items-start md:gap-8 md:px-10 overflow-hidden relative"
-                  {...getRevealProps(reduceMotion, index * 0.12, 0.2)}
-                >
-                  <span className="text-[11px] font-bold uppercase tracking-[0.24em] text-white/45 group-hover:text-white/75 transition-colors">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <div className="space-y-3">
-                    <p className="font-serif text-3xl text-paper">{item.title}</p>
-                    <p className="max-w-xl text-sm leading-relaxed text-paper/78 md:text-base">{item.description}</p>
-                  </div>
-                  <span className="hidden text-[10px] font-bold uppercase tracking-[0.24em] text-white/45 md:block">
-                    {item.focus}
-                  </span>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
+      <section
+        data-cursor-surface="dark"
+        className="color-transition-section mx-auto max-w-7xl px-4 md:px-8"
+        aria-labelledby="methode-titre"
+      >
+        <MotionBlock reduceMotion={reduceMotion} className="mb-10 max-w-3xl space-y-4">
+          <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-paper/55">Méthode</p>
+          <h2 id="methode-titre" className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] text-paper md:text-6xl">
+            Une méthode simple, en trois temps.
+          </h2>
+        </MotionBlock>
+        <Steps tone="dark" columns="md:grid-cols-3" steps={method} />
       </section>
-
-      <StatsSection reduceMotion={reduceMotion} />
 
       <PartnersSection reduceMotion={reduceMotion} />
 
-      <TestimonialsSection reduceMotion={reduceMotion} />
+      <StatsSection reduceMotion={reduceMotion} />
 
-      <section className="mx-auto max-w-7xl px-4 md:px-8">
-        <div data-cursor-surface="dark" className="relative grid gap-10 overflow-hidden rounded-feature border border-line/12 bg-[linear-gradient(135deg,#171310,#302720)] p-8 text-paper shadow-[0_48px_128px_rgba(12,10,8,0.2)] md:p-12 lg:grid-cols-[1fr_auto] lg:items-center lg:p-16">
-          <MotionBlock reduceMotion={reduceMotion} className="space-y-6">
-            <p className="text-[11px] font-bold uppercase tracking-[0.34em] text-white/40">Contact</p>
-            <h2 className="max-w-3xl font-serif text-5xl leading-[0.94] tracking-[-0.05em] md:text-8xl">
-              Travaillons ensemble.
-            </h2>
-            <p className="max-w-2xl text-base leading-relaxed text-paper/70 md:text-xl">
-              Brief court ou projet complexe&nbsp;: parlons de votre vision et des besoins de votre série.
-            </p>
-            <div className="flex flex-wrap gap-5 pt-4">
-              <MagneticElement strength={0.25}>
-                <Link
-                  href="/contact"
-                  className="inline-block rounded-full bg-paper px-8 py-4 text-[13px] font-bold uppercase tracking-[0.2em] text-ink transition-colors hover:bg-accent hover:text-paper"
-                >
-                  Envoyer une demande
-                </Link>
-              </MagneticElement>
-              <MagneticElement strength={0.15}>
-                <Link
-                  href="/gallery"
-                  className="inline-block rounded-full border border-white/20 px-8 py-4 text-[13px] font-bold uppercase tracking-[0.2em] text-paper backdrop-blur-sm transition-all hover:bg-white/10"
-                >
-                  Parcourir l&apos;édit
-                </Link>
-              </MagneticElement>
-            </div>
-          </MotionBlock>
+      <Testimonials limit={1} tone="dark" title="Ce que disent mes clients" />
 
-          <div className="grid gap-6 md:grid-cols-[1fr_260px] md:items-end">
-            <MotionBlock
-              reduceMotion={reduceMotion}
-              delay={0.2}
-              className="rounded-card border border-white/10 bg-white/5 p-8 text-paper/80 backdrop-blur-xl"
-            >
-              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/30">Délais</p>
-              <p className="mt-4 font-serif text-2xl leading-tight text-white">
-                Réponse sous 24h à 48h.
-              </p>
-              <p className="mt-4 text-sm leading-relaxed text-white/60">
-                La clarté du brief permet d&apos;aller droit à l&apos;essentiel pour fixer une date.
-              </p>
-            </MotionBlock>
-
-            <MotionBlock
-              reduceMotion={reduceMotion}
-              delay={0.3}
-              className="relative min-h-[18rem] overflow-hidden rounded-card border border-white/10 bg-black/20"
-            >
-              <Image
-                src={closingPhoto.src}
-                alt={closingPhoto.alt}
-                fill
-                sizes="260px"
-                className="object-cover transition-transform duration-[3s] hover:scale-125"
-                style={{ objectPosition: closingPhoto.objectPosition || "center center" }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
-            </MotionBlock>
-          </div>
-        </div>
-      </section>
+      <ContactBlock
+        title="Parlons de votre projet"
+        text="Mariage, soirée ou événement d'entreprise : quelques lignes suffisent. Réponse sous 24 à 48 h."
+        event="devis_accueil_final"
+      />
     </div>
   );
 }

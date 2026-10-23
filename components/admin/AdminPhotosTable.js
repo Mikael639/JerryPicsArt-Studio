@@ -82,7 +82,7 @@ export default function AdminPhotosTable({
           >
             Diaporama accueil : {heroPhotoCount}/{maxHeroPhotoCount}
           </span>
-          <a href="/gallery" target="_blank" className="rounded-full border border-line/25 px-4 py-2 text-sm hover:border-ink">
+          <a href="/signature" target="_blank" className="rounded-full border border-line/25 px-4 py-2 text-sm hover:border-ink">
             Voir la galerie
           </a>
         </div>

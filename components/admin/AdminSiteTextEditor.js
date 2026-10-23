@@ -1,13 +1,6 @@
 const fields = [
-  { key: "eyebrow", label: "Petit texte en haut de l'accueil" },
   { key: "heroTitle", label: "Titre principal de l'accueil (hero)", multiline: true },
-  { key: "primaryCta", label: "Bouton principal" },
-  { key: "secondaryCta", label: "Bouton secondaire" },
-  { key: "directionTitle", label: "Titre du bloc direction" },
-  { key: "directionText", label: "Texte du bloc direction", multiline: true },
-  { key: "weddingEyebrow", label: "Etiquette du bloc mariage" },
-  { key: "weddingTitle", label: "Titre du bloc mariage" },
-  { key: "weddingText", label: "Texte du bloc mariage", multiline: true },
+  { key: "heroSubtitle", label: "Sous-titre de l'accueil (hero)", multiline: true },
 ];
 
 export default function AdminSiteTextEditor({ homeCopy, setHomeCopy, onSave, isSaving }) {
