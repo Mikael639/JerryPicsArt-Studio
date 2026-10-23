@@ -103,7 +103,7 @@ export default async function EntreprisesPage() {
               Portrait et contenu de marque
             </h2>
             <p className="mt-4 text-base text-ink/70 md:text-lg">
-              Portrait à partir de 400 €. Contenu de marque à partir de 750 € HT.
+              Portrait à partir de 400 €. Contenu de marque à partir de 750 € HT. <a href="/contact?type=contenu" className="underline underline-offset-4 hover:text-ink">Demander un devis shooting</a>.
             </p>
           </Reveal>
         </section>
