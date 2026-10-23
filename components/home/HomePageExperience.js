@@ -112,6 +112,7 @@ export default function HomePageExperience({
   const nextHeroPhoto =
     shuffledPhotos.length > 1 ? shuffledPhotos[(activeHeroIndex + 1) % shuffledPhotos.length] : null;
   const containerRef = useRef(null);
+  const swipeStartRef = useRef(null);
   const visibleHeroDots = shuffledPhotos.slice(0, 5);
   const shouldCalmHeroMotion = reduceMotion || useCalmHeroMotion;
 
@@ -190,7 +191,24 @@ export default function HomePageExperience({
 
   return (
     <div ref={containerRef} data-page="home" className="page-shell -mt-20 space-y-20 pb-16 md:space-y-28 xl:space-y-32">
-      <section className="relative isolate min-h-screen overflow-hidden">
+      <section
+        className="relative isolate min-h-screen overflow-hidden"
+        onTouchStart={(event) => {
+          swipeStartRef.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+        }}
+        onTouchEnd={(event) => {
+          const start = swipeStartRef.current;
+          swipeStartRef.current = null;
+          if (!start || shuffledPhotos.length < 2) return;
+          const dx = event.changedTouches[0].clientX - start.x;
+          const dy = event.changedTouches[0].clientY - start.y;
+          // Balayage horizontal net : photo suivante ou précédente, comme dans un carrousel.
+          if (Math.abs(dx) > 56 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+            if (dx < 0) showNextHeroPhoto();
+            else showPreviousHeroPhoto();
+          }
+        }}
+      >
         <div className="absolute inset-0">
           {shouldCalmHeroMotion ? (
             <div key={activeHeroPhoto.id} className="absolute inset-0 hero-image-container">

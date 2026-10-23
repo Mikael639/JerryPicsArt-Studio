@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Reveal from "./Reveal";
+import SplitTitle from "./SplitTitle";
 import TrackedLink from "./TrackedLink";
 
 // En-tête de page : H1 unique, accroche, phrase-pont et un seul bouton principal.
@@ -8,7 +9,7 @@ export default function PageIntro({ eyebrow, title, lead, bridge, cta, secondary
     <section className="mx-auto max-w-7xl px-4 pt-10 md:px-8 md:pt-16">
       <Reveal className="max-w-5xl space-y-6">
         {eyebrow ? <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-ink/45">{eyebrow}</p> : null}
-        <h1 className="font-serif text-5xl leading-[0.94] tracking-[-0.04em] md:text-7xl">{title}</h1>
+        <SplitTitle text={title} className="font-serif text-5xl leading-[0.94] tracking-[-0.04em] md:text-7xl" />
         {lead ? <p className="max-w-3xl font-serif text-2xl leading-snug text-ink/80 md:text-3xl">{lead}</p> : null}
         {bridge ? <p className="max-w-2xl text-base leading-relaxed text-ink/65 md:text-lg">{bridge}</p> : null}
         {cta || secondary ? (

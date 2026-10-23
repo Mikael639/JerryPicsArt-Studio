@@ -7,6 +7,7 @@ import NoiseOverlay from "../components/NoiseOverlay";
 import IntroSplash from "../components/IntroSplash";
 import Footer from "../components/Footer";
 import ThemeScroll from "../components/ThemeScroll";
+import PageTransition from "../components/PageTransition";
 import { Analytics } from "@vercel/analytics/next";
 import { getSiteUrl, siteConfig, toAbsoluteUrl } from "../lib/siteConfig";
 import { getCategories, getMaintenanceMode } from "../lib/siteSettings";
@@ -122,6 +123,7 @@ export default async function RootLayout({ children }) {
             {!isAdmin ? <Navbar /> : null}
             <main className={`w-full ${isAdmin ? "pb-16 pt-6" : "pt-20"}`}>{children}</main>
             {!isAdmin ? <ThemeScroll /> : null}
+            {!isAdmin ? <PageTransition /> : null}
             {!isAdmin ? <Footer collections={collections} /> : null}
             {!isAdmin ? <Analytics /> : null}
           </div>

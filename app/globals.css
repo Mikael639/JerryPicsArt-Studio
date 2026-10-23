@@ -124,6 +124,17 @@ html[data-theme="dark"] header {
   --color-white: rgba(255, 255, 255, 0.08);
 }
 
+/* Sortie de page en fondu (voir components/PageTransition.js) */
+main,
+footer {
+  transition: opacity 0.26s ease;
+}
+
+html.page-leaving main,
+html.page-leaving footer {
+  opacity: 0;
+}
+
 /* Bandeau defilant des partenaires */
 .partners-track {
   animation: partners-scroll 14s linear infinite;
