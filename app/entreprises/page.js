@@ -9,6 +9,7 @@ import DarkChapter from "../../components/ui/DarkChapter";
 import TrackedLink from "../../components/ui/TrackedLink";
 import { pickSeries } from "../../data/series";
 import { loadSeries } from "../../lib/loadSeries";
+import { getReferences } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
 
 export async function generateMetadata() {
@@ -40,7 +41,8 @@ const guarantees = [
 ];
 
 export default async function EntreprisesPage() {
-  const studio = pickSeries(await loadSeries(), "entreprise", 1);
+  const [allSeries, references] = await Promise.all([loadSeries(), getReferences()]);
+  const studio = pickSeries(allSeries, "entreprise", 1);
 
   return (
     <div className="page-shell space-y-16 md:space-y-24">
@@ -51,7 +53,7 @@ export default async function EntreprisesPage() {
         cta={{ href: "/contact?type=entreprise", label: "Réserver un appel de 15 minutes", event: "appel_15_minutes" }}
       />
 
-      <ReferencesBand />
+      <ReferencesBand items={references} />
 
       <section className="mx-auto grid max-w-7xl gap-5 px-4 md:grid-cols-2 md:px-8">
         <Reveal className="rounded-card border border-line/15 bg-white/60 p-8">

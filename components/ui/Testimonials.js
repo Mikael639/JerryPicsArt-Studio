@@ -1,10 +1,10 @@
 import Reveal from "./Reveal";
-import { testimonials } from "../../data/testimonials";
+import { testimonials as defaultTestimonials } from "../../data/testimonials";
 
 // Avis réels uniquement. Rien n'est affiché si la liste est vide.
-export default function Testimonials({ prestation, limit, title = "Ce que disent mes clients", tone = "light" }) {
+export default function Testimonials({ items: source = defaultTestimonials, prestation, limit, title = "Ce que disent mes clients", tone = "light" }) {
   const dark = tone === "dark";
-  let items = prestation ? testimonials.filter((item) => item.prestation === prestation) : testimonials;
+  let items = prestation ? source.filter((item) => item.prestation === prestation) : source;
   if (limit) items = items.slice(0, limit);
   if (!items.length) return null;
 

@@ -17,6 +17,7 @@ import {
 } from "../../app/admin/photos/actions";
 import { compressImageFiles, formatFileSize } from "../../lib/imageCompression";
 import AdminAboutEditor from "./AdminAboutEditor";
+import AdminContentEditor from "./AdminContentEditor";
 import AdminCategoryManager from "./AdminCategoryManager";
 import AdminDashboard from "./AdminDashboard";
 import AdminFeedback from "./AdminFeedback";
@@ -37,7 +38,11 @@ import {
 const settingsSubTabs = [
   { id: "accueil", label: "Page d'accueil", description: "Titre et sous-titre du hero" },
   { id: "a-propos", label: "Page À propos", description: "Biographie, histoire, valeurs et manifeste" },
-  { id: "themes", label: "Catégories & guide", description: "Gestion des thèmes et correspondance des pages" },
+  { id: "avis", label: "Avis clients", description: "Témoignages affichés sur le site" },
+  { id: "chiffres", label: "Chiffres", description: "Séries livrées, événements, marques" },
+  { id: "references", label: "Références", description: "Personnalités, maisons, médias et lieux" },
+  { id: "series", label: "Textes des séries", description: "Phrase de contexte sous chaque série" },
+  { id: "themes", label: "Catégories & guide", description: "Ajouter une catégorie, pages du site" },
 ];
 
 export default function AdminPhotosClient({
@@ -58,6 +63,7 @@ export default function AdminPhotosClient({
     convictionText: "",
   },
   initialMaintenanceMode = false,
+  initialContent = { testimonials: [], stats: [], references: [], seriesList: [] },
 }) {
   const [authForm, setAuthForm] = useState({ username: "admin", password: "" });
   const [isAuthenticated, setIsAuthenticated] = useState(initialAuthenticated);
@@ -67,6 +73,7 @@ export default function AdminPhotosClient({
   const [homeCopy, setHomeCopy] = useState(initialHomeCopy);
   const [aboutCopy, setAboutCopy] = useState(initialAboutCopy);
   const [maintenanceMode, setMaintenanceMode] = useState(initialMaintenanceMode);
+  const [content, setContent] = useState(initialContent);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [uploadForm, setUploadForm] = useState(initialUploadForm);
   const [isUploading, setIsUploading] = useState(false);
@@ -144,6 +151,7 @@ export default function AdminPhotosClient({
       if (result.data?.homeCopy) setHomeCopy(result.data.homeCopy);
       if (result.data?.aboutCopy) setAboutCopy(result.data.aboutCopy);
       if (typeof result.data?.maintenanceMode === "boolean") setMaintenanceMode(result.data.maintenanceMode);
+      if (result.data?.content) setContent(result.data.content);
       setStatusMessage(result.message || "Connexion à l'espace d'administration réussie.");
     } catch (error) {
       setIsAuthenticated(false);
@@ -556,7 +564,7 @@ export default function AdminPhotosClient({
       {/* ONGLET 5 : TEXTES & RÉGLAGES (AVEC SOUS-ONGLETS) */}
       {activeTab === "settings" ? (
         <div className="space-y-6">
-          <div className="grid gap-3 rounded-2xl border border-line/15 bg-white/75 p-4 md:grid-cols-3">
+          <div className="grid gap-3 rounded-2xl border border-line/15 bg-white/75 p-4 md:grid-cols-3 xl:grid-cols-4">
             {settingsSubTabs.map((sub) => {
               const active = settingsSubTab === sub.id;
               return (
@@ -591,6 +599,42 @@ export default function AdminPhotosClient({
               aboutCopy={aboutCopy}
               onSave={handleSaveAboutCopy}
               isSaving={isSavingSettings}
+            />
+          ) : null}
+
+          {settingsSubTab === "avis" ? (
+            <AdminContentEditor
+              kind="testimonials"
+              initialItems={content.testimonials}
+              onStatus={setStatusMessage}
+              onError={setErrorMessage}
+            />
+          ) : null}
+
+          {settingsSubTab === "chiffres" ? (
+            <AdminContentEditor
+              kind="stats"
+              initialItems={content.stats}
+              onStatus={setStatusMessage}
+              onError={setErrorMessage}
+            />
+          ) : null}
+
+          {settingsSubTab === "references" ? (
+            <AdminContentEditor
+              kind="references"
+              initialItems={content.references}
+              onStatus={setStatusMessage}
+              onError={setErrorMessage}
+            />
+          ) : null}
+
+          {settingsSubTab === "series" ? (
+            <AdminContentEditor
+              kind="seriesNotes"
+              initialItems={content.seriesList}
+              onStatus={setStatusMessage}
+              onError={setErrorMessage}
             />
           ) : null}
 

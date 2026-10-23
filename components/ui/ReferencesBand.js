@@ -1,4 +1,4 @@
-import { references } from "../../data/references";
+import { references as defaultReferences } from "../../data/references";
 
 const COLUMNS = [
   { groupe: "artistes", titre: "Artistes" },
@@ -8,7 +8,7 @@ const COLUMNS = [
 
 // Références en trois colonnes : artistes, personnalités, puis maisons, médias et lieux.
 // tone="dark" pour un fond sombre, tone="light" pour un fond clair.
-export default function ReferencesBand({ tone = "light", className = "" }) {
+export default function ReferencesBand({ items = defaultReferences, tone = "light", className = "" }) {
   const dark = tone === "dark";
 
   return (
@@ -28,7 +28,7 @@ export default function ReferencesBand({ tone = "light", className = "" }) {
                 {column.titre}
               </p>
               <ul className="flex flex-wrap justify-center gap-x-6 gap-y-1.5 md:block md:space-y-2.5">
-                {references
+                {items
                   .filter((item) => item.groupe === column.groupe)
                   .map((item) => (
                     <li

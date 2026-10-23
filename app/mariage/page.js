@@ -10,6 +10,7 @@ import Reveal from "../../components/ui/Reveal";
 import { pickSeries } from "../../data/series";
 import { showPlaceholders } from "../../data/placeholders";
 import { loadSeries } from "../../lib/loadSeries";
+import { getTestimonials } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
 
 export async function generateMetadata() {
@@ -115,7 +116,8 @@ const faq = [
 ];
 
 export default async function MariagePage() {
-  const series = pickSeries(await loadSeries(), "mariage", 3);
+  const [allSeries, testimonials] = await Promise.all([loadSeries(), getTestimonials()]);
+  const series = pickSeries(allSeries, "mariage", 3);
 
   return (
     <div className="page-shell space-y-16 md:space-y-24">
@@ -160,7 +162,7 @@ export default async function MariagePage() {
 
         <Faq items={faq} />
 
-        <Testimonials prestation="mariage" title="Ce que disent les mariés" />
+        <Testimonials items={testimonials} prestation="mariage" title="Ce que disent les mariés" />
 
         <ContactBlock
           title="Votre date est-elle disponible ?"

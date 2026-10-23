@@ -5,6 +5,7 @@ import ContactBlock from "../../components/ui/ContactBlock";
 import DarkChapter from "../../components/ui/DarkChapter";
 import { findSeriesBySlugs, pickSeries } from "../../data/series";
 import { loadSeries } from "../../lib/loadSeries";
+import { getReferences } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
 
 export async function generateMetadata() {
@@ -18,7 +19,7 @@ export async function generateMetadata() {
 }
 
 export default async function SignaturePage() {
-  const all = await loadSeries();
+  const [all, references] = await Promise.all([loadSeries(), getReferences()]);
   // Amiri est un défilé : il figure aussi ici, même si ses photos sont classées en événements.
   const series = [...pickSeries(all, "signature"), ...findSeriesBySlugs(all, ["amiri"])]
     .filter((serie, index, list) => list.findIndex((other) => other.slug === serie.slug) === index)
@@ -34,7 +35,7 @@ export default async function SignaturePage() {
         bridge="La même exigence guide chacun de mes mariages et de mes événements."
       />
 
-      <ReferencesBand />
+      <ReferencesBand items={references} />
 
       <div className="space-y-20 md:space-y-28">
         {series.slice(0, 5).map((serie, index) => (

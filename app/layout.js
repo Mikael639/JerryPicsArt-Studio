@@ -9,7 +9,8 @@ import Footer from "../components/Footer";
 import ThemeScroll from "../components/ThemeScroll";
 import { Analytics } from "@vercel/analytics/next";
 import { getSiteUrl, siteConfig, toAbsoluteUrl } from "../lib/siteConfig";
-import { getMaintenanceMode } from "../lib/siteSettings";
+import { getCategories, getMaintenanceMode } from "../lib/siteSettings";
+import { getCustomCollections } from "../lib/categories";
 import { headers } from "next/headers";
 
 const display = Cormorant_Garamond({
@@ -88,6 +89,7 @@ export default async function RootLayout({ children }) {
   const pathname = headerList.get("x-pathname") || "";
   const isAdmin = pathname.startsWith("/admin");
   const isMaintenance = await getMaintenanceMode();
+  const collections = isAdmin ? [] : getCustomCollections(await getCategories());
 
   if (isMaintenance && !isAdmin) {
     return (
@@ -120,7 +122,7 @@ export default async function RootLayout({ children }) {
             {!isAdmin ? <Navbar /> : null}
             <main className={`w-full ${isAdmin ? "pb-16 pt-6" : "pt-20"}`}>{children}</main>
             {!isAdmin ? <ThemeScroll /> : null}
-            {!isAdmin ? <Footer /> : null}
+            {!isAdmin ? <Footer collections={collections} /> : null}
             {!isAdmin ? <Analytics /> : null}
           </div>
         </SmoothScroll>

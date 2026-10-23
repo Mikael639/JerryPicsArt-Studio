@@ -1,5 +1,6 @@
 import AboutExperience from "../../components/about/AboutExperience";
 import { getAboutCopy } from "../../lib/siteSettings";
+import { getStats } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
 
 export async function generateMetadata() {
@@ -11,6 +12,6 @@ export async function generateMetadata() {
 }
 
 export default async function AboutPage() {
-  const aboutCopy = await getAboutCopy();
-  return <AboutExperience aboutCopy={aboutCopy} />;
+  const [aboutCopy, stats] = await Promise.all([getAboutCopy(), getStats()]);
+  return <AboutExperience aboutCopy={aboutCopy} stats={stats} />;
 }

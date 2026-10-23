@@ -6,6 +6,7 @@ import { getPhotoObjectPosition } from "../lib/photoPresentation";
 import { getPublicPhotos } from "../lib/photoRepository";
 import { getSiteUrl, siteConfig, toAbsoluteUrl } from "../lib/siteConfig";
 import { buildPageMetadata } from "../lib/seo";
+import { getReferences, getStats, getTestimonials } from "../lib/siteContent";
 import { getHomeCopy } from "../lib/siteSettings";
 
 const FEATURED_ROTATION_INTERVAL_MS = 30 * 60 * 1000;
@@ -207,6 +208,7 @@ export default async function HomePage() {
     sourcePhotos = [];
   }
 
+  const [references, stats, testimonials] = await Promise.all([getReferences(), getStats(), getTestimonials()]);
   const photos = (sourcePhotos.length ? sourcePhotos : [defaultFallbackPhoto]).map(normalizePhoto);
 
   const heroPool = photos.filter((photo) => photo.category === "Fashion Week & Celebrities");
@@ -261,6 +263,9 @@ export default async function HomePage() {
         supportingPhotos={supportingPhotos}
         doorPhotos={doorPhotos}
         cinematicPool={photos}
+        references={references}
+        stats={stats}
+        testimonials={testimonials}
         siteText={await getHomeCopy()}
       />
     </>

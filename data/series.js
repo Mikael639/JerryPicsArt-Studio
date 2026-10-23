@@ -102,7 +102,7 @@ export function buildSeries(rawPhotos, { minImages = 3 } = {}) {
 
   for (const rawPhoto of rawPhotos) {
     const photo = enhancePhotoPresentation(rawPhoto);
-    const univers = UNIVERS_BY_CATEGORY[photo.category] || "evenement";
+    const univers = UNIVERS_BY_CATEGORY[photo.category] || "collection";
     const key = normalizeKey(photo.title);
     if (IGNORED_KEYS.test(key) && univers !== "mariage" && univers !== "entreprise") continue;
 

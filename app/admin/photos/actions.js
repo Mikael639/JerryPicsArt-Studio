@@ -11,6 +11,8 @@ import {
   verifyAdminSessionToken,
 } from "../../../lib/adminAuth";
 import { defaultPortfolioCategory } from "../../../lib/categories";
+import { getAdminContent } from "../../../lib/adminContent";
+import { updateSiteContent } from "../../../lib/siteContent";
 import { deleteContactMessage, listContactMessages, updateContactMessageStatus } from "../../../lib/contactStore";
 import {
   createAdminPhotos,
@@ -98,19 +100,20 @@ export async function loginAdminAction(credentials) {
 
   const cookieStore = await cookies();
   cookieStore.set(ADMIN_COOKIE_NAME, createAdminSessionToken(username), getAdminCookieOptions());
-  const [photos, messages, categories, homeCopy, aboutCopy, maintenanceMode] = await Promise.all([
+  const [photos, messages, categories, homeCopy, aboutCopy, maintenanceMode, content] = await Promise.all([
     getAdminPhotos(),
     listContactMessages(),
     getCategories(),
     getHomeCopy(),
     getAboutCopy(),
     getMaintenanceMode(),
+    getAdminContent(),
   ]);
 
   return createActionResult({
     ok: true,
     message: "Connexion à l'espace d'administration réussie.",
-    data: { photos, messages, categories, homeCopy, aboutCopy, maintenanceMode },
+    data: { photos, messages, categories, homeCopy, aboutCopy, maintenanceMode, content },
   });
 }
 
@@ -330,5 +333,28 @@ export async function deleteContactMessageAction(id) {
     return createActionResult({ ok: true, message: "Message supprimé définitivement.", data: messages });
   } catch (error) {
     return createActionResult({ ok: false, message: error.message || "Impossible de supprimer le message." });
+  }
+}
+
+const CONTENT_LABELS = {
+  testimonials: "Avis clients enregistrés.",
+  stats: "Chiffres enregistrés.",
+  references: "Références enregistrées.",
+  seriesNotes: "Textes des séries enregistrés.",
+};
+
+// kind : "testimonials" | "stats" | "references" | "seriesNotes"
+export async function updateSiteContentAction(kind, input) {
+  const cookieStore = await getAuthorizedCookieStore();
+  if (!cookieStore) return unauthorizedResult();
+
+  try {
+    const content = await updateSiteContent(kind, input);
+    revalidateTag("site-settings");
+    revalidatePath("/", "layout");
+    revalidateAdminViews();
+    return createActionResult({ ok: true, message: CONTENT_LABELS[kind] || "Contenu enregistré.", data: content });
+  } catch (error) {
+    return createActionResult({ ok: false, message: error.message || "Impossible d'enregistrer ce contenu." });
   }
 }

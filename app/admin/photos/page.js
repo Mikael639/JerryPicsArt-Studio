@@ -4,6 +4,7 @@ import AdminPhotosClient from "../../../components/admin/AdminPhotosClient";
 import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from "../../../lib/adminAuth";
 import { listContactMessages } from "../../../lib/contactStore";
 import { getAdminPhotos } from "../../../lib/photoRepository";
+import { getAdminContent } from "../../../lib/adminContent";
 import {
   defaultAboutCopy,
   defaultHomeCopy,
@@ -28,16 +29,18 @@ export default async function AdminPhotosPage() {
   let initialHomeCopy = defaultHomeCopy;
   let initialAboutCopy = defaultAboutCopy;
   let initialMaintenanceMode = false;
+  let initialContent = { testimonials: [], stats: [], references: [], seriesList: [] };
 
   if (isAuthenticated) {
     try {
-      const [photos, messages, categories, homeCopy, aboutCopy, maintenanceMode] = await Promise.all([
+      const [photos, messages, categories, homeCopy, aboutCopy, maintenanceMode, content] = await Promise.all([
         getAdminPhotos(),
         listContactMessages(),
         getCategories(),
         getHomeCopy(),
         getAboutCopy(),
         getMaintenanceMode(),
+        getAdminContent(),
       ]);
       initialPhotos = photos;
       initialMessages = messages;
@@ -45,6 +48,7 @@ export default async function AdminPhotosPage() {
       initialHomeCopy = homeCopy;
       initialAboutCopy = aboutCopy;
       initialMaintenanceMode = maintenanceMode;
+      initialContent = content;
     } catch {
       initialPhotos = [];
       initialMessages = [];
@@ -60,6 +64,7 @@ export default async function AdminPhotosPage() {
       initialHomeCopy={initialHomeCopy}
       initialAboutCopy={initialAboutCopy}
       initialMaintenanceMode={initialMaintenanceMode}
+      initialContent={initialContent}
     />
   );
 }

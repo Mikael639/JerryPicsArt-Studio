@@ -9,7 +9,7 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-export default function Footer() {
+export default function Footer({ collections = [] }) {
   const pathname = usePathname();
   if (pathname?.startsWith("/admin")) return null;
   const year = new Date().getFullYear();
@@ -41,6 +41,17 @@ export default function Footer() {
                   >
                     <span className="h-px w-0 bg-accent-soft transition-all duration-300 group-hover:w-5" />
                     {link.label}
+                  </Link>
+                </li>
+              ))}
+              {collections.map((collection) => (
+                <li key={collection.slug}>
+                  <Link
+                    href={`/collections/${collection.slug}`}
+                    className="group inline-flex items-center gap-2 text-lg text-paper/70 transition-colors hover:text-accent-soft"
+                  >
+                    <span className="h-px w-0 bg-accent-soft transition-all duration-300 group-hover:w-5" />
+                    {collection.name}
                   </Link>
                 </li>
               ))}

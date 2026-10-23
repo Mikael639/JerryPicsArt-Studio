@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useRef } from "react";
 import Image from "next/image";
-import { stats } from "../../data/stats";
+import { stats as defaultStats } from "../../data/stats";
 
 export function getRevealProps(reduceMotion, delay = 0, amount = 0.24) {
   if (reduceMotion) {
@@ -36,7 +36,7 @@ export const wordRevealVariant = {
 };
 
 // Chiffres affichés en dur (jamais « 0+ ») ; un chiffre à 0 est masqué. Source : data/stats.js
-export function StatsSection({ reduceMotion, items = stats }) {
+export function StatsSection({ reduceMotion, items = defaultStats }) {
   const visibleItems = items.filter((item) => item.valeur > 0);
   if (!visibleItems.length) return null;
 

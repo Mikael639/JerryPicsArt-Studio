@@ -54,6 +54,9 @@ export default function HomePageExperience({
   supportingPhotos,
   doorPhotos = {},
   cinematicPool = [],
+  references,
+  stats,
+  testimonials,
   siteText = {},
 }) {
   const reduceMotion = useReducedMotion();
@@ -412,7 +415,7 @@ export default function HomePageExperience({
         `}</style>
       </section>
 
-      <ReferencesBand />
+      <ReferencesBand items={references} />
 
       <section className="mx-auto max-w-7xl px-4 md:px-8" aria-labelledby="portes-titre">
         <MotionBlock reduceMotion={reduceMotion} className="mb-10 max-w-3xl space-y-4">
@@ -470,9 +473,9 @@ export default function HomePageExperience({
 
       <PartnersSection reduceMotion={reduceMotion} />
 
-      <StatsSection reduceMotion={reduceMotion} />
+      <StatsSection reduceMotion={reduceMotion} items={stats} />
 
-      <Testimonials limit={1} tone="dark" title="Ce que disent mes clients" />
+      <Testimonials items={testimonials} limit={1} tone="dark" title="Ce que disent mes clients" />
 
       <ContactBlock
         title="Parlons de votre projet"
