@@ -11,6 +11,7 @@ import MagneticElement from "../MagneticElement";
 import {
   MotionBlock,
   PhotoTile,
+  PartnersSection,
   StatsSection,
   TestimonialsSection,
   specialties,
@@ -596,6 +597,8 @@ export default function HomePageExperience({
       </section>
 
       <StatsSection reduceMotion={reduceMotion} />
+
+      <PartnersSection reduceMotion={reduceMotion} />
 
       <TestimonialsSection reduceMotion={reduceMotion} />
 

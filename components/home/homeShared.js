@@ -5,31 +5,13 @@ import { useEffect, useRef, useState } from "react";
 
 export const stats = [
   { value: 320, suffix: "+", label: "Series livrees", focus: "depuis 2020" },
-  { value: 80, suffix: "+", label: "Evenements couverts", focus: "France et international" },
-  { value: 45, suffix: "+", label: "Marques accompagnees", focus: "mode, mariage, lifestyle" },
+  { value: 200, suffix: "+", label: "Evenements couverts", focus: "France et international" },
+  { value: 15, suffix: "+", label: "Marques accompagnees", focus: "mode, mariage, lifestyle" },
   { value: 48, suffix: "h", label: "Delai preview", focus: "selection envoyee" },
 ];
 
-export const testimonials = [
-  {
-    quote:
-      "Une presence discrete et une vraie lecture du moment. Les images respirent et racontent vraiment ce que nous avons vecu.",
-    name: "Camille R.",
-    role: "Mariage couture, Paris",
-  },
-  {
-    quote:
-      "Direction artistique tres claire, retouche maitrisee. Le rendu est tenu, intemporel, exactement la ligne que la maison cherchait.",
-    name: "Studio Atelier 8",
-    role: "Direction creative, Fashion Week",
-  },
-  {
-    quote:
-      "Brief court, livraison rapide, edit cohérent. Jerrypicsart a parfaitement capte l'energie de la soiree.",
-    name: "Hugo M.",
-    role: "Lancement de marque, Paris",
-  },
-];
+// Avis clients reels uniquement : [{ quote, name, role }]. Tant que la liste est vide, la section est masquee.
+export const testimonials = [];
 
 function CountUp({ value, suffix = "", duration = 1.6 }) {
   const ref = useRef(null);
@@ -103,13 +85,15 @@ export function StatsSection({ reduceMotion, items = stats }) {
 }
 
 export function TestimonialsSection({ reduceMotion, items = testimonials }) {
+  if (!items.length) return null;
+
   return (
     <section className="mx-auto max-w-7xl px-4 md:px-8">
       <MotionBlock reduceMotion={reduceMotion} className="space-y-10">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl space-y-4">
-            <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-ink/40">Retours</p>
-            <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-6xl">
+            <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-paper/55">Retours</p>
+            <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] text-paper md:text-6xl">
               Ce que disent celles et ceux qui ont collabore.
             </h2>
           </div>
@@ -132,6 +116,61 @@ export function TestimonialsSection({ reduceMotion, items = testimonials }) {
               </figcaption>
             </motion.figure>
           ))}
+        </div>
+      </MotionBlock>
+    </section>
+  );
+}
+
+// Logos blancs sur fond transparent, deposes dans public/images/partners/.
+// `size` regle la hauteur (classes Tailwind) pour equilibrer les logos entre eux.
+export const partners = [
+  { name: "Taptap Send", logo: "/images/partners/taptap-send.png", size: "h-16 md:h-20", width: 191, height: 169 },
+  { name: "Sofitel Le Scribe", logo: "/images/partners/le-scribe.png", size: "h-14 md:h-16", width: 332, height: 124 },
+  { name: "Rolling Stone Africa", logo: "/images/partners/rolling-stone-africa.png", size: "h-10 md:h-12", width: 900, height: 179 },
+  { name: "Les Flammes", logo: "/images/partners/les-flammes.png", size: "h-14 md:h-16", width: 486, height: 220 },
+  { name: "NWE", logo: "/images/partners/nwe.png", size: "h-16 md:h-20", width: 524, height: 545 },
+  { name: "Galeries Lafayette", logo: "/images/partners/galeries-lafayette.png", size: "h-14 md:h-16", width: 900, height: 472 },
+  { name: "Printemps", logo: "/images/partners/printemps.png", size: "h-8 md:h-9", width: 342, height: 49 },
+];
+
+export function PartnersSection({ reduceMotion, items = partners }) {
+  const loop = [...items, ...items];
+
+  return (
+    <section className="mx-auto max-w-7xl px-4 md:px-8">
+      <MotionBlock reduceMotion={reduceMotion} className="space-y-10">
+        <div className="max-w-2xl space-y-4">
+          <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-paper/55">Partenaires</p>
+          <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] text-paper md:text-6xl">
+            Ils nous font confiance.
+          </h2>
+        </div>
+
+        <div className="partners-mask relative overflow-hidden rounded-panel border border-white/10 bg-white/[0.03] py-10 backdrop-blur-sm">
+          <ul className={`flex w-max items-center gap-16 px-8 md:gap-24 ${reduceMotion ? "" : "partners-track"}`}>
+            {loop.map((partner, index) => (
+              <li
+                key={`${partner.name}-${index}`}
+                aria-hidden={index >= items.length ? "true" : undefined}
+                className="flex h-20 shrink-0 items-center opacity-65 transition duration-500 hover:opacity-100"
+              >
+                {partner.logo ? (
+                  <Image
+                    src={partner.logo}
+                    alt={partner.name}
+                    width={partner.width}
+                    height={partner.height}
+                    className={`${partner.size} w-auto object-contain`}
+                  />
+                ) : (
+                  <span className="whitespace-nowrap font-serif text-3xl tracking-tight text-paper md:text-4xl">
+                    {partner.name}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
       </MotionBlock>
     </section>
