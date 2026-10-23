@@ -118,7 +118,7 @@ export default async function EntreprisesPage() {
           <Reveal className="grid items-center gap-8 overflow-hidden rounded-panel border border-line/15 bg-white/60 p-8 md:grid-cols-[auto_1fr_auto] md:gap-12 md:p-12">
             <div
               aria-hidden="true"
-              className="relative mx-auto flex h-48 w-36 flex-col justify-between rounded-[0.9rem] border border-line/20 bg-paper p-4 shadow-[0_24px_60px_rgba(12,10,8,0.14)] md:mx-0 md:h-56 md:w-40"
+              className="theme-default relative mx-auto flex h-48 w-36 flex-col justify-between rounded-[0.9rem] border border-line/20 bg-paper p-4 shadow-[0_24px_60px_rgba(12,10,8,0.14)] md:mx-0 md:h-56 md:w-40"
             >
               <span className="font-serif text-lg leading-tight text-ink">JerryPicsArt</span>
               <span className="space-y-1.5">

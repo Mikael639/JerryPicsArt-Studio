@@ -107,6 +107,15 @@ button {
   color: #fafafa;
 }
 
+/* Rétablit les couleurs d'origine à l'intérieur d'un chapitre sombre (cartes qui ont leur propre fond). */
+.dark-chapter .theme-default {
+  --ink: #111111;
+  --paper: #fafafa;
+  --line: #2a2a2a;
+  --accent: #8f5730;
+  --color-white: #ffffff;
+}
+
 /* Bandeau defilant des partenaires */
 .partners-track {
   animation: partners-scroll 14s linear infinite;

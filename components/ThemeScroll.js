@@ -10,7 +10,7 @@ const DARK_BACKGROUND = "#0c0a08";
 
 // Passage fluide du mode clair au mode sombre sur toutes les pages : le fond du site s'assombrit
 // quand une section marquée data-theme-section="dark" arrive à l'écran, et s'éclaircit en remontant.
-// (L'accueil gère ses propres sections ; son bloc final est exclu via themeSwitch={false}.)
+// (L'accueil gère ses propres sections.)
 export default function ThemeScroll() {
   const pathname = usePathname();
 
@@ -19,22 +19,33 @@ export default function ThemeScroll() {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
 
     const triggers = [];
-    const frame = window.requestAnimationFrame(() => {
-      document.querySelectorAll('[data-theme-section="dark"]').forEach((section) => {
-        triggers.push(
-          ScrollTrigger.create({
-            trigger: section,
-            start: "top 45%",
-            end: "bottom top",
-            onEnter: () => gsap.to(document.body, { backgroundColor: DARK_BACKGROUND, duration: 0.9, overwrite: true }),
-            onLeaveBack: () => gsap.to(document.body, { backgroundColor: LIGHT_BACKGROUND, duration: 0.9, overwrite: true }),
-          })
-        );
-      });
+    document.querySelectorAll('[data-theme-section="dark"]').forEach((section) => {
+      triggers.push(
+        ScrollTrigger.create({
+          trigger: section,
+          start: "top 45%",
+          end: "bottom top",
+          onEnter: () => gsap.to(document.body, { backgroundColor: DARK_BACKGROUND, duration: 0.9, overwrite: true }),
+          onLeaveBack: () => gsap.to(document.body, { backgroundColor: LIGHT_BACKGROUND, duration: 0.9, overwrite: true }),
+        })
+      );
     });
 
+    // La hauteur de la page change quand les images se chargent : on recalcule les positions.
+    let refreshTimer = 0;
+    const scheduleRefresh = () => {
+      window.clearTimeout(refreshTimer);
+      refreshTimer = window.setTimeout(() => ScrollTrigger.refresh(), 150);
+    };
+    const resizeObserver = new ResizeObserver(scheduleRefresh);
+    resizeObserver.observe(document.body);
+    window.addEventListener("load", scheduleRefresh);
+    scheduleRefresh();
+
     return () => {
-      window.cancelAnimationFrame(frame);
+      window.clearTimeout(refreshTimer);
+      resizeObserver.disconnect();
+      window.removeEventListener("load", scheduleRefresh);
       triggers.forEach((trigger) => trigger.kill());
       gsap.killTweensOf(document.body);
       gsap.set(document.body, { clearProps: "backgroundColor" });

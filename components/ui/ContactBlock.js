@@ -15,7 +15,7 @@ export default function ContactBlock({
     <section data-theme-section={themeSwitch ? "dark" : undefined} className="mx-auto max-w-7xl px-4 pt-12 md:px-8 md:pt-20">
       <div
         data-cursor-surface="dark"
-        className="relative overflow-hidden rounded-feature border border-line/12 bg-[linear-gradient(135deg,#171310,#302720)] p-8 text-paper shadow-[0_48px_128px_rgba(12,10,8,0.2)] md:p-14"
+        className="theme-default relative overflow-hidden rounded-feature border border-line/12 bg-[linear-gradient(135deg,#171310,#302720)] p-8 text-paper shadow-[0_48px_128px_rgba(12,10,8,0.2)] md:p-14"
       >
         <div className="max-w-3xl space-y-6">
           <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-6xl">{title}</h2>
