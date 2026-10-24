@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { stats as defaultStats } from "../../data/stats";
+import CountUp from "../ui/CountUp";
 
 export function getRevealProps(reduceMotion, delay = 0, amount = 0.24) {
   if (reduceMotion) {
@@ -63,8 +64,7 @@ export function StatsSection({ reduceMotion, items = defaultStats }) {
               className="border-t border-line/16 pt-5"
             >
               <dd className="font-serif text-5xl leading-none tracking-[-0.04em] text-ink md:text-6xl">
-                {item.valeur}
-                {item.suffixe}
+                <CountUp value={item.valeur} suffix={item.suffixe} delay={index * 0.12} />
               </dd>
               <dt className="mt-4 text-[11px] font-bold uppercase tracking-[0.24em] text-ink/55">{item.libelle}</dt>
               {item.precision ? <p className="mt-1 text-sm text-ink/45">{item.precision}</p> : null}

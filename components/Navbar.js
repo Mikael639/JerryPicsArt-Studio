@@ -1,14 +1,21 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useScroll, useSpring } from "framer-motion";
 import { useEffect, useState } from "react";
 import { siteConfig } from "../lib/siteConfig";
 
-export default function Navbar() {
+const MAIN_LINKS = ["/signature", "/evenements", "/mariage", "/entreprises"];
+
+export default function Navbar({ previews = {} }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [hovered, setHovered] = useState(null);
+  const mainLinks = siteConfig.navigation.filter((link) => MAIN_LINKS.includes(link.href));
+  const houseLinks = siteConfig.navigation.filter((link) => !MAIN_LINKS.includes(link.href));
+  const preview = previews[hovered] || previews[MAIN_LINKS.find((href) => previews[href])] || null;
   const [isScrolled, setIsScrolled] = useState(false);
   // Le bouton « Demander un devis » doit rester visible : l'en-tête ne s'estompe plus.
   const shouldDimOnHome = false;
@@ -29,6 +36,19 @@ export default function Navbar() {
   }, [isOpen]);
 
   useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onKey = (event) => {
+      if (event.key === "Escape") setIsOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen]);
+
+  useEffect(() => {
     function handleScroll() {
       setIsScrolled(window.scrollY > 80);
     }
@@ -39,6 +59,7 @@ export default function Navbar() {
   }, []);
 
   return (
+    <>
     <motion.header
       initial={{ y: -100, opacity: 0 }}
       animate={shouldDimOnHome ? { y: -18, opacity: 0.08 } : { y: 0, opacity: 1 }}
@@ -71,41 +92,30 @@ export default function Navbar() {
           JerryPicsArt
         </Link>
 
-        <div className="hidden items-center gap-1 rounded-full border border-line/20 bg-white/70 p-1 xl:flex">
-          {siteConfig.navigation.map((link) => {
+        <div className="hidden items-center gap-9 xl:flex">
+          {mainLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`relative whitespace-nowrap rounded-full px-3 py-1.5 text-sm transition ${
-                  isActive ? "text-paper" : "text-ink/75 hover:text-ink"
+                className={`group relative py-2 text-[12px] font-bold uppercase tracking-[0.2em] transition-colors ${
+                  isActive ? "text-ink" : "text-ink/55 hover:text-ink"
                 }`}
               >
-                {isActive && <motion.span layoutId="nav-pill" className="absolute inset-0 rounded-full bg-ink" />}
-                <span className="relative z-10">{link.label}</span>
+                {link.label}
+                <span
+                  aria-hidden="true"
+                  className={`absolute inset-x-0 -bottom-0.5 h-px origin-left bg-ink transition-transform duration-500 ${
+                    isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+                  }`}
+                />
               </Link>
             );
           })}
         </div>
 
         <div className="ml-auto flex items-center gap-2 xl:ml-0">
-          <div className="hidden items-center gap-2 xl:flex">
-            {siteConfig.socialLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={`${link.name} ${link.handle}`}
-                title={`${link.name} ${link.handle}`}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-line/20 bg-white/65 text-ink/65 shadow-sm backdrop-blur-md transition hover:border-ink/20 hover:bg-white hover:text-ink"
-              >
-                {link.name === "LinkedIn" ? <LinkedInIcon className="h-4.5 w-4.5" /> : <InstagramIcon className="h-4.5 w-4.5" />}
-              </a>
-            ))}
-          </div>
-
           <Link
             href="/contact"
             className="inline-flex items-center rounded-full bg-ink px-4 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-paper shadow-sm transition-colors hover:bg-accent sm:px-5 sm:py-2.5 sm:text-[12px]"
@@ -116,9 +126,9 @@ export default function Navbar() {
         <button
           type="button"
           aria-expanded={isOpen}
-          aria-controls="mobile-navigation"
+          aria-controls="mobile-navigation desktop-navigation"
           onClick={() => setIsOpen((current) => !current)}
-          className="inline-flex items-center gap-2 rounded-full border border-line/20 bg-white/80 px-3 py-2 text-sm font-medium text-ink shadow-sm transition-all active:scale-95 sm:gap-3 sm:px-4 xl:hidden"
+          className="inline-flex items-center gap-2 rounded-full border border-line/20 bg-white/80 px-3 py-2 text-sm font-medium text-ink shadow-sm transition-all active:scale-95 sm:gap-3 sm:px-4"
         >
           <span className="tracking-wide">{isOpen ? "Fermer" : "Menu"}</span>
           <span
@@ -195,30 +205,107 @@ export default function Navbar() {
         ) : null}
       </AnimatePresence>
     </motion.header>
-  );
-}
 
-function InstagramIcon({ className = "" }) {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      className={className}
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <rect x="3.75" y="3.75" width="16.5" height="16.5" rx="5" stroke="currentColor" strokeWidth="1.8" />
-      <circle cx="12" cy="12" r="3.6" stroke="currentColor" strokeWidth="1.8" />
-      <circle cx="16.8" cy="7.2" r="1.1" fill="currentColor" />
-    </svg>
-  );
-}
+      <AnimatePresence>
+        {isOpen ? (
+          <motion.div
+            key="desktop-menu"
+            id="desktop-navigation"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed inset-0 z-40 hidden bg-paper pt-[73px] xl:block"
+          >
+            <div className="mx-auto grid h-full max-w-7xl grid-cols-[minmax(0,1fr)_minmax(0,26rem)] items-center gap-20 px-8 pb-12">
+              <div className="space-y-10" onMouseLeave={() => setHovered(null)}>
+                <div>
+                  <p className="mb-5 text-[11px] font-bold uppercase tracking-[0.32em] text-ink/40">Prestations</p>
+                  <ul className="space-y-1">
+                    {mainLinks.map((link, index) => (
+                      <motion.li
+                        key={link.href}
+                        initial={{ opacity: 0, y: 24 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.7, delay: 0.1 + index * 0.07, ease: [0.16, 1, 0.3, 1] }}
+                      >
+                        <Link
+                          href={link.href}
+                          onMouseEnter={() => setHovered(link.href)}
+                          onFocus={() => setHovered(link.href)}
+                          className={`group flex items-baseline gap-5 py-1 font-serif text-6xl leading-[1.05] tracking-[-0.03em] transition-colors duration-500 ${
+                            pathname === link.href ? "text-accent" : hovered && hovered !== link.href ? "text-ink/30" : "text-ink"
+                          }`}
+                        >
+                          <span className="w-8 -translate-y-[0.9em] font-sans text-[11px] font-bold tracking-[0.2em] text-ink/40">
+                            {String(index + 1).padStart(2, "0")}
+                          </span>
+                          <span className="transition-transform duration-500 group-hover:translate-x-3">{link.label}</span>
+                        </Link>
+                      </motion.li>
+                    ))}
+                  </ul>
+                </div>
 
-function LinkedInIcon({ className = "" }) {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="3.75" y="3.75" width="16.5" height="16.5" rx="3" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M8 10.5v5.5M8 8v.01M11.5 16v-5.5m0 2.5c0-1.5 1-2.5 2.4-2.5 1.3 0 2.1.9 2.1 2.5V16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.7, delay: 0.5 }}
+                  className="flex flex-wrap items-center gap-x-10 gap-y-3 border-t border-line/15 pt-6"
+                >
+                  {houseLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={`text-[12px] font-bold uppercase tracking-[0.22em] transition-colors hover:text-ink ${
+                        pathname === link.href ? "text-ink" : "text-ink/55"
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                  {siteConfig.socialLinks.map((link) => (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[12px] font-bold uppercase tracking-[0.22em] text-ink/55 transition-colors hover:text-ink"
+                    >
+                      {link.name}
+                    </a>
+                  ))}
+                </motion.div>
+              </div>
+
+              {preview ? (
+                <div className="relative aspect-[4/5] w-full overflow-hidden rounded-card bg-neutral-900 shadow-[0_24px_80px_rgba(12,10,8,0.14)]">
+                  <AnimatePresence initial={false}>
+                    <motion.div
+                      key={preview.src}
+                      className="absolute inset-0"
+                      initial={{ opacity: 0, scale: 1.06 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                    >
+                      <Image
+                        src={preview.src}
+                        alt={preview.alt}
+                        fill
+                        sizes="416px"
+                        className="object-cover"
+                        style={{ objectPosition: preview.objectPosition }}
+                        quality={80}
+                      />
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+              ) : null}
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </>
   );
 }

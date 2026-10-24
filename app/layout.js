@@ -12,6 +12,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { getSiteUrl, siteConfig, toAbsoluteUrl } from "../lib/siteConfig";
 import { getCategories, getMaintenanceMode } from "../lib/siteSettings";
 import { getCustomCollections } from "../lib/categories";
+import { getMenuPreviews } from "../lib/menuPreviews";
 import { headers } from "next/headers";
 
 const display = Cormorant_Garamond({
@@ -91,6 +92,7 @@ export default async function RootLayout({ children }) {
   const isAdmin = pathname.startsWith("/admin");
   const isMaintenance = await getMaintenanceMode();
   const collections = isAdmin ? [] : getCustomCollections(await getCategories());
+  const menuPreviews = isAdmin ? {} : await getMenuPreviews();
 
   if (isMaintenance && !isAdmin) {
     return (
@@ -120,7 +122,7 @@ export default async function RootLayout({ children }) {
             <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_70%_30%,rgba(188,125,79,0.18),transparent_42%)]" />
             <NoiseOverlay />
             <CustomCursor />
-            {!isAdmin ? <Navbar /> : null}
+            {!isAdmin ? <Navbar previews={menuPreviews} /> : null}
             <main className={`w-full ${isAdmin ? "pb-16 pt-6" : "pt-20"}`}>{children}</main>
             {!isAdmin ? <ThemeScroll /> : null}
             {!isAdmin ? <PageTransition /> : null}
