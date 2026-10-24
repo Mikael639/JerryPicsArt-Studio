@@ -7,6 +7,7 @@ import DarkChapter from "../../components/ui/DarkChapter";
 import Reveal from "../../components/ui/Reveal";
 import { findSeriesBySlugs, pickSeries } from "../../data/series";
 import { showPlaceholders } from "../../data/placeholders";
+import { getIntroPhotos } from "../../lib/introPhotos";
 import { loadSeries } from "../../lib/loadSeries";
 import { buildPageMetadata } from "../../lib/seo";
 
@@ -71,7 +72,7 @@ export default async function EvenementsPage() {
   const proofSlugs = new Set(proof.map((serie) => serie.slug));
   const others = pickSeries(all, "evenement").filter((serie) => !proofSlugs.has(serie.slug)).slice(0, 3);
 
-  const introPhoto = proof[0]?.images?.[0] || others[0]?.images?.[0] || null;
+  const introPhoto = (await getIntroPhotos())["/evenements"] || proof[0]?.images?.[0] || others[0]?.images?.[0] || null;
 
   return (
     <div className="page-shell space-y-16 md:space-y-24">

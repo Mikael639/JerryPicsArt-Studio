@@ -7,7 +7,8 @@ import OfferCards from "../../components/ui/OfferCards";
 import ContactBlock from "../../components/ui/ContactBlock";
 import DarkChapter from "../../components/ui/DarkChapter";
 import TrackedLink from "../../components/ui/TrackedLink";
-import { findPhotoBySrc, pickSeries } from "../../data/series";
+import { pickSeries } from "../../data/series";
+import { getIntroPhotos } from "../../lib/introPhotos";
 import { loadSeries } from "../../lib/loadSeries";
 import { getReferences } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
@@ -43,7 +44,7 @@ const guarantees = [
 export default async function EntreprisesPage() {
   const [allSeries, references] = await Promise.all([loadSeries(), getReferences()]);
   const studio = pickSeries(allSeries, "entreprise", 1);
-  const introPhoto = findPhotoBySrc(allSeries, "shooting-little-africa-jpa-40", studio[0]?.images?.[0]);
+  const introPhoto = (await getIntroPhotos())["/entreprises"] || studio[0]?.images?.[0] || null;
 
   return (
     <div className="page-shell space-y-16 md:space-y-24">

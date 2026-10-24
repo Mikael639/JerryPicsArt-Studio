@@ -12,7 +12,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { getSiteUrl, siteConfig, toAbsoluteUrl } from "../lib/siteConfig";
 import { getCategories, getMaintenanceMode } from "../lib/siteSettings";
 import { getCustomCollections } from "../lib/categories";
-import { getMenuPreviews } from "../lib/menuPreviews";
+import { getIntroPhotos } from "../lib/introPhotos";
 import { headers } from "next/headers";
 
 const display = Cormorant_Garamond({
@@ -92,7 +92,7 @@ export default async function RootLayout({ children }) {
   const isAdmin = pathname.startsWith("/admin");
   const isMaintenance = await getMaintenanceMode();
   const collections = isAdmin ? [] : getCustomCollections(await getCategories());
-  const menuPreviews = isAdmin ? {} : await getMenuPreviews();
+  const menuPreviews = isAdmin ? {} : await getIntroPhotos();
 
   if (isMaintenance && !isAdmin) {
     return (

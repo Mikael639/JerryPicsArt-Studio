@@ -7,8 +7,9 @@ import Testimonials from "../../components/ui/Testimonials";
 import ContactBlock from "../../components/ui/ContactBlock";
 import DarkChapter from "../../components/ui/DarkChapter";
 import Reveal from "../../components/ui/Reveal";
-import { findPhotoBySrc, pickSeries } from "../../data/series";
+import { pickSeries } from "../../data/series";
 import { showPlaceholders } from "../../data/placeholders";
+import { getIntroPhotos } from "../../lib/introPhotos";
 import { loadSeries } from "../../lib/loadSeries";
 import { getTestimonials } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
@@ -118,8 +119,7 @@ const faq = [
 export default async function MariagePage() {
   const [allSeries, testimonials] = await Promise.all([loadSeries(), getTestimonials()]);
   const series = pickSeries(allSeries, "mariage", 3);
-  const detail = findPhotoBySrc(allSeries, "detail-bijoux", series[0]?.images?.[0]);
-  const introPhoto = detail ? { ...detail, alt: "Détail d'une robe de mariée, mains et alliance" } : null;
+  const introPhoto = (await getIntroPhotos())["/mariage"] || series[0]?.images?.[0] || null;
 
   return (
     <div className="page-shell space-y-16 md:space-y-24">
