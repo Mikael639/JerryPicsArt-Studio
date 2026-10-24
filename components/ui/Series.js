@@ -115,7 +115,7 @@ export default function Series({ serie, withBridge = false, priority = false }) 
             <button
               type="button"
               onClick={() => setMode((current) => (current === "carousel" ? "grid" : "carousel"))}
-              className="-my-2.5 py-2.5 text-[11px] font-bold uppercase tracking-[0.2em] text-ink/60 underline-offset-4 transition-colors hover:text-ink hover:underline"
+              className="-my-2.5 hidden py-2.5 text-[11px] font-bold uppercase tracking-[0.2em] text-ink/60 underline-offset-4 transition-colors hover:text-ink hover:underline md:inline-block"
             >
               {mode === "carousel" ? "Voir en grille" : "Voir en défilé"}
             </button>
@@ -123,8 +123,9 @@ export default function Series({ serie, withBridge = false, priority = false }) 
         </div>
       </Reveal>
 
+      {/* Le défilé n'existe que sur grand écran : sur téléphone, les photos sont toujours en grille. */}
       {mode === "carousel" ? (
-        <div className="relative">
+        <div className="relative hidden md:block">
           <div
             ref={trackRef}
             onScroll={updateProgress}
@@ -164,8 +165,10 @@ export default function Series({ serie, withBridge = false, priority = false }) 
             </div>
           </div>
         </div>
-      ) : (
-        <>
+      ) : null}
+
+      {mode === "grid" || mode === "carousel" ? (
+        <div className={mode === "carousel" ? "md:hidden" : ""}>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
             {gridImages.map((photo, index) => (
               <PhotoTile key={photo.id} photo={photo} index={index} onOpen={setActiveIndex} priority={priority} reduceMotion={reduceMotion} />
@@ -183,8 +186,8 @@ export default function Series({ serie, withBridge = false, priority = false }) 
               </button>
             </div>
           ) : null}
-        </>
-      )}
+        </div>
+      ) : null}
 
       {withBridge ? <BridgeCta serie={serie.slug} /> : null}
 

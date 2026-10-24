@@ -39,6 +39,20 @@ function getHeroPriority(photo) {
   );
 }
 
+// Étiquette affichée à côté du diaporama : suit la catégorie de la photo en cours.
+const HERO_LABELS = {
+  "Fashion Week & Celebrities": "Fashion Week",
+  "Fashion Week": "Fashion Week",
+  Events: "Événements",
+  "Fashion Wedding": "Mariage",
+  Mariage: "Mariage",
+  Studio: "Studio",
+};
+
+function getHeroLabel(category) {
+  return HERO_LABELS[category] || "Portfolio";
+}
+
 const DEFAULT_HERO_TITLE = "Photographe éditorial à Paris, de la Fashion Week à vos événements";
 const DEFAULT_HERO_SUBTITLE =
   "Le regard des défilés pour vos mariages, vos soirées et vos événements d'entreprise. Un accompagnement du premier rendez-vous à la livraison.";
@@ -398,7 +412,7 @@ export default function HomePageExperience({
 
             <div className="rounded-card border border-white/10 bg-black/40 p-6 text-paper/90 shadow-2xl backdrop-blur-xl">
               <div className="flex items-center justify-between gap-4">
-                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/50">Fashion Week</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/50">{getHeroLabel(activeHeroPhoto.category)}</p>
                 {shuffledPhotos.length > 1 ? (
                   <div className="flex items-center gap-2">
                     {visibleHeroDots.map((photo, index) => (
