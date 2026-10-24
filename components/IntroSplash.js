@@ -35,8 +35,7 @@ export default function IntroSplash() {
         isLeaving ? "pointer-events-none opacity-0" : "opacity-100"
       }`}
     >
-      <div className="absolute inset-x-[12vw] top-1/2 h-px bg-ink/8" />
-      <div className="relative flex w-[min(78vw,30rem)] flex-col items-center">
+      <div className="relative flex w-max max-w-[88vw] flex-col items-center">
         <div className="mb-7 flex h-16 w-16 items-center justify-center rounded-full border border-ink/10 bg-white/35 shadow-[0_18px_60px_rgba(12,10,8,0.07)]">
           <svg
             className="h-7 w-7 animate-[loading_camera_1.8s_ease-in-out_infinite] text-ink/70"
