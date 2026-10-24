@@ -443,10 +443,10 @@ export default function AdminPhotosClient({
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 pb-20 pt-8 md:px-8 md:pt-12">
       {/* EN-TÊTE ÉDITORIAL DE L'ADMIN */}
-      <header className="flex flex-wrap items-end justify-between gap-4 rounded-card border border-line/15 bg-white/80 p-6 shadow-[0_18px_60px_rgba(12,10,8,0.04)] backdrop-blur-sm md:p-8">
+      <header className="flex flex-wrap items-end justify-between gap-4 rounded-card border border-line/15 bg-white/80 p-5 shadow-[0_18px_60px_rgba(12,10,8,0.04)] backdrop-blur-sm md:p-6">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-ink/45">Espace photographe</p>
-          <h1 className="mt-2 font-serif text-4xl leading-none tracking-[-0.03em] md:text-5xl">
+          <h1 className="mt-2 font-serif text-3xl leading-none tracking-[-0.03em] md:text-4xl">
             Administration JerryPicsArt
           </h1>
           <p className="mt-2 text-sm text-ink/60">
@@ -485,22 +485,10 @@ export default function AdminPhotosClient({
         </div>
       </header>
 
-      {/* COMPTEURS CLÉS & VUE D'ENSEMBLE */}
-      <AdminDashboard
-        photos={photos}
-        messages={messages}
-        categories={categories}
-        onSelectTab={setActiveTab}
-        onOpenUniverse={openUniverseInPhototheque}
-        showDetails={activeTab === "overview"}
-      />
-
-      <AdminFeedback errorMessage={errorMessage} statusMessage={statusMessage} />
-
-      {/* NAVIGATION PRINCIPALE (ONGLETS DE NIVEAU 1) */}
+      {/* NAVIGATION PRINCIPALE : toujours visible, sans défilement horizontal, collée en haut au défilement */}
       <nav
         aria-label="Sections de l'administration"
-        className="no-scrollbar flex gap-2 overflow-x-auto rounded-2xl border border-line/15 bg-white/75 p-2 shadow-[0_8px_30px_rgba(12,10,8,0.03)]"
+        className="sticky top-2 z-30 grid grid-cols-2 gap-1.5 rounded-2xl border border-line/15 bg-white/90 p-1.5 shadow-[0_8px_30px_rgba(12,10,8,0.06)] backdrop-blur-md sm:grid-cols-5"
       >
         {mainTabs.map((tab) => {
           const active = activeTab === tab.id;
@@ -509,7 +497,8 @@ export default function AdminPhotosClient({
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-[0.16em] transition ${
+              aria-current={active ? "page" : undefined}
+              className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[11px] font-bold uppercase leading-tight tracking-[0.14em] transition last:col-span-2 sm:last:col-span-1 ${
                 active ? "bg-ink text-paper shadow-sm" : "text-ink/65 hover:bg-paper hover:text-ink"
               }`}
             >
@@ -527,6 +516,20 @@ export default function AdminPhotosClient({
           );
         })}
       </nav>
+
+      <AdminFeedback errorMessage={errorMessage} statusMessage={statusMessage} />
+
+      {/* VUE D'ENSEMBLE : compteurs, accès rapides et répartition */}
+      {activeTab === "overview" ? (
+        <AdminDashboard
+          photos={photos}
+          messages={messages}
+          categories={categories}
+          onSelectTab={setActiveTab}
+          onOpenUniverse={openUniverseInPhototheque}
+          showDetails
+        />
+      ) : null}
 
       {/* ONGLET 2 : PHOTOTHÈQUE HIÉRARCHISÉE (UNIVERS -> SÉRIES -> VUES) */}
       {activeTab === "photos" ? (
@@ -583,25 +586,28 @@ export default function AdminPhotosClient({
       {/* ONGLET 5 : TEXTES & RÉGLAGES (AVEC SOUS-ONGLETS) */}
       {activeTab === "settings" ? (
         <div className="space-y-6">
-          <div className="grid gap-3 rounded-2xl border border-line/15 bg-white/75 p-4 md:grid-cols-3 xl:grid-cols-4">
-            {settingsSubTabs.map((sub) => {
-              const active = settingsSubTab === sub.id;
-              return (
-                <button
-                  key={sub.id}
-                  type="button"
-                  onClick={() => setSettingsSubTab(sub.id)}
-                  className={`rounded-xl border p-4 text-left transition ${
-                    active
-                      ? "border-ink bg-ink text-paper shadow-[0_12px_30px_rgba(12,10,8,0.14)]"
-                      : "border-line/15 bg-paper/60 text-ink hover:border-ink/35 hover:bg-white"
-                  }`}
-                >
-                  <p className="font-serif text-xl">{sub.label}</p>
-                  <p className={`mt-1 text-xs ${active ? "text-paper/70" : "text-ink/55"}`}>{sub.description}</p>
-                </button>
-              );
-            })}
+          <div className="space-y-3 rounded-2xl border border-line/15 bg-white/75 p-4">
+            <div className="flex flex-wrap gap-2">
+              {settingsSubTabs.map((sub) => {
+                const active = settingsSubTab === sub.id;
+                return (
+                  <button
+                    key={sub.id}
+                    type="button"
+                    onClick={() => setSettingsSubTab(sub.id)}
+                    aria-current={active ? "page" : undefined}
+                    className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] transition ${
+                      active
+                        ? "border-ink bg-ink text-paper"
+                        : "border-line/20 bg-paper/60 text-ink/70 hover:border-ink/40 hover:bg-white hover:text-ink"
+                    }`}
+                  >
+                    {sub.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-sm text-ink/60">{settingsSubTabs.find((sub) => sub.id === settingsSubTab)?.description}</p>
           </div>
 
           {settingsSubTab === "accueil" ? (
