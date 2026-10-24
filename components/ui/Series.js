@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import Lightbox from "../Lightbox";
 import Reveal from "./Reveal";
@@ -9,6 +9,26 @@ import BridgeCta from "./BridgeCta";
 import { showPlaceholders } from "../../data/placeholders";
 
 const INITIAL_GRID_COUNT = 8;
+const DESKTOP_QUERY = "(min-width: 768px)";
+
+function subscribeToDesktop(onChange) {
+  const media = window.matchMedia(DESKTOP_QUERY);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+
+function useIsDesktop() {
+  return useSyncExternalStore(subscribeToDesktop, () => window.matchMedia(DESKTOP_QUERY).matches, () => true);
+}
+
+// Vrai uniquement dans le HTML du serveur et au premier rendu du navigateur.
+function useIsServerRender() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => false,
+    () => true
+  );
+}
 
 function PhotoTile({ photo, index, onOpen, priority, reduceMotion }) {
   const delay = Math.min(index % 4, 3) * 0.08;
@@ -62,7 +82,13 @@ export default function Series({ serie, withBridge = false, priority = false }) 
   const reduceMotion = useReducedMotion();
   const trackRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(null);
+  const isDesktop = useIsDesktop();
+  const isServerRender = useIsServerRender();
   const [mode, setMode] = useState("carousel");
+  // Le HTML du serveur contient défilé et grille (la CSS en cache un selon l'écran) ; dès l'affichage
+  // dans le navigateur, on ne garde que celui qui sert, pour ne pas monter deux fois toutes les photos.
+  const showCarousel = mode === "carousel" && (isServerRender || isDesktop);
+  const showGrid = mode === "grid" || isServerRender || !isDesktop;
   const [expanded, setExpanded] = useState(false);
   const [progress, setProgress] = useState(0);
   const images = serie.images;
@@ -124,7 +150,7 @@ export default function Series({ serie, withBridge = false, priority = false }) 
       </Reveal>
 
       {/* Le défilé n'existe que sur grand écran : sur téléphone, les photos sont toujours en grille. */}
-      {mode === "carousel" ? (
+      {showCarousel ? (
         <div className="relative hidden md:block">
           <div
             ref={trackRef}
@@ -167,7 +193,7 @@ export default function Series({ serie, withBridge = false, priority = false }) 
         </div>
       ) : null}
 
-      {mode === "grid" || mode === "carousel" ? (
+      {showGrid ? (
         <div className={mode === "carousel" ? "md:hidden" : ""}>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
             {gridImages.map((photo, index) => (
