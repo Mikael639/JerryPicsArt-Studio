@@ -44,14 +44,14 @@ function parseCssColor(value) {
 }
 
 // Remonte les parents jusqu'au premier fond assez opaque et dit s'il est sombre.
-function isDarkBackground(target) {
+function isDarkBackground(target, fallback = false, boundary = null) {
   const now = performance.now();
-  if (darkCache.target === target && now - darkCache.time < 250) {
+  if (darkCache.target === target && darkCache.boundary === boundary && now - darkCache.time < 250) {
     return darkCache.result;
   }
 
-  let result = false;
-  for (let node = target; node instanceof Element; node = node.parentElement) {
+  let result = fallback;
+  for (let node = target; node instanceof Element && node !== boundary; node = node.parentElement) {
     const color = getComputedStyle(node).backgroundColor;
     if (!color || color === "transparent") continue;
 
@@ -62,13 +62,18 @@ function isDarkBackground(target) {
     break;
   }
 
-  darkCache = { target, result, time: now };
+  darkCache = { target, boundary, result, time: now };
   return result;
 }
 
 function isOnDarkSurface(target) {
   if (target.closest(".theme-default")) {
     return isDarkBackground(target);
+  }
+  // Dans un chapitre sombre, une carte claire (ex. formule recommandée) reste lisible : on suit la couleur réelle du fond.
+  const chapter = target.closest(".dark-chapter");
+  if (chapter) {
+    return isDarkBackground(target, true, chapter);
   }
   return Boolean(target.closest(darkSurfaceSelector)) || isDarkBackground(target);
 }

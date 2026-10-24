@@ -92,7 +92,7 @@ export default async function RootLayout({ children }) {
   const isAdmin = pathname.startsWith("/admin");
   const isMaintenance = await getMaintenanceMode();
   const collections = isAdmin ? [] : getCustomCollections(await getCategories());
-  const menuPreviews = isAdmin ? {} : await getIntroPhotos();
+  const menuPreviews = isAdmin ? {} : await getIntroPhotos({ forMenu: true });
 
   if (isMaintenance && !isAdmin) {
     return (
