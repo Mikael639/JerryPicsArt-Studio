@@ -7,7 +7,7 @@ import OfferCards from "../../components/ui/OfferCards";
 import ContactBlock from "../../components/ui/ContactBlock";
 import DarkChapter from "../../components/ui/DarkChapter";
 import TrackedLink from "../../components/ui/TrackedLink";
-import { pickSeries } from "../../data/series";
+import { findPhotoBySrc, pickSeries } from "../../data/series";
 import { loadSeries } from "../../lib/loadSeries";
 import { getReferences } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
@@ -43,6 +43,7 @@ const guarantees = [
 export default async function EntreprisesPage() {
   const [allSeries, references] = await Promise.all([loadSeries(), getReferences()]);
   const studio = pickSeries(allSeries, "entreprise", 1);
+  const introPhoto = findPhotoBySrc(allSeries, "shooting-little-africa-jpa-40", studio[0]?.images?.[0]);
 
   return (
     <div className="page-shell space-y-16 md:space-y-24">
@@ -51,6 +52,7 @@ export default async function EntreprisesPage() {
         title="Photographe pour événements d'entreprise et lieux de réception à Paris"
         lead="Un photographe fiable pour vos événements et vos clients."
         cta={{ href: "/contact?type=entreprise", label: "Réserver un appel de 15 minutes", event: "appel_15_minutes" }}
+        image={introPhoto}
       />
 
       <ReferencesBand items={references} />

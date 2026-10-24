@@ -7,7 +7,7 @@ import Testimonials from "../../components/ui/Testimonials";
 import ContactBlock from "../../components/ui/ContactBlock";
 import DarkChapter from "../../components/ui/DarkChapter";
 import Reveal from "../../components/ui/Reveal";
-import { pickSeries } from "../../data/series";
+import { findPhotoBySrc, pickSeries } from "../../data/series";
 import { showPlaceholders } from "../../data/placeholders";
 import { loadSeries } from "../../lib/loadSeries";
 import { getTestimonials } from "../../lib/siteContent";
@@ -118,6 +118,8 @@ const faq = [
 export default async function MariagePage() {
   const [allSeries, testimonials] = await Promise.all([loadSeries(), getTestimonials()]);
   const series = pickSeries(allSeries, "mariage", 3);
+  const detail = findPhotoBySrc(allSeries, "detail-bijoux", series[0]?.images?.[0]);
+  const introPhoto = detail ? { ...detail, alt: "Détail d'une robe de mariée, mains et alliance" } : null;
 
   return (
     <div className="page-shell space-y-16 md:space-y-24">
@@ -127,6 +129,7 @@ export default async function MariagePage() {
         lead="Votre mariage, photographié comme un éditorial."
         bridge="Le regard de la Fashion Week, pour votre mariage : lumière éditoriale, direction de pose naturelle, aucune image figée."
         cta={{ href: "/contact?type=mariage", label: "Vérifier ma date", event: "verifier_ma_date" }}
+        image={introPhoto}
       />
 
       <div className="space-y-20 md:space-y-28">

@@ -5,6 +5,7 @@ import ContactBlock from "../../components/ui/ContactBlock";
 import DarkChapter from "../../components/ui/DarkChapter";
 import { findSeriesBySlugs, pickSeries } from "../../data/series";
 import { loadSeries } from "../../lib/loadSeries";
+import { getPublicPhotos } from "../../lib/photoRepository";
 import { getReferences } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
 
@@ -18,6 +19,16 @@ export async function generateMetadata() {
   });
 }
 
+// Photo d'en-tête choisie dans toutes les photos publiées (elle n'appartient pas forcément à une série affichée).
+async function getIntroPhoto(fallback) {
+  try {
+    const photos = await getPublicPhotos({ limit: 500 });
+    const photo = photos.find((item) => item.src.toLowerCase().includes("imane-ayissi-hcw-260126-jpa-45"));
+    if (photo) return { src: photo.src, alt: "Défilé Imane Ayissi, Semaine de la Haute Couture, Paris", objectPosition: photo.objectPosition };
+  } catch {}
+  return fallback || null;
+}
+
 export default async function SignaturePage() {
   const [all, references] = await Promise.all([loadSeries(), getReferences()]);
   // Amiri est un défilé : il figure aussi ici, même si ses photos sont classées en événements.
@@ -25,6 +36,7 @@ export default async function SignaturePage() {
     .filter((serie, index, list) => list.findIndex((other) => other.slug === serie.slug) === index)
     .sort((a, b) => Number(b.priority) - Number(a.priority) || b.date - a.date || b.images.length - a.images.length)
     .slice(0, 10);
+  const introPhoto = await getIntroPhoto(series[0]?.images?.[0]);
 
   return (
     <div className="page-shell space-y-16 md:space-y-24">
@@ -33,6 +45,7 @@ export default async function SignaturePage() {
         title="Fashion Week de Paris : défilés, maisons et personnalités"
         lead="Depuis plusieurs saisons, je photographie les défilés, les invités et les personnalités de la Fashion Week de Paris."
         bridge="La même exigence guide chacun de mes mariages et de mes événements."
+        image={introPhoto}
       />
 
       <ReferencesBand items={references} />

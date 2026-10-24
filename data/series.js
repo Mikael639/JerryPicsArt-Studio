@@ -178,3 +178,13 @@ export function pickSeries(allSeries, universes, limit) {
 export function findSeriesBySlugs(allSeries, slugs) {
   return slugs.map((slug) => allSeries.find((serie) => serie.slug === slug)).filter(Boolean);
 }
+
+// Photo repérée par un morceau de son nom de fichier, pour les visuels d'en-tête de page.
+// Si elle n'existe plus, on retombe sur `fallback` (par exemple la première photo d'une série).
+export function findPhotoBySrc(allSeries, fragment, fallback = null) {
+  for (const serie of allSeries) {
+    const photo = serie.images.find((image) => image.src.toLowerCase().includes(fragment));
+    if (photo) return photo;
+  }
+  return fallback;
+}
