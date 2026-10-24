@@ -10,7 +10,15 @@ import {
   validateAdminCredentials,
   verifyAdminSessionToken,
 } from "../../../lib/adminAuth";
+import sharp from "sharp";
 import { defaultPortfolioCategory } from "../../../lib/categories";
+import {
+  downloadDriveFile,
+  extractDriveFolderId,
+  isDriveConfigured,
+  isValidDriveFileId,
+  listDriveImages,
+} from "../../../lib/googleDrive";
 import { getAdminContent } from "../../../lib/adminContent";
 import { updateSiteContent } from "../../../lib/siteContent";
 import { deleteContactMessage, listContactMessages, updateContactMessageStatus } from "../../../lib/contactStore";
@@ -180,6 +188,101 @@ export async function uploadAdminPhotosAction(formData) {
     });
   } catch (error) {
     return createActionResult({ ok: false, message: error.message || "Impossible d'ajouter la photo." });
+  }
+}
+
+export async function refreshAdminPhotosAction() {
+  const cookieStore = await getAuthorizedCookieStore();
+  if (!cookieStore) return unauthorizedResult();
+  return createActionResult({ ok: true, message: "", data: await getAdminPhotos() });
+}
+
+export async function listDriveFolderAction(link) {
+  const cookieStore = await getAuthorizedCookieStore();
+  if (!cookieStore) return unauthorizedResult();
+
+  if (!isDriveConfigured()) {
+    return createActionResult({ ok: false, message: "L'import Google Drive n'est pas encore configuré (clé GOOGLE_DRIVE_API_KEY manquante)." });
+  }
+
+  const folderId = extractDriveFolderId(link);
+  if (!folderId) {
+    return createActionResult({ ok: false, message: "Ce lien ne ressemble pas à un dossier Google Drive." });
+  }
+
+  try {
+    const files = await listDriveImages(folderId);
+    if (files.length === 0) {
+      return createActionResult({ ok: false, message: "Aucune image trouvée dans ce dossier." });
+    }
+    return createActionResult({
+      ok: true,
+      message: `${files.length} image(s) trouvée(s).`,
+      data: files.map((file) => ({ id: file.id, name: file.name, size: Number(file.size) || 0 })),
+    });
+  } catch (error) {
+    return createActionResult({ ok: false, message: error.message || "Impossible de lire le dossier." });
+  }
+}
+
+// Importe un petit lot de fichiers Drive (le client enchaîne les lots) : téléchargement, allègement, puis ajout au portfolio.
+export async function importDrivePhotosAction(input) {
+  const cookieStore = await getAuthorizedCookieStore();
+  if (!cookieStore) return unauthorizedResult();
+
+  if (!isDriveConfigured() || !isAdminStorageConfigured()) {
+    return createActionResult({ ok: false, message: "L'import Google Drive ou le stockage n'est pas configuré." });
+  }
+
+  const items = (Array.isArray(input?.files) ? input.files : []).filter((item) => isValidDriveFileId(item?.id));
+  if (items.length === 0 || items.length > 4) {
+    return createActionResult({ ok: false, message: "Lot de fichiers invalide." });
+  }
+
+  const files = [];
+  const failed = [];
+
+  for (const item of items) {
+    const name = toStringValue(item.name, "photo").replace(/\.[^/.]+$/, "") || "photo";
+    try {
+      const original = await downloadDriveFile(item.id);
+      const output = await sharp(original)
+        .rotate()
+        .resize({ width: 2000, height: 2000, fit: "inside", withoutEnlargement: true })
+        .jpeg({ quality: 82, mozjpeg: true })
+        .toBuffer();
+
+      if (output.length > MAX_UPLOAD_FILE_SIZE_BYTES) throw new Error("trop lourd");
+      files.push(new File([output], `${name}.jpg`, { type: "image/jpeg" }));
+    } catch {
+      failed.push(item.name || item.id);
+    }
+  }
+
+  if (files.length === 0) {
+    return createActionResult({ ok: false, message: `Impossible de traiter : ${failed.join(", ")}.` });
+  }
+
+  try {
+    await createAdminPhotos({
+      files,
+      title: toStringValue(input.title),
+      alt: toStringValue(input.alt),
+      category: toStringValue(input.category, defaultPortfolioCategory),
+      roles: toStringValue(input.roles, "[]"),
+      isPublished: toBooleanValue(input.isPublished, true),
+      isPinned: toBooleanValue(input.isPinned, false),
+    });
+
+    revalidatePublicPhotoViews();
+    revalidateAdminViews();
+    return createActionResult({
+      ok: true,
+      message: failed.length ? `${files.length} ajoutée(s), ${failed.length} ignorée(s) : ${failed.join(", ")}.` : `${files.length} photo(s) ajoutée(s).`,
+      data: { added: files.length, failed },
+    });
+  } catch (error) {
+    return createActionResult({ ok: false, message: error.message || "Impossible d'ajouter les photos." });
   }
 }
 

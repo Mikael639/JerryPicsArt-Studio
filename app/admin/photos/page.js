@@ -14,6 +14,9 @@ import {
   getMaintenanceMode,
 } from "../../../lib/siteSettings";
 
+// Les imports Google Drive téléchargent puis allègent plusieurs photos par appel.
+export const maxDuration = 60;
+
 export const metadata = {
   title: "Administration | JerryPicsArt",
   robots: { index: false, follow: false },

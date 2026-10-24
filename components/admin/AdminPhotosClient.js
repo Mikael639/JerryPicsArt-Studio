@@ -14,6 +14,7 @@ import {
   updateHomeCopyAction,
   updateMaintenanceModeAction,
   uploadAdminPhotosAction,
+  refreshAdminPhotosAction,
 } from "../../app/admin/photos/actions";
 import { compressImageFiles, formatFileSize } from "../../lib/imageCompression";
 import AdminAboutEditor from "./AdminAboutEditor";
@@ -26,6 +27,7 @@ import AdminMessagesPanel from "./AdminMessagesPanel";
 import AdminPhotosTable from "./AdminPhotosTable";
 import AdminSiteTextEditor from "./AdminSiteTextEditor";
 import AdminThemeGuide from "./AdminThemeGuide";
+import AdminDriveImport from "./AdminDriveImport";
 import AdminUploadForm from "./AdminUploadForm";
 import {
   categories as staticCategories,
@@ -184,6 +186,15 @@ export default function AdminPhotosClient({
         roles: hasRole ? current.roles.filter((item) => item !== role) : [...current.roles, role],
       };
     });
+  }
+
+  // Après un import Google Drive : recharge la liste des photos et ouvre l'onglet des photos.
+  async function handleDriveImported(text) {
+    const refreshed = await refreshAdminPhotosAction();
+    if (refreshed.ok) setPhotos(refreshed.data || []);
+    setSelectedUniverse(uploadForm.category || "all");
+    setActiveTab("photos");
+    setStatusMessage(text);
   }
 
   async function handleUpload(event) {
@@ -537,6 +548,7 @@ export default function AdminPhotosClient({
 
       {/* ONGLET 3 : AJOUTER DES PHOTOS */}
       {activeTab === "upload" ? (
+        <div className="space-y-6">
         <AdminUploadForm
           categories={categories}
           fileInputKey={fileInputKey}
@@ -550,6 +562,13 @@ export default function AdminPhotosClient({
           setUploadForm={setUploadForm}
           uploadForm={uploadForm}
         />
+        <AdminDriveImport
+          uploadForm={uploadForm}
+          heroPhotoCount={heroPhotoCount}
+          maxHeroPhotoCount={maxHeroPhotoCount}
+          onImported={handleDriveImported}
+        />
+        </div>
       ) : null}
 
       {/* ONGLET 4 : DEMANDES DE DEVIS */}
