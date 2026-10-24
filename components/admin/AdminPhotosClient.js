@@ -14,9 +14,11 @@ import {
   updateHomeCopyAction,
   updateMaintenanceModeAction,
   uploadAdminPhotosAction,
+  refreshAdminPhotosAction,
 } from "../../app/admin/photos/actions";
 import { compressImageFiles, formatFileSize } from "../../lib/imageCompression";
 import AdminAboutEditor from "./AdminAboutEditor";
+import AdminContentEditor from "./AdminContentEditor";
 import AdminCategoryManager from "./AdminCategoryManager";
 import AdminDashboard from "./AdminDashboard";
 import AdminFeedback from "./AdminFeedback";
@@ -25,6 +27,7 @@ import AdminMessagesPanel from "./AdminMessagesPanel";
 import AdminPhotosTable from "./AdminPhotosTable";
 import AdminSiteTextEditor from "./AdminSiteTextEditor";
 import AdminThemeGuide from "./AdminThemeGuide";
+import AdminDriveImport from "./AdminDriveImport";
 import AdminUploadForm from "./AdminUploadForm";
 import {
   categories as staticCategories,
@@ -37,7 +40,11 @@ import {
 const settingsSubTabs = [
   { id: "accueil", label: "Page d'accueil", description: "Titre et sous-titre du hero" },
   { id: "a-propos", label: "Page À propos", description: "Biographie, histoire, valeurs et manifeste" },
-  { id: "themes", label: "Catégories & guide", description: "Gestion des thèmes et correspondance des pages" },
+  { id: "avis", label: "Avis clients", description: "Témoignages affichés sur le site" },
+  { id: "chiffres", label: "Chiffres", description: "Séries livrées, événements, marques" },
+  { id: "references", label: "Références", description: "Personnalités, maisons, médias et lieux" },
+  { id: "series", label: "Textes des séries", description: "Phrase de contexte sous chaque série" },
+  { id: "themes", label: "Catégories & guide", description: "Ajouter une catégorie, pages du site" },
 ];
 
 export default function AdminPhotosClient({
@@ -58,6 +65,7 @@ export default function AdminPhotosClient({
     convictionText: "",
   },
   initialMaintenanceMode = false,
+  initialContent = { testimonials: [], stats: [], references: [], seriesList: [] },
 }) {
   const [authForm, setAuthForm] = useState({ username: "admin", password: "" });
   const [isAuthenticated, setIsAuthenticated] = useState(initialAuthenticated);
@@ -67,6 +75,7 @@ export default function AdminPhotosClient({
   const [homeCopy, setHomeCopy] = useState(initialHomeCopy);
   const [aboutCopy, setAboutCopy] = useState(initialAboutCopy);
   const [maintenanceMode, setMaintenanceMode] = useState(initialMaintenanceMode);
+  const [content, setContent] = useState(initialContent);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [uploadForm, setUploadForm] = useState(initialUploadForm);
   const [isUploading, setIsUploading] = useState(false);
@@ -144,6 +153,7 @@ export default function AdminPhotosClient({
       if (result.data?.homeCopy) setHomeCopy(result.data.homeCopy);
       if (result.data?.aboutCopy) setAboutCopy(result.data.aboutCopy);
       if (typeof result.data?.maintenanceMode === "boolean") setMaintenanceMode(result.data.maintenanceMode);
+      if (result.data?.content) setContent(result.data.content);
       setStatusMessage(result.message || "Connexion à l'espace d'administration réussie.");
     } catch (error) {
       setIsAuthenticated(false);
@@ -176,6 +186,15 @@ export default function AdminPhotosClient({
         roles: hasRole ? current.roles.filter((item) => item !== role) : [...current.roles, role],
       };
     });
+  }
+
+  // Après un import Google Drive : recharge la liste des photos et ouvre l'onglet des photos.
+  async function handleDriveImported(text) {
+    const refreshed = await refreshAdminPhotosAction();
+    if (refreshed.ok) setPhotos(refreshed.data || []);
+    setSelectedUniverse(uploadForm.category || "all");
+    setActiveTab("photos");
+    setStatusMessage(text);
   }
 
   async function handleUpload(event) {
@@ -424,10 +443,10 @@ export default function AdminPhotosClient({
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 pb-20 pt-8 md:px-8 md:pt-12">
       {/* EN-TÊTE ÉDITORIAL DE L'ADMIN */}
-      <header className="flex flex-wrap items-end justify-between gap-4 rounded-card border border-line/15 bg-white/80 p-6 shadow-[0_18px_60px_rgba(12,10,8,0.04)] backdrop-blur-sm md:p-8">
+      <header className="flex flex-wrap items-end justify-between gap-4 rounded-card border border-line/15 bg-white/80 p-5 shadow-[0_18px_60px_rgba(12,10,8,0.04)] backdrop-blur-sm md:p-6">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-ink/45">Espace photographe</p>
-          <h1 className="mt-2 font-serif text-4xl leading-none tracking-[-0.03em] md:text-5xl">
+          <h1 className="mt-2 font-serif text-3xl leading-none tracking-[-0.03em] md:text-4xl">
             Administration JerryPicsArt
           </h1>
           <p className="mt-2 text-sm text-ink/60">
@@ -466,22 +485,10 @@ export default function AdminPhotosClient({
         </div>
       </header>
 
-      {/* COMPTEURS CLÉS & VUE D'ENSEMBLE */}
-      <AdminDashboard
-        photos={photos}
-        messages={messages}
-        categories={categories}
-        onSelectTab={setActiveTab}
-        onOpenUniverse={openUniverseInPhototheque}
-        showDetails={activeTab === "overview"}
-      />
-
-      <AdminFeedback errorMessage={errorMessage} statusMessage={statusMessage} />
-
-      {/* NAVIGATION PRINCIPALE (ONGLETS DE NIVEAU 1) */}
+      {/* NAVIGATION PRINCIPALE : toujours visible, sans défilement horizontal, collée en haut au défilement */}
       <nav
         aria-label="Sections de l'administration"
-        className="no-scrollbar flex gap-2 overflow-x-auto rounded-2xl border border-line/15 bg-white/75 p-2 shadow-[0_8px_30px_rgba(12,10,8,0.03)]"
+        className="sticky top-2 z-30 grid grid-cols-2 gap-1.5 rounded-2xl border border-line/15 bg-white/90 p-1.5 shadow-[0_8px_30px_rgba(12,10,8,0.06)] backdrop-blur-md sm:grid-cols-5"
       >
         {mainTabs.map((tab) => {
           const active = activeTab === tab.id;
@@ -490,7 +497,8 @@ export default function AdminPhotosClient({
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-[0.16em] transition ${
+              aria-current={active ? "page" : undefined}
+              className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[11px] font-bold uppercase leading-tight tracking-[0.14em] transition last:col-span-2 sm:last:col-span-1 ${
                 active ? "bg-ink text-paper shadow-sm" : "text-ink/65 hover:bg-paper hover:text-ink"
               }`}
             >
@@ -508,6 +516,20 @@ export default function AdminPhotosClient({
           );
         })}
       </nav>
+
+      <AdminFeedback errorMessage={errorMessage} statusMessage={statusMessage} />
+
+      {/* VUE D'ENSEMBLE : compteurs, accès rapides et répartition */}
+      {activeTab === "overview" ? (
+        <AdminDashboard
+          photos={photos}
+          messages={messages}
+          categories={categories}
+          onSelectTab={setActiveTab}
+          onOpenUniverse={openUniverseInPhototheque}
+          showDetails
+        />
+      ) : null}
 
       {/* ONGLET 2 : PHOTOTHÈQUE HIÉRARCHISÉE (UNIVERS -> SÉRIES -> VUES) */}
       {activeTab === "photos" ? (
@@ -529,6 +551,7 @@ export default function AdminPhotosClient({
 
       {/* ONGLET 3 : AJOUTER DES PHOTOS */}
       {activeTab === "upload" ? (
+        <div className="space-y-6">
         <AdminUploadForm
           categories={categories}
           fileInputKey={fileInputKey}
@@ -542,6 +565,13 @@ export default function AdminPhotosClient({
           setUploadForm={setUploadForm}
           uploadForm={uploadForm}
         />
+        <AdminDriveImport
+          uploadForm={uploadForm}
+          heroPhotoCount={heroPhotoCount}
+          maxHeroPhotoCount={maxHeroPhotoCount}
+          onImported={handleDriveImported}
+        />
+        </div>
       ) : null}
 
       {/* ONGLET 4 : DEMANDES DE DEVIS */}
@@ -556,25 +586,28 @@ export default function AdminPhotosClient({
       {/* ONGLET 5 : TEXTES & RÉGLAGES (AVEC SOUS-ONGLETS) */}
       {activeTab === "settings" ? (
         <div className="space-y-6">
-          <div className="grid gap-3 rounded-2xl border border-line/15 bg-white/75 p-4 md:grid-cols-3">
-            {settingsSubTabs.map((sub) => {
-              const active = settingsSubTab === sub.id;
-              return (
-                <button
-                  key={sub.id}
-                  type="button"
-                  onClick={() => setSettingsSubTab(sub.id)}
-                  className={`rounded-xl border p-4 text-left transition ${
-                    active
-                      ? "border-ink bg-ink text-paper shadow-[0_12px_30px_rgba(12,10,8,0.14)]"
-                      : "border-line/15 bg-paper/60 text-ink hover:border-ink/35 hover:bg-white"
-                  }`}
-                >
-                  <p className="font-serif text-xl">{sub.label}</p>
-                  <p className={`mt-1 text-xs ${active ? "text-paper/70" : "text-ink/55"}`}>{sub.description}</p>
-                </button>
-              );
-            })}
+          <div className="space-y-3 rounded-2xl border border-line/15 bg-white/75 p-4">
+            <div className="flex flex-wrap gap-2">
+              {settingsSubTabs.map((sub) => {
+                const active = settingsSubTab === sub.id;
+                return (
+                  <button
+                    key={sub.id}
+                    type="button"
+                    onClick={() => setSettingsSubTab(sub.id)}
+                    aria-current={active ? "page" : undefined}
+                    className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] transition ${
+                      active
+                        ? "border-ink bg-ink text-paper"
+                        : "border-line/20 bg-paper/60 text-ink/70 hover:border-ink/40 hover:bg-white hover:text-ink"
+                    }`}
+                  >
+                    {sub.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-sm text-ink/60">{settingsSubTabs.find((sub) => sub.id === settingsSubTab)?.description}</p>
           </div>
 
           {settingsSubTab === "accueil" ? (
@@ -591,6 +624,42 @@ export default function AdminPhotosClient({
               aboutCopy={aboutCopy}
               onSave={handleSaveAboutCopy}
               isSaving={isSavingSettings}
+            />
+          ) : null}
+
+          {settingsSubTab === "avis" ? (
+            <AdminContentEditor
+              kind="testimonials"
+              initialItems={content.testimonials}
+              onStatus={setStatusMessage}
+              onError={setErrorMessage}
+            />
+          ) : null}
+
+          {settingsSubTab === "chiffres" ? (
+            <AdminContentEditor
+              kind="stats"
+              initialItems={content.stats}
+              onStatus={setStatusMessage}
+              onError={setErrorMessage}
+            />
+          ) : null}
+
+          {settingsSubTab === "references" ? (
+            <AdminContentEditor
+              kind="references"
+              initialItems={content.references}
+              onStatus={setStatusMessage}
+              onError={setErrorMessage}
+            />
+          ) : null}
+
+          {settingsSubTab === "series" ? (
+            <AdminContentEditor
+              kind="seriesNotes"
+              initialItems={content.seriesList}
+              onStatus={setStatusMessage}
+              onError={setErrorMessage}
             />
           ) : null}
 

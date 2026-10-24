@@ -5,6 +5,8 @@ const categoryRoutes = {
   Studio: "/entreprises",
 };
 
+import { isBuiltInCategory, slugifyCategory } from "../../lib/categories";
+
 export default function AdminThemeGuide({ categories }) {
   const notes = {
     Events: "Soirées, concerts, lancements, coulisses et moments publics (page Événements).",
@@ -19,9 +21,9 @@ export default function AdminThemeGuide({ categories }) {
         <article key={category} className="rounded-2xl border border-line/20 bg-white/65 p-5">
           <p className="text-[11px] uppercase tracking-[0.22em] text-ink/45">Thème</p>
           <h2 className="mt-2 font-serif text-3xl">{category}</h2>
-          <p className="mt-3 text-sm leading-relaxed text-ink/65">{notes[category] || "Collection du portfolio."}</p>
+          <p className="mt-3 text-sm leading-relaxed text-ink/65">{notes[category] || "Collection personnalisée, visible depuis le pied de page du site."}</p>
           <a
-            href={categoryRoutes[category] || "/signature"}
+            href={isBuiltInCategory(category) ? categoryRoutes[category] : `/collections/${slugifyCategory(category)}`}
             target="_blank"
             rel="noreferrer"
             className="mt-5 inline-block rounded-full border border-line/25 px-4 py-2 text-sm hover:border-ink"

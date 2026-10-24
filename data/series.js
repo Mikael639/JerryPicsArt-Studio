@@ -14,13 +14,13 @@ const UNIVERS_BY_CATEGORY = {
 const SERIES_META = [
   { match: /^hcw 260128 elie saab/, slug: "elie-saab-haute-couture", titre: "Défilé Elie Saab, Haute Couture", saison: "Haute Couture, 28 janvier 2026", lieu: "Paris", date: 20260128, priority: true, alt: "Invités au défilé Elie Saab, Semaine de la Haute Couture, Paris" },
   { match: /^imane ayissi hcw 260126/, slug: "imane-ayissi-haute-couture", titre: "Défilé Imane Ayissi, Haute Couture", saison: "Haute Couture, 26 janvier 2026", lieu: "Paris", date: 20260126, alt: "Invités au défilé Imane Ayissi, Semaine de la Haute Couture, Paris" },
-  { match: /^hcw 260127/, slug: "haute-couture-27-janvier-2026", titre: "Semaine de la Haute Couture", saison: "27 janvier 2026", lieu: "Paris", date: 20260127, alt: "Invités de la Semaine de la Haute Couture, Paris" },
-  { match: /^hcw 260126/, slug: "haute-couture-26-janvier-2026", titre: "Semaine de la Haute Couture", saison: "26 janvier 2026", lieu: "Paris", date: 20260126, alt: "Invités de la Semaine de la Haute Couture, Paris" },
-  { match: /^pfw 260306/, slug: "pfw-mars-2026", titre: "Paris Fashion Week, mars 2026", saison: "6 mars 2026", lieu: "Paris", date: 20260306, alt: "Invités de la Paris Fashion Week, mars 2026" },
-  { match: /^pfw 290925/, slug: "pfw-septembre-2025", titre: "Paris Fashion Week, septembre 2025", saison: "29 septembre 2025", lieu: "Paris", date: 20250929, alt: "Invités de la Paris Fashion Week, septembre 2025" },
-  { match: /^pfw 011025/, slug: "pfw-octobre-2025", titre: "Paris Fashion Week, octobre 2025", saison: "1er octobre 2025", lieu: "Paris", date: 20251001, alt: "Invités de la Paris Fashion Week, octobre 2025" },
-  { match: /^pfw 061025/, slug: "pfw-6-octobre-2025", titre: "Paris Fashion Week, octobre 2025", saison: "6 octobre 2025", lieu: "Paris", date: 20251006, alt: "Invités de la Paris Fashion Week, octobre 2025" },
-  { match: /^pfw 060325/, slug: "pfw-mars-2025", titre: "Paris Fashion Week, mars 2025", saison: "6 mars 2025", lieu: "Paris", date: 20250306, alt: "Invités de la Paris Fashion Week, mars 2025" },
+  { match: /^hcw 260127/, slug: "haute-couture-27-janvier-2026", titre: "Haute Couture, 27 janvier 2026", saison: undefined, lieu: "Paris", date: 20260127, alt: "Invités de la Semaine de la Haute Couture, Paris" },
+  { match: /^hcw 260126/, slug: "haute-couture-26-janvier-2026", titre: "Haute Couture, 26 janvier 2026", saison: undefined, lieu: "Paris", date: 20260126, alt: "Invités de la Semaine de la Haute Couture, Paris" },
+  { match: /^pfw 260306/, slug: "pfw-mars-2026", titre: "Paris Fashion Week, 6 mars 2026", saison: undefined, lieu: "Paris", date: 20260306, alt: "Invités de la Paris Fashion Week, mars 2026" },
+  { match: /^pfw 290925/, slug: "pfw-septembre-2025", titre: "Paris Fashion Week, 29 septembre 2025", saison: undefined, lieu: "Paris", date: 20250929, alt: "Invités de la Paris Fashion Week, septembre 2025" },
+  { match: /^pfw 011025/, slug: "pfw-octobre-2025", titre: "Paris Fashion Week, 1er octobre 2025", saison: undefined, lieu: "Paris", date: 20251001, alt: "Invités de la Paris Fashion Week, octobre 2025" },
+  { match: /^pfw 061025/, slug: "pfw-6-octobre-2025", titre: "Paris Fashion Week, 6 octobre 2025", saison: undefined, lieu: "Paris", date: 20251006, alt: "Invités de la Paris Fashion Week, octobre 2025" },
+  { match: /^pfw 060325/, slug: "pfw-mars-2025", titre: "Paris Fashion Week, 6 mars 2025", saison: undefined, lieu: "Paris", date: 20250306, alt: "Invités de la Paris Fashion Week, mars 2025" },
   { match: /^pfw lemaire/, slug: "lemaire", titre: "Défilé Lemaire, Paris Fashion Week", lieu: "Paris", alt: "Invités au défilé Lemaire, Paris Fashion Week" },
   { match: /^pfw celebrites/, slug: "pfw-celebrites", titre: "Paris Fashion Week, célébrités", lieu: "Paris", alt: "Personnalité photographiée pendant la Paris Fashion Week" },
   { match: /^amiri guest/, slug: "amiri", titre: "Invités du défilé Amiri", lieu: "Paris", priority: true, alt: "Invités au défilé Amiri, Paris" },
@@ -102,7 +102,7 @@ export function buildSeries(rawPhotos, { minImages = 3 } = {}) {
 
   for (const rawPhoto of rawPhotos) {
     const photo = enhancePhotoPresentation(rawPhoto);
-    const univers = UNIVERS_BY_CATEGORY[photo.category] || "evenement";
+    const univers = UNIVERS_BY_CATEGORY[photo.category] || "collection";
     const key = normalizeKey(photo.title);
     if (IGNORED_KEYS.test(key) && univers !== "mariage" && univers !== "entreprise") continue;
 

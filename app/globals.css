@@ -116,6 +116,25 @@ button {
   --color-white: #ffffff;
 }
 
+/* En-tête : suit le mode sombre quand le fond de la page est sombre. */
+html[data-theme="dark"] header {
+  --ink: #fafafa;
+  --paper: #0c0a08;
+  --line: #fafafa;
+  --color-white: rgba(255, 255, 255, 0.08);
+}
+
+/* Sortie de page en fondu (voir components/PageTransition.js) */
+main,
+footer {
+  transition: opacity 0.26s ease;
+}
+
+html.page-leaving main,
+html.page-leaving footer {
+  opacity: 0;
+}
+
 /* Bandeau defilant des partenaires */
 .partners-track {
   animation: partners-scroll 14s linear infinite;
@@ -139,4 +158,35 @@ button {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Éclairs d'appareil photo et halos lents derrière la bande « Ils sont passés devant mon objectif » */
+.flash-dot {
+  position: absolute;
+  border-radius: 9999px;
+  opacity: 0;
+  animation: camera-flash 7s ease-out infinite;
+}
+
+.flash-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  animation: orb-drift 18s ease-in-out infinite alternate;
+}
+
+@keyframes camera-flash {
+  0%, 62% { opacity: 0; transform: scale(0.6); }
+  66% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.35); }
+}
+
+@keyframes orb-drift {
+  from { transform: translate3d(-6%, -4%, 0) scale(1); }
+  to { transform: translate3d(8%, 6%, 0) scale(1.15); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flash-dot, .flash-orb { animation: none; }
+  .flash-dot { opacity: 0; }
 }

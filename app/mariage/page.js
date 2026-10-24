@@ -9,7 +9,9 @@ import DarkChapter from "../../components/ui/DarkChapter";
 import Reveal from "../../components/ui/Reveal";
 import { pickSeries } from "../../data/series";
 import { showPlaceholders } from "../../data/placeholders";
+import { getIntroPhotos } from "../../lib/introPhotos";
 import { loadSeries } from "../../lib/loadSeries";
+import { getTestimonials } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
 
 export async function generateMetadata() {
@@ -115,7 +117,9 @@ const faq = [
 ];
 
 export default async function MariagePage() {
-  const series = pickSeries(await loadSeries(), "mariage", 3);
+  const [allSeries, testimonials] = await Promise.all([loadSeries(), getTestimonials()]);
+  const series = pickSeries(allSeries, "mariage", 3);
+  const introPhoto = (await getIntroPhotos())["/mariage"] || series[0]?.images?.[0] || null;
 
   return (
     <div className="page-shell space-y-16 md:space-y-24">
@@ -125,6 +129,7 @@ export default async function MariagePage() {
         lead="Votre mariage, photographié comme un éditorial."
         bridge="Le regard de la Fashion Week, pour votre mariage : lumière éditoriale, direction de pose naturelle, aucune image figée."
         cta={{ href: "/contact?type=mariage", label: "Vérifier ma date", event: "verifier_ma_date" }}
+        image={introPhoto}
       />
 
       <div className="space-y-20 md:space-y-28">
@@ -160,7 +165,7 @@ export default async function MariagePage() {
 
         <Faq items={faq} />
 
-        <Testimonials prestation="mariage" title="Ce que disent les mariés" />
+        <Testimonials items={testimonials} prestation="mariage" title="Ce que disent les mariés" />
 
         <ContactBlock
           title="Votre date est-elle disponible ?"

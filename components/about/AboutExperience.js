@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import MagneticElement from "../MagneticElement";
 import { defaultAboutCopy } from "../../lib/siteSettings";
-import { stats } from "../../data/stats";
+import { stats as defaultStats } from "../../data/stats";
 import { siteConfig } from "../../lib/siteConfig";
 
 function getRevealProps(reduceMotion, delay = 0, amount = 0.22) {
@@ -43,7 +43,7 @@ function PortraitPanel({ photo, className = "", imageClassName = "", sizes, prio
   );
 }
 
-export default function AboutExperience({ aboutCopy = defaultAboutCopy }) {
+export default function AboutExperience({ aboutCopy = defaultAboutCopy, stats = defaultStats }) {
   const reduceMotion = useReducedMotion();
   const chiffres = stats.filter((item) => item.valeur > 0);
   const {

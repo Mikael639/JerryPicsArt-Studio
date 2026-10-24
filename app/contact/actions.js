@@ -3,7 +3,8 @@
 import { headers } from "next/headers";
 import { createContactMessage } from "../../lib/contactStore";
 import { sendContactEmails } from "../../lib/contactEmail";
-import { QUALIFICATION, qualifyRequest, validateContactInput } from "../../lib/contactValidation";
+import { QUALIFICATION, validateContactInput } from "../../lib/contactValidation";
+import { prepareContactSubmission } from "../../lib/contactSubmission";
 import { getQuoteType } from "../../lib/quoteTypes";
 import { consumeRateLimit } from "../../lib/rateLimit";
 
@@ -34,20 +35,6 @@ async function getClientIp() {
 function getStringValue(formData, key, fallback = "") {
   const value = formData.get(key);
   return typeof value === "string" ? value : fallback;
-}
-
-// Les champs propres au type de devis sont regroupés en tête du message pour ne pas modifier la base existante.
-function composeProject(fields, qualification) {
-  return [
-    `Statut : [${qualification}]`,
-    `Type de devis : ${fields.typeLabel}`,
-    `Vous êtes : ${fields.audience}`,
-    ...fields.details.map(([label, value]) => `${label} : ${value}`),
-    `Comment m'a connu : ${fields.source}`,
-    "",
-    "Message :",
-    fields.project,
-  ].join("\n");
 }
 
 export async function submitContactForm(_previousState, formData) {
@@ -91,28 +78,14 @@ export async function submitContactForm(_previousState, formData) {
     };
   }
 
-  const fields = validation.sanitized;
-  const qualification = qualifyRequest(fields);
-
-  const created = await createContactMessage({
-    name: fields.name,
-    email: fields.email,
-    company: "",
-    phone: fields.phone,
-    serviceType: fields.serviceType,
-    preferredContact: "Email",
-    budget: fields.budget,
-    eventDate: fields.eventDate,
-    location: fields.location,
-    referenceLink: "",
-    project: composeProject(fields, qualification),
-  });
+  const { qualification, record, emailExtras } = prepareContactSubmission(validation.sanitized);
+  const created = await createContactMessage(record);
 
   const outOfBudget = qualification === QUALIFICATION.outOfBudget;
   const resultMessage = outOfBudget ? OUT_OF_BUDGET_MESSAGE : SUCCESS_MESSAGE;
 
   try {
-    await sendContactEmails(created, { ...fields, qualification });
+    await sendContactEmails(created, emailExtras);
     return { status: "success", message: resultMessage, qualification, errors: {} };
   } catch (error) {
     console.error("Contact email delivery failed", error);

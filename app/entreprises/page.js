@@ -8,7 +8,9 @@ import ContactBlock from "../../components/ui/ContactBlock";
 import DarkChapter from "../../components/ui/DarkChapter";
 import TrackedLink from "../../components/ui/TrackedLink";
 import { pickSeries } from "../../data/series";
+import { getIntroPhotos } from "../../lib/introPhotos";
 import { loadSeries } from "../../lib/loadSeries";
+import { getReferences } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
 
 export async function generateMetadata() {
@@ -40,7 +42,9 @@ const guarantees = [
 ];
 
 export default async function EntreprisesPage() {
-  const studio = pickSeries(await loadSeries(), "entreprise", 1);
+  const [allSeries, references] = await Promise.all([loadSeries(), getReferences()]);
+  const studio = pickSeries(allSeries, "entreprise", 1);
+  const introPhoto = (await getIntroPhotos())["/entreprises"] || studio[0]?.images?.[0] || null;
 
   return (
     <div className="page-shell space-y-16 md:space-y-24">
@@ -49,9 +53,10 @@ export default async function EntreprisesPage() {
         title="Photographe pour événements d'entreprise et lieux de réception à Paris"
         lead="Un photographe fiable pour vos événements et vos clients."
         cta={{ href: "/contact?type=entreprise", label: "Réserver un appel de 15 minutes", event: "appel_15_minutes" }}
+        image={introPhoto}
       />
 
-      <ReferencesBand />
+      <ReferencesBand items={references} />
 
       <section className="mx-auto grid max-w-7xl gap-5 px-4 md:grid-cols-2 md:px-8">
         <Reveal className="rounded-card border border-line/15 bg-white/60 p-8">
@@ -71,7 +76,7 @@ export default async function EntreprisesPage() {
 
       <section className="mx-auto max-w-7xl space-y-8 px-4 md:px-8">
         <Reveal>
-          <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-5xl">Un déroulé en quatre étapes</h2>
+          <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-5xl">Comment ça se passe</h2>
         </Reveal>
         <Steps steps={steps} />
       </section>

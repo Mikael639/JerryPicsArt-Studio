@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import ContactForm from "../ContactForm";
 import MagneticElement from "../MagneticElement";
-import { useRef } from "react";
+import { Fragment, useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { siteConfig } from "../../lib/siteConfig";
@@ -56,9 +56,12 @@ export default function ContactExperience({ type = "" }) {
           <p className="text-[11px] font-medium uppercase tracking-[0.32em] text-ink/50">Contact</p>
           <h1 className="max-w-4xl font-serif text-5xl leading-[0.92] tracking-[-0.05em] md:text-8xl flex flex-wrap gap-x-[0.2em] gap-y-2">
             {headline.split(" ").map((word, i) => (
-              <span key={i} className="overflow-hidden inline-flex">
-                <span className="word-stagger inline-block">{word}</span>
-              </span>
+              <Fragment key={i}>
+                {i > 0 ? " " : null}
+                <span className="overflow-hidden inline-flex">
+                  <span className="word-stagger inline-block">{word}</span>
+                </span>
+              </Fragment>
             ))}
           </h1>
           <p className="max-w-2xl text-base leading-relaxed text-ink/75 md:text-xl">

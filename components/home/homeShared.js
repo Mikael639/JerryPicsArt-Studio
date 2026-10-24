@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { useEffect, useRef } from "react";
 import Image from "next/image";
-import { stats } from "../../data/stats";
+import { stats as defaultStats } from "../../data/stats";
+import CountUp from "../ui/CountUp";
 
 export function getRevealProps(reduceMotion, delay = 0, amount = 0.24) {
   if (reduceMotion) {
@@ -36,7 +37,7 @@ export const wordRevealVariant = {
 };
 
 // Chiffres affichés en dur (jamais « 0+ ») ; un chiffre à 0 est masqué. Source : data/stats.js
-export function StatsSection({ reduceMotion, items = stats }) {
+export function StatsSection({ reduceMotion, items = defaultStats }) {
   const visibleItems = items.filter((item) => item.valeur > 0);
   if (!visibleItems.length) return null;
 
@@ -50,7 +51,7 @@ export function StatsSection({ reduceMotion, items = stats }) {
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-ink/40">Repères</p>
             <h2 className="mt-3 max-w-2xl font-serif text-3xl leading-tight tracking-[-0.03em] md:text-5xl">
-              Quelques repères pour situer mon travail.
+              Mon travail en quelques chiffres.
             </h2>
           </div>
         </div>
@@ -63,8 +64,7 @@ export function StatsSection({ reduceMotion, items = stats }) {
               className="border-t border-line/16 pt-5"
             >
               <dd className="font-serif text-5xl leading-none tracking-[-0.04em] text-ink md:text-6xl">
-                {item.valeur}
-                {item.suffixe}
+                <CountUp value={item.valeur} suffix={item.suffixe} delay={index * 0.12} />
               </dd>
               <dt className="mt-4 text-[11px] font-bold uppercase tracking-[0.24em] text-ink/55">{item.libelle}</dt>
               {item.precision ? <p className="mt-1 text-sm text-ink/45">{item.precision}</p> : null}

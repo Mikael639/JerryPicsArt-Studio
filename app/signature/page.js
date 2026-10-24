@@ -5,6 +5,8 @@ import ContactBlock from "../../components/ui/ContactBlock";
 import DarkChapter from "../../components/ui/DarkChapter";
 import { findSeriesBySlugs, pickSeries } from "../../data/series";
 import { loadSeries } from "../../lib/loadSeries";
+import { getIntroPhotos } from "../../lib/introPhotos";
+import { getReferences } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
 
 export async function generateMetadata() {
@@ -18,12 +20,13 @@ export async function generateMetadata() {
 }
 
 export default async function SignaturePage() {
-  const all = await loadSeries();
+  const [all, references] = await Promise.all([loadSeries(), getReferences()]);
   // Amiri est un défilé : il figure aussi ici, même si ses photos sont classées en événements.
   const series = [...pickSeries(all, "signature"), ...findSeriesBySlugs(all, ["amiri"])]
     .filter((serie, index, list) => list.findIndex((other) => other.slug === serie.slug) === index)
     .sort((a, b) => Number(b.priority) - Number(a.priority) || b.date - a.date || b.images.length - a.images.length)
     .slice(0, 10);
+  const introPhoto = (await getIntroPhotos())["/signature"] || series[0]?.images?.[0] || null;
 
   return (
     <div className="page-shell space-y-16 md:space-y-24">
@@ -32,9 +35,10 @@ export default async function SignaturePage() {
         title="Fashion Week de Paris : défilés, maisons et personnalités"
         lead="Depuis plusieurs saisons, je photographie les défilés, les invités et les personnalités de la Fashion Week de Paris."
         bridge="La même exigence guide chacun de mes mariages et de mes événements."
+        image={introPhoto}
       />
 
-      <ReferencesBand />
+      <ReferencesBand items={references} />
 
       <div className="space-y-20 md:space-y-28">
         {series.slice(0, 5).map((serie, index) => (

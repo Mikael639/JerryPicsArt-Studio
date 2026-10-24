@@ -39,12 +39,26 @@ function getHeroPriority(photo) {
   );
 }
 
+// Étiquette affichée à côté du diaporama : suit la catégorie de la photo en cours.
+const HERO_LABELS = {
+  "Fashion Week & Celebrities": "Fashion Week",
+  "Fashion Week": "Fashion Week",
+  Events: "Événements",
+  "Fashion Wedding": "Mariage",
+  Mariage: "Mariage",
+  Studio: "Studio",
+};
+
+function getHeroLabel(category) {
+  return HERO_LABELS[category] || "Portfolio";
+}
+
 const DEFAULT_HERO_TITLE = "Photographe éditorial à Paris, de la Fashion Week à vos événements";
 const DEFAULT_HERO_SUBTITLE =
   "Le regard des défilés pour vos mariages, vos soirées et vos événements d'entreprise. Un accompagnement du premier rendez-vous à la livraison.";
 
 const method = [
-  { titre: "Repérage et brief", texte: "Nous cadrons vos attentes, le lieu, le déroulé et l'usage des images." },
+  { titre: "Repérage et brief", texte: "Nous définissons ensemble vos attentes, le lieu, le déroulé et l'usage des images." },
   { titre: "Présence discrète le jour J", texte: "Je m'efface au milieu de vos invités pour garder des scènes naturelles." },
   { titre: "Livraison soignée, dans les délais annoncés", texte: "Des images retouchées une à une, livrées dans une galerie privée." },
 ];
@@ -54,6 +68,9 @@ export default function HomePageExperience({
   supportingPhotos,
   doorPhotos = {},
   cinematicPool = [],
+  references,
+  stats,
+  testimonials,
   siteText = {},
 }) {
   const reduceMotion = useReducedMotion();
@@ -109,6 +126,7 @@ export default function HomePageExperience({
   const nextHeroPhoto =
     shuffledPhotos.length > 1 ? shuffledPhotos[(activeHeroIndex + 1) % shuffledPhotos.length] : null;
   const containerRef = useRef(null);
+  const swipeStartRef = useRef(null);
   const visibleHeroDots = shuffledPhotos.slice(0, 5);
   const shouldCalmHeroMotion = reduceMotion || useCalmHeroMotion;
 
@@ -149,8 +167,14 @@ export default function HomePageExperience({
         trigger: section,
         start: "top center",
         end: "bottom center",
-        onEnter: () => gsap.to(document.body, { backgroundColor: "#0c0a08", duration: 1 }),
-        onLeaveBack: () => gsap.to(document.body, { backgroundColor: "#fefdfa", duration: 1 }),
+        onEnter: () => {
+          document.documentElement.dataset.theme = "dark";
+          gsap.to(document.body, { backgroundColor: "#0c0a08", duration: 1 });
+        },
+        onLeaveBack: () => {
+          delete document.documentElement.dataset.theme;
+          gsap.to(document.body, { backgroundColor: "#fefdfa", duration: 1 });
+        },
       });
     });
 
@@ -181,7 +205,24 @@ export default function HomePageExperience({
 
   return (
     <div ref={containerRef} data-page="home" className="page-shell -mt-20 space-y-20 pb-16 md:space-y-28 xl:space-y-32">
-      <section className="relative isolate min-h-screen overflow-hidden">
+      <section
+        className="relative isolate min-h-screen overflow-hidden"
+        onTouchStart={(event) => {
+          swipeStartRef.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+        }}
+        onTouchEnd={(event) => {
+          const start = swipeStartRef.current;
+          swipeStartRef.current = null;
+          if (!start || shuffledPhotos.length < 2) return;
+          const dx = event.changedTouches[0].clientX - start.x;
+          const dy = event.changedTouches[0].clientY - start.y;
+          // Balayage horizontal net : photo suivante ou précédente, comme dans un carrousel.
+          if (Math.abs(dx) > 56 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+            if (dx < 0) showNextHeroPhoto();
+            else showPreviousHeroPhoto();
+          }
+        }}
+      >
         <div className="absolute inset-0">
           {shouldCalmHeroMotion ? (
             <div key={activeHeroPhoto.id} className="absolute inset-0 hero-image-container">
@@ -292,7 +333,7 @@ export default function HomePageExperience({
               </MagneticElement>
               <Link
                 href="/signature"
-                className="text-[12px] font-semibold uppercase tracking-[0.18em] text-paper/80 underline-offset-4 transition-colors hover:text-paper hover:underline sm:text-[13px]"
+                className="-my-2.5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-paper/80 underline-offset-4 transition-colors hover:text-paper hover:underline sm:text-[13px]"
               >
                 Voir les séries Fashion Week
               </Link>
@@ -371,7 +412,7 @@ export default function HomePageExperience({
 
             <div className="rounded-card border border-white/10 bg-black/40 p-6 text-paper/90 shadow-2xl backdrop-blur-xl">
               <div className="flex items-center justify-between gap-4">
-                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/50">Fashion Week</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/50">{getHeroLabel(activeHeroPhoto.category)}</p>
                 {shuffledPhotos.length > 1 ? (
                   <div className="flex items-center gap-2">
                     {visibleHeroDots.map((photo, index) => (
@@ -406,13 +447,13 @@ export default function HomePageExperience({
         `}</style>
       </section>
 
-      <ReferencesBand />
+      <ReferencesBand items={references} />
 
       <section className="mx-auto max-w-7xl px-4 md:px-8" aria-labelledby="portes-titre">
         <MotionBlock reduceMotion={reduceMotion} className="mb-10 max-w-3xl space-y-4">
           <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-ink/45">Prestations</p>
           <h2 id="portes-titre" className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-6xl">
-            Un même regard, trois façons de travailler ensemble.
+            Ce que je photographie.
           </h2>
         </MotionBlock>
         <div className="grid gap-5 md:grid-cols-3">
@@ -456,7 +497,7 @@ export default function HomePageExperience({
         <MotionBlock reduceMotion={reduceMotion} className="mb-10 max-w-3xl space-y-4">
           <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-paper/55">Méthode</p>
           <h2 id="methode-titre" className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] text-paper md:text-6xl">
-            Une méthode simple, en trois temps.
+            Comment je travaille.
           </h2>
         </MotionBlock>
         <Steps tone="dark" columns="md:grid-cols-3" steps={method} />
@@ -464,9 +505,9 @@ export default function HomePageExperience({
 
       <PartnersSection reduceMotion={reduceMotion} />
 
-      <StatsSection reduceMotion={reduceMotion} />
+      <StatsSection reduceMotion={reduceMotion} items={stats} />
 
-      <Testimonials limit={1} tone="dark" title="Ce que disent mes clients" />
+      <Testimonials items={testimonials} limit={1} tone="dark" title="Ce que disent mes clients" />
 
       <ContactBlock
         title="Parlons de votre projet"

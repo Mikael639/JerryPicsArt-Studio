@@ -190,7 +190,7 @@ export default function AdminPhotosTable({
   return (
     <section className="space-y-4">
       {/* BARRE D'ONGLETS PAR CATÉGORIE / PAGE */}
-      <div className="no-scrollbar flex items-center gap-2 overflow-x-auto rounded-2xl border border-line/20 bg-white/65 p-2">
+      <div className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-line/20 bg-white/65 p-2">
         {universeTabs.map((tab) => {
           const active = selectedUniverse === tab.id;
           const count = universeCounts[tab.id] ?? 0;
@@ -200,7 +200,7 @@ export default function AdminPhotosTable({
               key={tab.id}
               type="button"
               onClick={() => handleSelectUniverse(tab.id)}
-              className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm transition ${
+              className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-sm transition ${
                 active ? "bg-ink text-paper" : "text-ink/65 hover:bg-white hover:text-ink"
               }`}
             >
@@ -284,7 +284,7 @@ export default function AdminPhotosTable({
         </label>
       </div>
 
-      {heroPhotoCount >= maxHeroPhotoCount ? (
+      {selectedUniverse === "hero" && heroPhotoCount >= maxHeroPhotoCount ? (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           Limite atteinte : le diaporama d&apos;accueil contient déjà {maxHeroPhotoCount} photos. Décochez
           « Diaporama accueil » sur une photo avant d&apos;en choisir une nouvelle.

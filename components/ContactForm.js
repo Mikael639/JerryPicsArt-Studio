@@ -66,7 +66,7 @@ function TypePicker({ value, onChange, error }) {
   return (
     <div className="space-y-3 md:col-span-2">
       <p className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Quel est votre projet ?</p>
-      <div role="radiogroup" aria-label="Type de devis" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div role="radiogroup" aria-label="Type de devis" className="grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-4">
         {quoteTypeList.map((type) => {
           const active = value === type.id;
           return (
@@ -79,14 +79,14 @@ function TypePicker({ value, onChange, error }) {
                 onChange(type.id);
                 trackEvent("devis_type_choisi", { type: type.id });
               }}
-              className={`flex h-full flex-col gap-1.5 rounded-inset border px-5 py-4 text-left transition-all duration-300 ${
+              className={`flex h-full flex-col gap-1.5 rounded-inset border px-4 py-3.5 text-left transition-all duration-300 sm:px-5 sm:py-4 ${
                 active
                   ? "border-ink bg-ink text-paper shadow-[0_18px_48px_rgba(12,10,8,0.18)]"
                   : "border-line/20 bg-white/60 text-ink hover:border-ink/40 hover:bg-white"
               }`}
             >
-              <span className="font-serif text-xl leading-tight">{type.label}</span>
-              <span className={`text-[13px] leading-snug ${active ? "text-paper/70" : "text-ink/55"}`}>{type.description}</span>
+              <span className="font-serif text-lg leading-tight sm:text-xl">{type.label}</span>
+              <span className={`hidden text-[13px] leading-snug sm:block ${active ? "text-paper/70" : "text-ink/55"}`}>{type.description}</span>
             </button>
           );
         })}
