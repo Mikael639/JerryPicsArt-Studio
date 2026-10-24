@@ -52,3 +52,6 @@ tmp-import-test.jpg
 
 # local assistant
 .continue/
+
+# outils locaux de l assistant (aperçu, réglages)
+/.claude/

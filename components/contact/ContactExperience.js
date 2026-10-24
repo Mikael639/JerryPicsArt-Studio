@@ -58,7 +58,7 @@ export default function ContactExperience({ type = "" }) {
             {headline.split(" ").map((word, i) => (
               <Fragment key={i}>
                 {i > 0 ? " " : null}
-                <span className="overflow-hidden inline-flex">
+                <span className="-mb-[0.28em] inline-flex overflow-hidden pb-[0.28em]">
                   <span className="word-stagger inline-block">{word}</span>
                 </span>
               </Fragment>
