@@ -129,16 +129,9 @@ export default function Navbar({ previews = {} }) {
           aria-controls="mobile-navigation desktop-navigation"
           aria-label={isOpen ? "Fermer le menu" : "Ouvrir le menu"}
           onClick={() => setIsOpen((current) => !current)}
-          className="inline-flex items-center gap-2 rounded-full border border-line/20 bg-white/80 px-3 py-2 text-sm font-medium text-ink shadow-sm transition-all active:scale-95 sm:gap-3 sm:px-4 xl:h-11 xl:w-11 xl:justify-center xl:gap-0 xl:px-0 xl:py-0 xl:hover:bg-white"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-line/20 bg-white/80 text-ink shadow-sm transition-all hover:bg-white active:scale-95"
         >
-          <span className="tracking-wide xl:hidden">{isOpen ? "Fermer" : "Menu"}</span>
-          <span
-            aria-hidden="true"
-            className="flex h-6 w-6 items-center justify-center rounded-full bg-ink text-[10px] uppercase font-bold text-paper xl:hidden"
-          >
-            {isOpen ? "✕" : "+"}
-          </span>
-          <span aria-hidden="true" className="relative hidden h-3 w-5 xl:block">
+          <span aria-hidden="true" className="relative block h-3 w-5">
             <span
               className={`absolute inset-x-0 h-px bg-ink transition-all duration-500 ${isOpen ? "top-1/2 rotate-45" : "top-0"}`}
             />
