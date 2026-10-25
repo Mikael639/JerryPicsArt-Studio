@@ -171,7 +171,7 @@ html.page-leaving footer {
 .flash-orb {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(60px);
+  will-change: transform;
   animation: orb-drift 18s ease-in-out infinite alternate;
 }
 

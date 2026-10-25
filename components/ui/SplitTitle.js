@@ -13,7 +13,7 @@ export default function SplitTitle({ text, as = "h1", className = "", delay = 0.
       {words.map((word, index) => (
         <span key={`${word}-${index}`}>
           {index > 0 ? " " : null}
-          <span className="-mb-[0.14em] inline-block overflow-hidden pb-[0.14em] align-bottom">
+          <span className="-mb-[0.28em] inline-block overflow-hidden pb-[0.28em] align-bottom">
             <motion.span
               className="inline-block"
               initial={reduceMotion ? false : { y: "115%" }}

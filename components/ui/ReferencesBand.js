@@ -31,8 +31,8 @@ export default function ReferencesBand({ items = defaultReferences, tone = "ligh
     <section aria-labelledby="references-titre" className={`mx-auto max-w-7xl px-4 md:px-8 ${className}`}>
       <div className={`relative isolate overflow-hidden border-y py-12 md:py-16 ${dark ? "border-white/10 text-paper" : "border-line/12 text-ink"}`}>
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-          <span className="flash-orb left-[-8%] top-[-20%] h-72 w-72" style={{ background: orbColor }} />
-          <span className="flash-orb bottom-[-25%] right-[-6%] h-80 w-80" style={{ background: orbColor, animationDelay: "-9s" }} />
+          <span className="flash-orb left-[-8%] top-[-20%] h-80 w-80" style={{ background: `radial-gradient(circle, ${orbColor} 0%, transparent 70%)` }} />
+          <span className="flash-orb bottom-[-25%] right-[-6%] h-96 w-96" style={{ background: `radial-gradient(circle, ${orbColor} 0%, transparent 70%)`, animationDelay: "-9s" }} />
           {FLASHES.map((flash) => (
             <span
               key={flash.left}
@@ -70,8 +70,8 @@ export default function ReferencesBand({ items = defaultReferences, tone = "ligh
                     <motion.li
                       key={item.nom}
                       className="font-serif text-xl leading-snug tracking-tight md:text-[1.7rem]"
-                      initial={reduceMotion ? false : { opacity: 0, y: 14, filter: "blur(8px)" }}
-                      whileInView={reduceMotion ? undefined : { opacity: 1, y: 0, filter: "blur(0px)" }}
+                      initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+                      whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                       viewport={{ once: true, amount: 0.8 }}
                       transition={{ duration: 0.9, delay: index * 0.09, ease: [0.16, 1, 0.3, 1] }}
                     >
