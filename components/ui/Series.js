@@ -7,6 +7,8 @@ import Lightbox from "../Lightbox";
 import Reveal from "./Reveal";
 import BridgeCta from "./BridgeCta";
 import { showPlaceholders } from "../../data/placeholders";
+import { translateSerie, UI_COPY } from "../../lib/i18n";
+import { useLanguage } from "../LanguageProvider";
 
 const INITIAL_GRID_COUNT = 8;
 const DESKTOP_QUERY = "(min-width: 768px)";
@@ -30,7 +32,7 @@ function useIsServerRender() {
   );
 }
 
-function PhotoTile({ photo, index, onOpen, priority, reduceMotion }) {
+function PhotoTile({ photo, index, onOpen, priority, reduceMotion, openLabel }) {
   const delay = Math.min(index % 4, 3) * 0.08;
 
   // Le bouton est observé (visible à l'écran) ; le masque et le zoom sont animés sur ses enfants,
@@ -40,7 +42,7 @@ function PhotoTile({ photo, index, onOpen, priority, reduceMotion }) {
       type="button"
       onClick={() => onOpen(index)}
       data-cursor="gallery-item"
-      aria-label={`Ouvrir la photo : ${photo.alt}`}
+      aria-label={openLabel}
       className="group relative block aspect-[4/5] w-full overflow-hidden rounded-[0.8rem] bg-neutral-900 text-left"
       initial={reduceMotion ? false : "hidden"}
       whileInView="visible"
@@ -79,6 +81,9 @@ function PhotoTile({ photo, index, onOpen, priority, reduceMotion }) {
 
 // Bloc série : titre, saison, lieu, contexte, carrousel (ou grille) d'images, visionneuse.
 export default function Series({ serie, withBridge = false, priority = false }) {
+  const { lang } = useLanguage();
+  const copy = UI_COPY[lang]?.series || UI_COPY.fr.series;
+  const localizedSerie = translateSerie(serie, lang);
   const reduceMotion = useReducedMotion();
   const trackRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(null);
@@ -93,7 +98,7 @@ export default function Series({ serie, withBridge = false, priority = false }) 
   const [progress, setProgress] = useState(0);
   const images = serie.images;
   const gridImages = expanded ? images : images.slice(0, INITIAL_GRID_COUNT);
-  const meta = [serie.saison, serie.lieu].filter(Boolean).join(" · ");
+  const meta = [localizedSerie.saison, localizedSerie.lieu].filter(Boolean).join(" · ");
 
   const close = useCallback(() => setActiveIndex(null), []);
   const prev = useCallback(
@@ -128,22 +133,24 @@ export default function Series({ serie, withBridge = false, priority = false }) 
       <Reveal className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div className="max-w-3xl space-y-3">
           {meta ? <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-ink/45">{meta}</p> : null}
-          <h3 className="font-serif text-3xl leading-[1] tracking-[-0.03em] md:text-5xl">{serie.titre}</h3>
-          {serie.contexte ? (
-            <p className="max-w-2xl text-base leading-relaxed text-ink/65 md:text-lg">{serie.contexte}</p>
+          <h3 className="font-serif text-3xl leading-[1] tracking-[-0.03em] md:text-5xl">{localizedSerie.titre}</h3>
+          {localizedSerie.contexte ? (
+            <p className="max-w-2xl text-base leading-relaxed text-ink/65 md:text-lg">{localizedSerie.contexte}</p>
           ) : showPlaceholders ? (
-            <p className="text-sm text-accent">[À FOURNIR : une phrase de contexte pour cette série]</p>
+            <p className="text-sm text-accent">{copy.placeholderContext}</p>
           ) : null}
         </div>
         <div className="flex items-center gap-4">
-          <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-ink/40">{images.length} photos</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-ink/40">
+            {images.length} {copy.photosUnit}
+          </p>
           {images.length > 4 ? (
             <button
               type="button"
               onClick={() => setMode((current) => (current === "carousel" ? "grid" : "carousel"))}
               className="-my-2.5 hidden py-2.5 text-[11px] font-bold uppercase tracking-[0.2em] text-ink/60 underline-offset-4 transition-colors hover:text-ink hover:underline md:inline-block"
             >
-              {mode === "carousel" ? "Voir en grille" : "Voir en défilé"}
+              {mode === "carousel" ? copy.gridView : copy.carouselView}
             </button>
           ) : null}
         </div>
@@ -159,7 +166,14 @@ export default function Series({ serie, withBridge = false, priority = false }) 
           >
             {images.map((photo, index) => (
               <div key={photo.id} className="w-[72%] shrink-0 snap-start sm:w-[44%] lg:w-[28%]">
-                <PhotoTile photo={photo} index={index} onOpen={setActiveIndex} priority={priority} reduceMotion={reduceMotion} />
+                <PhotoTile
+                  photo={photo}
+                  index={index}
+                  onOpen={setActiveIndex}
+                  priority={priority}
+                  reduceMotion={reduceMotion}
+                  openLabel={copy.openPhoto(photo.alt)}
+                />
               </div>
             ))}
           </div>
@@ -175,7 +189,7 @@ export default function Series({ serie, withBridge = false, priority = false }) 
               <button
                 type="button"
                 onClick={() => slide(-1)}
-                aria-label="Photos précédentes"
+                aria-label={copy.prevPhotos}
                 className="flex h-10 w-10 items-center justify-center rounded-full border border-line/25 text-ink/70 transition hover:border-ink hover:text-ink"
               >
                 ‹
@@ -183,7 +197,7 @@ export default function Series({ serie, withBridge = false, priority = false }) 
               <button
                 type="button"
                 onClick={() => slide(1)}
-                aria-label="Photos suivantes"
+                aria-label={copy.nextPhotos}
                 className="flex h-10 w-10 items-center justify-center rounded-full border border-line/25 text-ink/70 transition hover:border-ink hover:text-ink"
               >
                 ›
@@ -197,7 +211,15 @@ export default function Series({ serie, withBridge = false, priority = false }) 
         <div className={mode === "carousel" ? "md:hidden" : ""}>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
             {gridImages.map((photo, index) => (
-              <PhotoTile key={photo.id} photo={photo} index={index} onOpen={setActiveIndex} priority={priority} reduceMotion={reduceMotion} />
+              <PhotoTile
+                key={photo.id}
+                photo={photo}
+                index={index}
+                onOpen={setActiveIndex}
+                priority={priority}
+                reduceMotion={reduceMotion}
+                openLabel={copy.openPhoto(photo.alt)}
+              />
             ))}
           </div>
 
@@ -208,7 +230,7 @@ export default function Series({ serie, withBridge = false, priority = false }) 
                 onClick={() => setExpanded((value) => !value)}
                 className="rounded-full border border-line/25 px-6 py-3 text-[12px] font-bold uppercase tracking-[0.18em] text-ink transition hover:border-ink hover:bg-white"
               >
-                {expanded ? "Réduire la série" : `Voir les ${images.length} photos`}
+                {expanded ? copy.collapse : copy.expandAll(images.length)}
               </button>
             </div>
           ) : null}

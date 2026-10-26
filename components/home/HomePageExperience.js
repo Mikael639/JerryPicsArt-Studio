@@ -19,6 +19,8 @@ import Steps from "../ui/Steps";
 import Testimonials from "../ui/Testimonials";
 import ContactBlock from "../ui/ContactBlock";
 import TrackedLink from "../ui/TrackedLink";
+import { HOME_PAGE_COPY } from "../../lib/i18n";
+import { useLanguage } from "../LanguageProvider";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -39,30 +41,6 @@ function getHeroPriority(photo) {
   );
 }
 
-// Étiquette affichée à côté du diaporama : suit la catégorie de la photo en cours.
-const HERO_LABELS = {
-  "Fashion Week & Celebrities": "Fashion Week",
-  "Fashion Week": "Fashion Week",
-  Events: "Événements",
-  "Fashion Wedding": "Mariage",
-  Mariage: "Mariage",
-  Studio: "Studio",
-};
-
-function getHeroLabel(category) {
-  return HERO_LABELS[category] || "Portfolio";
-}
-
-const DEFAULT_HERO_TITLE = "Photographe éditorial à Paris, de la Fashion Week à vos événements";
-const DEFAULT_HERO_SUBTITLE =
-  "Le regard des défilés pour vos mariages, vos soirées et vos événements d'entreprise. Un accompagnement du premier rendez-vous à la livraison.";
-
-const method = [
-  { titre: "Repérage et brief", texte: "Nous définissons ensemble vos attentes, le lieu, le déroulé et l'usage des images." },
-  { titre: "Présence discrète le jour J", texte: "Je m'efface au milieu de vos invités pour garder des scènes naturelles." },
-  { titre: "Livraison soignée, dans les délais annoncés", texte: "Des images retouchées une à une, livrées dans une galerie privée." },
-];
-
 export default function HomePageExperience({
   heroPhoto,
   supportingPhotos,
@@ -73,30 +51,40 @@ export default function HomePageExperience({
   testimonials,
   siteText = {},
 }) {
+  const { lang } = useLanguage();
+  const copy = HOME_PAGE_COPY[lang] || HOME_PAGE_COPY.fr;
   const reduceMotion = useReducedMotion();
   const [useCalmHeroMotion, setUseCalmHeroMotion] = useState(false);
-  const heroTitle = siteText.heroTitle || DEFAULT_HERO_TITLE;
-  const heroSubtitle = siteText.heroSubtitle || DEFAULT_HERO_SUBTITLE;
+
+  const heroTitle =
+    lang === "en" ? copy.heroTitle : siteText.heroTitle || copy.heroTitle;
+  const heroSubtitle =
+    lang === "en" ? copy.heroSubtitle : siteText.heroSubtitle || copy.heroSubtitle;
+
+  function getHeroLabel(category) {
+    return copy.heroLabels[category] || copy.heroLabels.default;
+  }
+
   const doors = [
     {
       href: "/evenements",
-      titre: "Événements",
-      texte: "La même exigence que sur les défilés, pour vos lancements et vos soirées.",
-      lien: "Voir les événements",
+      titre: copy.doors.evenements.titre,
+      texte: copy.doors.evenements.texte,
+      lien: copy.doors.evenements.lien,
       photo: doorPhotos.evenements,
     },
     {
       href: "/mariage",
-      titre: "Mariage",
-      texte: "Le regard de la Fashion Week, pour votre mariage.",
-      lien: "Voir le mariage",
+      titre: copy.doors.mariage.titre,
+      texte: copy.doors.mariage.texte,
+      lien: copy.doors.mariage.lien,
       photo: doorPhotos.mariage,
     },
     {
       href: "/entreprises",
-      titre: "Entreprises & lieux",
-      texte: "Un photographe fiable à recommander à vos clients.",
-      lien: "Voir l'offre entreprises",
+      titre: copy.doors.entreprises.titre,
+      texte: copy.doors.entreprises.texte,
+      lien: copy.doors.entreprises.lien,
       photo: doorPhotos.entreprises,
     },
   ];
@@ -158,8 +146,6 @@ export default function HomePageExperience({
         { scale: 1, filter: "blur(0px)", duration: 2.4, ease: "expo.out", delay: 0.5 }
       );
     }
-
-    // .hero-content-reveal elements are animated by Framer Motion — no GSAP duplicate needed
 
     const sections = gsap.utils.toArray("section.color-transition-section");
     sections.forEach((section) => {
@@ -328,14 +314,14 @@ export default function HomePageExperience({
                   event="devis_accueil_hero"
                   className="inline-block rounded-full bg-paper px-7 py-3.5 text-[12px] font-bold uppercase tracking-[0.18em] text-ink shadow-2xl transition-colors hover:bg-accent hover:text-paper sm:px-8 sm:py-4 sm:text-[13px] sm:tracking-[0.22em]"
                 >
-                  Demander un devis
+                  {copy.ctaPrimary}
                 </TrackedLink>
               </MagneticElement>
               <Link
                 href="/signature"
                 className="-my-2.5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-paper/80 underline-offset-4 transition-colors hover:text-paper hover:underline sm:text-[13px]"
               >
-                Voir les séries Fashion Week
+                {copy.ctaSecondary}
               </Link>
             </motion.div>
 
@@ -345,7 +331,7 @@ export default function HomePageExperience({
                   type="button"
                   onClick={showPreviousHeroPhoto}
                   className="flex h-8 w-8 items-center justify-center rounded-full border border-paper/18 bg-black/18 text-paper/70 transition hover:border-paper/45 hover:text-paper sm:h-9 sm:w-9"
-                  aria-label="Photo precedente"
+                  aria-label={copy.prevSlide}
                 >
                   <span aria-hidden="true">‹</span>
                 </button>
@@ -353,7 +339,7 @@ export default function HomePageExperience({
                   type="button"
                   onClick={() => setIsHeroPaused((current) => !current)}
                   className="flex h-8 w-8 items-center justify-center rounded-full border border-paper/18 bg-black/18 text-paper/70 transition hover:border-paper/45 hover:text-paper sm:h-9 sm:w-9"
-                  aria-label={isHeroPaused ? "Relancer le diaporama" : "Mettre le diaporama en pause"}
+                  aria-label={isHeroPaused ? copy.resumeSlide : copy.pauseSlide}
                 >
                   <span aria-hidden="true">{isHeroPaused ? "▶" : "Ⅱ"}</span>
                 </button>
@@ -361,7 +347,7 @@ export default function HomePageExperience({
                   type="button"
                   onClick={showNextHeroPhoto}
                   className="flex h-8 w-8 items-center justify-center rounded-full border border-paper/18 bg-black/18 text-paper/70 transition hover:border-paper/45 hover:text-paper sm:h-9 sm:w-9"
-                  aria-label="Photo suivante"
+                  aria-label={copy.nextSlide}
                 >
                   <span aria-hidden="true">›</span>
                 </button>
@@ -381,7 +367,6 @@ export default function HomePageExperience({
                 </span>
               </motion.div>
             ) : null}
-
           </motion.div>
 
           <motion.div
@@ -419,13 +404,14 @@ export default function HomePageExperience({
                       <button
                         key={photo.id}
                         type="button"
-                        aria-label={`Afficher ${photo.title}`}
+                        aria-label={copy.showSlide(photo.title)}
                         onClick={() => {
                           setActiveHeroIndex(index);
                           setIsHeroPaused(true);
                         }}
-                        className={`h-1.5 rounded-full transition-all duration-500 ${activeHeroIndex === index ? "w-6 bg-paper/90" : "w-1.5 bg-paper/20 hover:bg-paper/40"
-                          }`}
+                        className={`h-1.5 rounded-full transition-all duration-500 ${
+                          activeHeroIndex === index ? "w-6 bg-paper/90" : "w-1.5 bg-paper/20 hover:bg-paper/40"
+                        }`}
                       />
                     ))}
                   </div>
@@ -451,9 +437,9 @@ export default function HomePageExperience({
 
       <section className="mx-auto max-w-7xl px-4 md:px-8" aria-labelledby="portes-titre">
         <MotionBlock reduceMotion={reduceMotion} className="mb-10 max-w-3xl space-y-4">
-          <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-ink/45">Prestations</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-ink/45">{copy.doorsEyebrow}</p>
           <h2 id="portes-titre" className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-6xl">
-            Ce que je photographie.
+            {copy.doorsTitle}
           </h2>
         </MotionBlock>
         <div className="grid gap-5 md:grid-cols-3">
@@ -495,23 +481,23 @@ export default function HomePageExperience({
         aria-labelledby="methode-titre"
       >
         <MotionBlock reduceMotion={reduceMotion} className="mb-10 max-w-3xl space-y-4">
-          <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-paper/55">Méthode</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-paper/55">{copy.methodEyebrow}</p>
           <h2 id="methode-titre" className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] text-paper md:text-6xl">
-            Comment je travaille.
+            {copy.methodTitle}
           </h2>
         </MotionBlock>
-        <Steps tone="dark" columns="md:grid-cols-3" steps={method} />
+        <Steps tone="dark" columns="md:grid-cols-3" steps={copy.method} />
       </section>
 
       <PartnersSection reduceMotion={reduceMotion} />
 
       <StatsSection reduceMotion={reduceMotion} items={stats} />
 
-      <Testimonials items={testimonials} limit={1} tone="dark" title="Ce que disent mes clients" />
+      <Testimonials items={testimonials} limit={1} tone="dark" title={copy.testimonialsTitle} />
 
       <ContactBlock
-        title="Parlons de votre projet"
-        text="Mariage, soirée ou événement d'entreprise : quelques lignes suffisent. Réponse sous 24 à 48 h."
+        title={copy.contactTitle}
+        text={copy.contactText}
         event="devis_accueil_final"
         themeSwitch={false}
       />

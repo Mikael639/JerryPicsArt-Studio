@@ -4,10 +4,14 @@ import { useCallback, useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
+import { UI_COPY } from "../lib/i18n";
+import { useLanguage } from "./LanguageProvider";
 
 const SWIPE_THRESHOLD = 50;
 
 export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext, onSelect }) {
+  const { lang } = useLanguage();
+  const copy = UI_COPY[lang]?.lightbox || UI_COPY.fr.lightbox;
   const [zoomedPhotoId, setZoomedPhotoId] = useState(null);
   const [shareFeedback, setShareFeedback] = useState("");
   const constraintsRef = useRef(null);
@@ -25,30 +29,29 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
     const url = window.location.href;
     const shareData = {
       title: activePhoto.title || "JerryPicsArt",
-      text: activePhoto.alt || activePhoto.title || "Photographie JerryPicsArt",
+      text: activePhoto.alt || activePhoto.title || "JerryPicsArt Photography",
       url,
     };
     try {
       if (navigator.share && navigator.canShare ? navigator.canShare(shareData) : navigator.share) {
         await navigator.share(shareData);
-        setShareFeedback("Partage en cours...");
+        setShareFeedback(copy.sharing);
       } else if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(url);
-        setShareFeedback("Lien copie !");
+        setShareFeedback(copy.copied);
       } else {
-        setShareFeedback("Partage indisponible");
+        setShareFeedback(copy.shareUnavailable);
       }
     } catch {
-      setShareFeedback("Partage annulé");
+      setShareFeedback(copy.shareCancelled);
     }
     window.setTimeout(() => setShareFeedback(""), 2400);
-  }, [activePhoto]);
+  }, [activePhoto, copy]);
 
   const handleClose = useCallback(() => {
     setZoomedPhotoId(null);
     onClose();
   }, [onClose]);
-
 
   useEffect(() => {
     if (activeIndex === null) return;
@@ -81,7 +84,6 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
     const dx = e.changedTouches[0].clientX - touchStartRef.current.x;
     const dy = e.changedTouches[0].clientY - touchStartRef.current.y;
     touchStartRef.current = null;
-    // Ne naviguer que si le geste est principalement horizontal
     if (Math.abs(dx) < SWIPE_THRESHOLD || Math.abs(dx) < Math.abs(dy)) return;
     if (dx < 0) onNext();
     else onPrev();
@@ -99,7 +101,7 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           role="dialog"
           aria-modal="true"
-          aria-label="Visionneuse d'images"
+          aria-label={copy.dialogLabel}
           data-cursor-surface="dark"
           className="fixed inset-0 z-[100] h-screen w-screen overflow-hidden bg-[#050403] focus:outline-none"
           onClick={handleClose}
@@ -120,59 +122,54 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
                 transition={{ duration: 0.3 }}
                 className="absolute top-0 inset-x-0 z-20 flex items-center justify-between px-5 py-4 md:px-10 bg-gradient-to-b from-black/70 to-transparent"
               >
+                <span className="text-[11px] font-bold uppercase tracking-[0.4em] text-white/30">
+                  JerryPicsArt
+                </span>
 
-            {/* Logo / Studio name */}
-            <span className="text-[11px] font-bold uppercase tracking-[0.4em] text-white/30">
-              JerryPicsArt
-            </span>
+                <div className="flex items-center gap-3">
+                  <span className="font-serif text-[clamp(1rem,2vw,1.4rem)] text-white/20 leading-none">
+                    {String(currentNum).padStart(2, "0")}
+                  </span>
+                  <span className="h-px w-8 bg-white/20" />
+                  <span className="text-[11px] uppercase tracking-[0.3em] text-white/40">
+                    {String(totalNum).padStart(2, "0")}
+                  </span>
+                </div>
 
-            {/* Counter — editorial large number */}
-            <div className="flex items-center gap-3">
-              <span className="font-serif text-[clamp(1rem,2vw,1.4rem)] text-white/20 leading-none">
-                {String(currentNum).padStart(2, "0")}
-              </span>
-              <span className="h-px w-8 bg-white/20" />
-              <span className="text-[11px] uppercase tracking-[0.3em] text-white/40">
-                {String(totalNum).padStart(2, "0")}
-              </span>
-            </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleShare}
+                    className="group flex items-center gap-2 rounded-full border border-white/14 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.24em] text-white/55 transition hover:border-white/45 hover:text-white"
+                    aria-label={copy.shareAria}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <circle cx="18" cy="5" r="3" />
+                      <circle cx="6" cy="12" r="3" />
+                      <circle cx="18" cy="19" r="3" />
+                      <path d="m8.59 13.51 6.83 3.98" />
+                      <path d="m15.41 6.51-6.82 3.98" />
+                    </svg>
+                    <span className="hidden sm:inline">{shareFeedback || copy.share}</span>
+                  </button>
 
-            <div className="flex items-center gap-3">
-              {/* Share button */}
-              <button
-                type="button"
-                onClick={handleShare}
-                className="group flex items-center gap-2 rounded-full border border-white/14 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.24em] text-white/55 transition hover:border-white/45 hover:text-white"
-                aria-label="Partager cette photo"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <circle cx="18" cy="5" r="3" />
-                  <circle cx="6" cy="12" r="3" />
-                  <circle cx="18" cy="19" r="3" />
-                  <path d="m8.59 13.51 6.83 3.98" />
-                  <path d="m15.41 6.51-6.82 3.98" />
-                </svg>
-                <span className="hidden sm:inline">{shareFeedback || "Partager"}</span>
-              </button>
-
-              {/* Close button */}
-              <button
-                type="button"
-                onClick={handleClose}
-                className="group flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.3em] text-white/40 transition hover:text-white"
-              >
-                <span className="h-px w-6 bg-white/30 transition group-hover:w-10 group-hover:bg-white duration-300" />
-                  Fermer
-              </button>
-            </div>
-            </motion.div>
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="group flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.3em] text-white/40 transition hover:text-white"
+                  >
+                    <span className="h-px w-6 bg-white/30 transition group-hover:w-10 group-hover:bg-white duration-300" />
+                    {copy.close}
+                  </button>
+                </div>
+              </motion.div>
             )}
           </AnimatePresence>
 
           {/* ── Progress bar ─────────────────────────────────────── */}
           <AnimatePresence>
             {!isZoomed && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -188,11 +185,11 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
           </AnimatePresence>
 
           {/* ── Main image — full bleed, immersive ───────────────── */}
-          <div 
+          <div
             ref={constraintsRef}
             className={`absolute inset-0 z-10 flex items-center justify-center ${isZoomed ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
             onClick={(e) => {
-              e.stopPropagation(); // Prevent click from reaching the root and closing the lightbox
+              e.stopPropagation();
               setZoomedPhotoId(isZoomed ? null : activePhoto.id);
             }}
           >
@@ -207,7 +204,6 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
                 drag={isZoomed}
                 dragConstraints={constraintsRef}
                 dragElastic={0.1}
-                // No onClick needed here, it bubbles up to the container
               >
                 <Image
                   src={activePhoto.src}
@@ -220,14 +216,13 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
               </motion.div>
             </AnimatePresence>
 
-            {/* Left / Right invisible click zones (only when not zoomed) */}
             {!isZoomed && (
               <>
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onPrev(); }}
                   className="absolute inset-y-0 left-0 z-10 flex w-1/4 cursor-w-resize items-center justify-start pl-4 text-white/0 transition focus:outline-none hover:text-white/70 md:pl-10"
-                  aria-label="Image précédente"
+                  aria-label={copy.prev}
                 >
                   <span className="hidden h-12 w-12 items-center justify-center rounded-full border border-white/12 bg-black/20 backdrop-blur-md md:flex">
                     <svg width="17" height="17" viewBox="0 0 16 16" fill="none">
@@ -239,7 +234,7 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onNext(); }}
                   className="absolute inset-y-0 right-0 z-10 flex w-1/4 cursor-e-resize items-center justify-end pr-4 text-white/0 transition focus:outline-none hover:text-white/70 md:pr-10"
-                  aria-label="Image suivante"
+                  aria-label={copy.next}
                 >
                   <span className="hidden h-12 w-12 items-center justify-center rounded-full border border-white/12 bg-black/20 backdrop-blur-md md:flex">
                     <svg width="17" height="17" viewBox="0 0 16 16" fill="none">
@@ -250,14 +245,13 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
               </>
             )}
 
-            {/* Gradient bottom overlay for text legibility */}
             <AnimatePresence>
               {!isZoomed && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/80 to-transparent z-10" 
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/80 to-transparent z-10"
                 />
               )}
             </AnimatePresence>
@@ -273,49 +267,45 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
                 transition={{ duration: 0.3 }}
                 className="absolute bottom-0 inset-x-0 z-20 flex items-center justify-between gap-6 px-6 py-5 md:px-10"
               >
+                <div className="flex items-center gap-4 min-w-0">
+                  <div
+                    className="hidden md:flex items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/34 font-serif backdrop-blur-md"
+                    style={{ width: 48, height: 48, fontSize: "1.1rem", flexShrink: 0 }}
+                  >
+                    {String(currentNum).padStart(2, "0")}
+                  </div>
+                </div>
 
-            <div className="flex items-center gap-4 min-w-0">
-              <div
-                className="hidden md:flex items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/34 font-serif backdrop-blur-md"
-                style={{ width: 48, height: 48, fontSize: "1.1rem", flexShrink: 0 }}
-              >
-                {String(currentNum).padStart(2, "0")}
-              </div>
-            </div>
-
-            {/* Right — Arrow navigation */}
-            <div className="flex items-center gap-3 flex-shrink-0">
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onPrev();
-                }}
-                className="group flex h-11 w-11 items-center justify-center rounded-full border border-white/14 text-white/60 transition hover:border-white/50 hover:text-white"
-                aria-label="Image précédente"
-              >
-                {/* Arrow Left */}
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="transition group-hover:-translate-x-0.5 duration-200">
-                  <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onNext();
-                }}
-                className="group flex h-11 w-11 items-center justify-center rounded-full border border-white/14 text-white/60 transition hover:border-white/50 hover:text-white"
-                aria-label="Image suivante"
-              >
-                {/* Arrow Right */}
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="transition group-hover:translate-x-0.5 duration-200">
-                  <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-            </div>
-          </motion.div>
-          )}
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onPrev();
+                    }}
+                    className="group flex h-11 w-11 items-center justify-center rounded-full border border-white/14 text-white/60 transition hover:border-white/50 hover:text-white"
+                    aria-label={copy.prev}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="transition group-hover:-translate-x-0.5 duration-200">
+                      <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onNext();
+                    }}
+                    className="group flex h-11 w-11 items-center justify-center rounded-full border border-white/14 text-white/60 transition hover:border-white/50 hover:text-white"
+                    aria-label={copy.next}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="transition group-hover:translate-x-0.5 duration-200">
+                      <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                </div>
+              </motion.div>
+            )}
           </AnimatePresence>
 
           <AnimatePresence>
@@ -328,34 +318,33 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
                 className="absolute bottom-24 right-6 top-24 z-30 hidden w-24 rounded-2xl border border-white/10 bg-black/[0.08] shadow-[0_18px_60px_rgba(0,0,0,0.18)] backdrop-blur-[6px] md:block xl:right-10"
                 onClick={(event) => event.stopPropagation()}
               >
-                {/* Masques de dégradé pour le scroll horizontal */}
                 <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-8 bg-gradient-to-b from-black/35 to-transparent" />
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-8 bg-gradient-to-t from-black/35 to-transparent" />
-                
+
                 <div className="no-scrollbar flex h-full flex-col gap-3 overflow-y-auto px-2 py-8">
-                {photos.map((photo, index) => (
-                  <button
-                    key={photo.id}
-                    type="button"
-                    onClick={() => onSelect?.(index)}
-                    className={`relative h-14 w-full shrink-0 overflow-hidden rounded-lg border bg-black/10 transition duration-300 ${
-                      index === activeIndex
-                        ? "border-white/85 opacity-100 shadow-[0_0_0_1px_rgba(255,255,255,0.2)]"
-                        : "border-white/14 opacity-70 hover:border-white/55 hover:opacity-100"
-                    }`}
-                    aria-label={`Afficher ${photo.title}`}
-                  >
-                    <Image
-                      src={photo.src}
-                      alt={photo.alt || photo.title}
-                      fill
-                      sizes="96px"
-                      quality={75}
-                      className="object-cover"
-                      style={{ objectPosition: photo.objectPosition || "center center" }}
-                    />
-                  </button>
-                ))}
+                  {photos.map((photo, index) => (
+                    <button
+                      key={photo.id}
+                      type="button"
+                      onClick={() => onSelect?.(index)}
+                      className={`relative h-14 w-full shrink-0 overflow-hidden rounded-lg border bg-black/10 transition duration-300 ${
+                        index === activeIndex
+                          ? "border-white/85 opacity-100 shadow-[0_0_0_1px_rgba(255,255,255,0.2)]"
+                          : "border-white/14 opacity-70 hover:border-white/55 hover:opacity-100"
+                      }`}
+                      aria-label={copy.showPhoto(photo.title)}
+                    >
+                      <Image
+                        src={photo.src}
+                        alt={photo.alt || photo.title}
+                        fill
+                        sizes="96px"
+                        quality={75}
+                        className="object-cover"
+                        style={{ objectPosition: photo.objectPosition || "center center" }}
+                      />
+                    </button>
+                  ))}
                 </div>
               </motion.div>
             ) : null}
