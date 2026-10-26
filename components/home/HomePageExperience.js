@@ -8,6 +8,7 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import MagneticElement from "../MagneticElement";
+import { useCalmMotion } from "../../lib/useCalmMotion";
 import {
   MotionBlock,
   PartnersSection,
@@ -54,7 +55,7 @@ export default function HomePageExperience({
   const { lang } = useLanguage();
   const copy = HOME_PAGE_COPY[lang] || HOME_PAGE_COPY.fr;
   const reduceMotion = useReducedMotion();
-  const [useCalmHeroMotion, setUseCalmHeroMotion] = useState(false);
+  const calmDevice = useCalmMotion();
 
   const heroTitle =
     lang === "en" ? copy.heroTitle : siteText.heroTitle || copy.heroTitle;
@@ -116,7 +117,7 @@ export default function HomePageExperience({
   const containerRef = useRef(null);
   const swipeStartRef = useRef(null);
   const visibleHeroDots = shuffledPhotos.slice(0, 5);
-  const shouldCalmHeroMotion = reduceMotion || useCalmHeroMotion;
+  const shouldCalmHeroMotion = reduceMotion || calmDevice;
 
   // Photo qui vient de quitter l'écran : elle reste affichée dessous le temps du fondu de la suivante (mode tablette).
   const [outgoingHeroPhoto, setOutgoingHeroPhoto] = useState(null);
@@ -137,17 +138,6 @@ export default function HomePageExperience({
   function showNextHeroPhoto() {
     setActiveHeroIndex((currentIndex) => (currentIndex + 1) % shuffledPhotos.length);
   }
-
-  useEffect(() => {
-    // Toute tablette tactile, quelle que soit sa taille : une grande tablette (ex. 13 pouces, ~1440 px de large)
-    // ne supporte pas mieux les flous animés sur une photo plein écran, au contraire.
-    const query = window.matchMedia("(pointer: coarse) and (min-width: 768px)");
-    const updateMotionMode = () => setUseCalmHeroMotion(query.matches);
-
-    updateMotionMode();
-    query.addEventListener("change", updateMotionMode);
-    return () => query.removeEventListener("change", updateMotionMode);
-  }, []);
 
   useGSAP(() => {
     if (shouldCalmHeroMotion) return;

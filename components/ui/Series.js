@@ -2,13 +2,14 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import Lightbox from "../Lightbox";
 import Reveal from "./Reveal";
 import BridgeCta from "./BridgeCta";
 import { showPlaceholders } from "../../data/placeholders";
 import { translateSerie, UI_COPY } from "../../lib/i18n";
 import { useLanguage } from "../LanguageProvider";
+import { useCalmMotion } from "../../lib/useCalmMotion";
 
 const INITIAL_GRID_COUNT = 8;
 // Parallaxe du défilé : décalage maximal de la photo (px) par rapport à son cadre, de part et d'autre du centre.
@@ -37,20 +38,54 @@ function useIsServerRender() {
   );
 }
 
-function PhotoTile({ photo, index, onOpen, priority, reduceMotion, openLabel, variant = "grid" }) {
+function PhotoTile({ photo, index, onOpen, priority, reduceMotion, calm, openLabel, variant = "grid" }) {
   const isCarousel = variant === "carousel";
-  const delay = Math.min(index % 4, 3) * 0.12;
+  // Parallaxe : défilé sur ordinateur seulement (jamais sur tablette tactile, où elle coûte trop cher).
+  const parallax = isCarousel && !calm && !reduceMotion;
+  const delay = Math.min(index % 4, 3) * (calm ? 0.08 : 0.12);
 
-  // Ouverture « diaphragme » : sur fond noir, un cercle s'ouvre depuis le centre et révèle la photo,
-  // qui se pose en zoom arrière. Un fin anneau terracotta part du centre juste avant.
-  const clipVariants = {
-    hidden: { clipPath: "circle(0% at 50% 50%)" },
-    visible: { clipPath: "circle(78% at 50% 50%)", transition: { duration: 1.15, delay, ease: IRIS_EASE } },
-  };
-  const imageVariants = {
-    hidden: { scale: 1.25 },
-    visible: { scale: 1, transition: { duration: 1.5, delay, ease: SETTLE_EASE } },
-  };
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, amount: 0.15 });
+  const [ready, setReady] = useState(false);
+  const [ringDone, setRingDone] = useState(false);
+
+  // L'ouverture ne démarre que lorsque la tuile est à l'écran ET que la photo est chargée et décodée.
+  // Sinon, le cercle s'ouvre sur du noir et la photo « saute » d'un coup (latence, puis flash).
+  // Sécurité : si la photo tarde ou échoue, on ouvre quand même au bout de 2,5 s.
+  useEffect(() => {
+    if (!inView || ready) return undefined;
+    const timer = window.setTimeout(() => setReady(true), 2500);
+    return () => window.clearTimeout(timer);
+  }, [inView, ready]);
+
+  const revealed = reduceMotion || (inView && ready);
+
+  // Ordinateur et téléphone : ouverture « diaphragme ». Sur fond noir, un cercle s'ouvre depuis le centre
+  // et révèle la photo, qui se pose en zoom arrière ; un fin anneau terracotta part du centre.
+  // Le masque est retiré une fois l'ouverture terminée (un masque permanent alourdit l'affichage).
+  // Tablette tactile : simple fondu, sans masque ni anneau.
+  const clipVariants = calm
+    ? {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1, transition: { duration: 0.8, delay, ease: "easeOut" } },
+      }
+    : {
+        hidden: { clipPath: "circle(0% at 50% 50%)" },
+        visible: {
+          clipPath: "circle(78% at 50% 50%)",
+          transition: { duration: 1.15, delay, ease: IRIS_EASE },
+          transitionEnd: { clipPath: "none" },
+        },
+      };
+  const imageVariants = calm
+    ? {
+        hidden: { scale: 1.04 },
+        visible: { scale: 1, transition: { duration: 1.1, delay, ease: SETTLE_EASE } },
+      }
+    : {
+        hidden: { scale: 1.25 },
+        visible: { scale: 1, transition: { duration: 1.5, delay, ease: SETTLE_EASE } },
+      };
   const ringVariants = {
     hidden: { opacity: 0, scale: 0.2 },
     visible: {
@@ -64,22 +99,23 @@ function PhotoTile({ photo, index, onOpen, priority, reduceMotion, openLabel, va
   // car un élément entièrement masqué par clip-path ne déclenche pas l'observation.
   return (
     <motion.button
+      ref={ref}
       type="button"
       onClick={() => onOpen(index)}
       data-cursor="gallery-item"
       aria-label={openLabel}
       className="group relative block aspect-[4/5] w-full overflow-hidden rounded-[0.8rem] bg-[#0c0a08] text-left"
       initial={reduceMotion ? false : "hidden"}
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.15 }}
+      animate={revealed ? "visible" : "hidden"}
     >
       <motion.div className="absolute inset-0" variants={clipVariants}>
         <motion.div className="absolute inset-0" variants={imageVariants}>
-          {/* Calque de parallaxe (défilé seulement) : déplacé par Series pendant le défilement, surdimensionné pour ne jamais montrer de bord. */}
+          {/* Calque de parallaxe (défilé sur ordinateur) : déplacé par Series pendant le défilement,
+              surdimensionné pour ne jamais montrer de bord. Pas de couche dédiée ailleurs (mémoire graphique). */}
           <div
-            data-parallax-layer={isCarousel && !reduceMotion ? "" : undefined}
-            className="absolute inset-0 will-change-transform"
-            style={isCarousel && !reduceMotion ? { transform: `scale(${PARALLAX_SCALE})` } : undefined}
+            data-parallax-layer={parallax ? "" : undefined}
+            className={`absolute inset-0 ${parallax ? "will-change-transform" : ""}`}
+            style={parallax ? { transform: `scale(${PARALLAX_SCALE})` } : undefined}
           >
             <Image
               src={photo.src}
@@ -90,15 +126,20 @@ function PhotoTile({ photo, index, onOpen, priority, reduceMotion, openLabel, va
               className="object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.06]"
               style={{ objectPosition: photo.objectPosition || "center center" }}
               quality={85}
+              onLoad={() => setReady(true)}
+              onError={() => setReady(true)}
             />
           </div>
         </motion.div>
       </motion.div>
-      {reduceMotion ? null : (
+      {reduceMotion || calm || ringDone ? null : (
         <motion.span
           aria-hidden="true"
           className="pointer-events-none absolute left-1/2 top-1/2 -ml-[15%] -mt-[15%] aspect-square w-[30%] rounded-full border border-accent-soft opacity-0"
           variants={ringVariants}
+          onAnimationComplete={(definition) => {
+            if (definition === "visible") setRingDone(true);
+          }}
         />
       )}
       <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,transparent_55%,rgba(12,10,8,0.3))] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
@@ -112,6 +153,7 @@ export default function Series({ serie, withBridge = false, priority = false }) 
   const copy = UI_COPY[lang]?.series || UI_COPY.fr.series;
   const localizedSerie = translateSerie(serie, lang);
   const reduceMotion = useReducedMotion();
+  const calm = useCalmMotion();
   const trackRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(null);
   const isDesktop = useIsDesktop();
@@ -166,7 +208,7 @@ export default function Series({ serie, withBridge = false, priority = false }) 
   // On écrit directement dans le style (pas d'état React) et on ne traite que les photos proches de l'écran.
   useEffect(() => {
     const track = trackRef.current;
-    if (!showCarousel || reduceMotion || !track) return undefined;
+    if (!showCarousel || reduceMotion || calm || !track) return undefined;
 
     const layers = Array.from(track.querySelectorAll("[data-parallax-layer]"));
     let frame = 0;
@@ -176,11 +218,17 @@ export default function Series({ serie, withBridge = false, priority = false }) 
       const trackBox = track.getBoundingClientRect();
       const center = trackBox.left + trackBox.width / 2;
 
+      // D'abord toutes les lectures, ensuite toutes les écritures : alterner les deux force le navigateur
+      // à recalculer la mise en page à chaque photo, ce qui ralentit le défilement.
+      const updates = [];
       layers.forEach((layer) => {
         const box = layer.parentElement.getBoundingClientRect();
         if (box.right < trackBox.left - 240 || box.left > trackBox.right + 240) return;
         const distance = Math.max(-1, Math.min(1, (box.left + box.width / 2 - center) / (trackBox.width / 2)));
-        layer.style.transform = `translate3d(${(-distance * PARALLAX_PX).toFixed(1)}px, 0, 0) scale(${PARALLAX_SCALE})`;
+        updates.push([layer, -distance * PARALLAX_PX]);
+      });
+      updates.forEach(([layer, shift]) => {
+        layer.style.transform = `translate3d(${shift.toFixed(1)}px, 0, 0) scale(${PARALLAX_SCALE})`;
       });
     };
 
@@ -197,7 +245,7 @@ export default function Series({ serie, withBridge = false, priority = false }) 
       window.removeEventListener("resize", schedule);
       window.cancelAnimationFrame(frame);
     };
-  }, [showCarousel, reduceMotion, images.length]);
+  }, [showCarousel, reduceMotion, calm, images.length]);
 
   function slide(direction) {
     const track = trackRef.current;
@@ -242,13 +290,14 @@ export default function Series({ serie, withBridge = false, priority = false }) 
             className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-4 pb-1 md:-mx-8 md:gap-4 md:px-8"
           >
             {images.map((photo, index) => (
-              <div key={photo.id} className="w-[72%] shrink-0 snap-start sm:w-[44%] lg:w-[28%]">
+              <div key={`${photo.id}:${calm ? "calme" : "iris"}`} className="w-[72%] shrink-0 snap-start sm:w-[44%] lg:w-[28%]">
                 <PhotoTile
                   photo={photo}
                   index={index}
                   onOpen={setActiveIndex}
                   priority={priority}
                   reduceMotion={reduceMotion}
+                  calm={calm}
                   openLabel={copy.openPhoto(photo.alt)}
                   variant="carousel"
                 />
@@ -292,12 +341,13 @@ export default function Series({ serie, withBridge = false, priority = false }) 
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
             {gridImages.map((photo, index) => (
               <PhotoTile
-                key={photo.id}
+                key={`${photo.id}:${calm ? "calme" : "iris"}`}
                 photo={photo}
                 index={index}
                 onOpen={setActiveIndex}
                 priority={priority}
                 reduceMotion={reduceMotion}
+                calm={calm}
                 openLabel={copy.openPhoto(photo.alt)}
               />
             ))}
