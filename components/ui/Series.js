@@ -14,7 +14,7 @@ const INITIAL_GRID_COUNT = 8;
 // Parallaxe du défilé : décalage maximal de la photo (px) par rapport à son cadre, de part et d'autre du centre.
 const PARALLAX_PX = 18;
 const PARALLAX_SCALE = 1.14;
-const CURTAIN_EASE = [0.77, 0, 0.18, 1];
+const IRIS_EASE = [0.65, 0, 0.2, 1];
 const SETTLE_EASE = [0.16, 1, 0.3, 1];
 const DESKTOP_QUERY = "(min-width: 768px)";
 
@@ -39,28 +39,26 @@ function useIsServerRender() {
 
 function PhotoTile({ photo, index, onOpen, priority, reduceMotion, openLabel, variant = "grid" }) {
   const isCarousel = variant === "carousel";
-  const delay = Math.min(index % 4, 3) * (isCarousel ? 0.1 : 0.08);
+  const delay = Math.min(index % 4, 3) * 0.12;
 
-  // Défilé : le cadre s'ouvre comme un rideau de gauche à droite, la photo glisse en place.
-  // Grille : le cadre se dévoile de haut en bas, avec un léger zoom arrière.
-  const clipVariants = isCarousel
-    ? {
-        hidden: { clipPath: "inset(0 100% 0 0)" },
-        visible: { clipPath: "inset(0 0% 0 0)", transition: { duration: 1.1, delay, ease: CURTAIN_EASE } },
-      }
-    : {
-        hidden: { clipPath: "inset(0 0 100% 0)" },
-        visible: { clipPath: "inset(0 0 0% 0)", transition: { duration: 1.05, delay, ease: SETTLE_EASE } },
-      };
-  const imageVariants = isCarousel
-    ? {
-        hidden: { scale: 1.12, x: "-10%" },
-        visible: { scale: 1, x: "0%", transition: { duration: 1.5, delay, ease: SETTLE_EASE } },
-      }
-    : {
-        hidden: { scale: 1.18 },
-        visible: { scale: 1, transition: { duration: 1.4, delay, ease: SETTLE_EASE } },
-      };
+  // Ouverture « diaphragme » : sur fond noir, un cercle s'ouvre depuis le centre et révèle la photo,
+  // qui se pose en zoom arrière. Un fin anneau terracotta part du centre juste avant.
+  const clipVariants = {
+    hidden: { clipPath: "circle(0% at 50% 50%)" },
+    visible: { clipPath: "circle(78% at 50% 50%)", transition: { duration: 1.15, delay, ease: IRIS_EASE } },
+  };
+  const imageVariants = {
+    hidden: { scale: 1.25 },
+    visible: { scale: 1, transition: { duration: 1.5, delay, ease: SETTLE_EASE } },
+  };
+  const ringVariants = {
+    hidden: { opacity: 0, scale: 0.2 },
+    visible: {
+      opacity: [0, 0.9, 0],
+      scale: [0.2, 1.5, 3.4],
+      transition: { duration: 1.15, delay, ease: IRIS_EASE, times: [0, 0.2, 1] },
+    },
+  };
 
   // Le bouton est observé (visible à l'écran) ; le masque et le zoom sont animés sur ses enfants,
   // car un élément entièrement masqué par clip-path ne déclenche pas l'observation.
@@ -70,14 +68,14 @@ function PhotoTile({ photo, index, onOpen, priority, reduceMotion, openLabel, va
       onClick={() => onOpen(index)}
       data-cursor="gallery-item"
       aria-label={openLabel}
-      className="group relative block aspect-[4/5] w-full overflow-hidden rounded-[0.8rem] bg-neutral-900 text-left"
+      className="group relative block aspect-[4/5] w-full overflow-hidden rounded-[0.8rem] bg-[#0c0a08] text-left"
       initial={reduceMotion ? false : "hidden"}
       whileInView="visible"
       viewport={{ once: true, amount: 0.15 }}
     >
       <motion.div className="absolute inset-0" variants={clipVariants}>
         <motion.div className="absolute inset-0" variants={imageVariants}>
-          {/* Calque de parallaxe : déplacé par Series pendant le défilé (surdimensionné pour ne jamais montrer de bord). */}
+          {/* Calque de parallaxe (défilé seulement) : déplacé par Series pendant le défilement, surdimensionné pour ne jamais montrer de bord. */}
           <div
             data-parallax-layer={isCarousel && !reduceMotion ? "" : undefined}
             className="absolute inset-0 will-change-transform"
@@ -96,6 +94,13 @@ function PhotoTile({ photo, index, onOpen, priority, reduceMotion, openLabel, va
           </div>
         </motion.div>
       </motion.div>
+      {reduceMotion ? null : (
+        <motion.span
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-1/2 -ml-[15%] -mt-[15%] aspect-square w-[30%] rounded-full border border-accent-soft opacity-0"
+          variants={ringVariants}
+        />
+      )}
       <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,transparent_55%,rgba(12,10,8,0.3))] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
     </motion.button>
   );
