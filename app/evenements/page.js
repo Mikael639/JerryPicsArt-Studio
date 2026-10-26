@@ -19,7 +19,6 @@ export async function generateMetadata() {
     description:
       "Photographe pour vos soirées, lancements et galas à Paris. Sélection express le soir même en option. Devis sous 48 h.",
     path: "/evenements",
-    imageFrom: (photo) => photo.category === "Events",
   });
 }
 

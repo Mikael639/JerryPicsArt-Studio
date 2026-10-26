@@ -118,6 +118,7 @@ button {
 
 /* En-tête : suit le mode sombre quand le fond de la page est sombre. */
 html[data-theme="dark"] header {
+  --accent: #b07f5a;
   --ink: #fafafa;
   --paper: #0c0a08;
   --line: #fafafa;

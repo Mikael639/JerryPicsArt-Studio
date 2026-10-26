@@ -17,7 +17,6 @@ export async function generateMetadata() {
     description:
       "Séries photo de la Fashion Week de Paris : défilés, invités et personnalités. Le regard éditorial de JerryPicsArt.",
     path: "/signature",
-    imageFrom: (photo) => photo.category === "Fashion Week & Celebrities",
   });
 }
 

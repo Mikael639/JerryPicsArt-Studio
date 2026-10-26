@@ -22,7 +22,6 @@ export async function generateMetadata() {
     description:
       "Votre mariage photographié comme un éditorial. Formules à partir de 1 500 €. Vérifiez la disponibilité de votre date.",
     path: "/mariage",
-    imageFrom: (photo) => photo.category === "Fashion Wedding",
   });
 }
 
