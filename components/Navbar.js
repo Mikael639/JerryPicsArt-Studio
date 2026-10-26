@@ -182,7 +182,7 @@ export default function Navbar({ previews = {} }) {
               aria-controls="mobile-navigation desktop-navigation"
               aria-label={isOpen ? copy.closeMenu : copy.openMenu}
               onClick={() => setIsOpen((current) => !current)}
-              className="group inline-flex h-11 w-11 items-center justify-center gap-2.5 rounded-full border border-line/20 bg-white/80 text-ink shadow-sm transition-all hover:bg-white active:scale-95 sm:w-auto sm:pl-3 sm:pr-4"
+              className="group inline-flex h-11 min-w-11 items-center justify-center rounded-full border border-accent/40 bg-white/80 px-[9px] text-accent shadow-sm transition-all duration-500 hover:bg-accent/10 active:scale-95 sm:hover:pr-4"
             >
               {/* Diaphragme d'objectif : il tourne et se referme en croix à l'ouverture du menu. */}
               <span aria-hidden="true" className="relative block h-6 w-6 shrink-0">
@@ -212,7 +212,11 @@ export default function Navbar({ previews = {} }) {
                   <path d="M6 6L18 18M18 6L6 18" />
                 </svg>
               </span>
-              <span className="hidden text-[11px] font-bold uppercase tracking-[0.18em] sm:inline">
+              <span
+                className={`hidden max-w-0 overflow-hidden whitespace-nowrap text-[11px] font-bold uppercase tracking-[0.18em] opacity-0 transition-all duration-500 sm:inline-block sm:group-hover:ml-2.5 sm:group-hover:max-w-[4.5rem] sm:group-hover:opacity-100 sm:group-focus-visible:ml-2.5 sm:group-focus-visible:max-w-[4.5rem] sm:group-focus-visible:opacity-100 ${
+                  isOpen ? "sm:ml-2.5 sm:max-w-[4.5rem] sm:opacity-100" : ""
+                }`}
+              >
                 {isOpen ? copy.closeLabel : copy.menuLabel}
               </span>
             </button>
