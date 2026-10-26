@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+/* Survol : actif dès qu'une souris (ou un stylet) est disponible, même sur une tablette tactile.
+   Par défaut, Tailwind v4 n'active hover: que si le pointeur PRINCIPAL peut survoler : sur une tablette,
+   c'est le doigt, donc une souris branchée n'avait aucun effet. Sur un écran purement tactile,
+   rien ne change (pas de survol « collant » après un appui). */
+@custom-variant hover {
+  @media (any-hover: hover) {
+    &:hover {
+      @slot;
+    }
+  }
+}
+
 :root {
   /* Accent terracotta — signature couleur du site */
   --paper: #fafafa;
@@ -53,27 +65,26 @@ button {
   border-radius: 6px;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  html.has-custom-cursor,
-  html.has-custom-cursor body,
-  html.has-custom-cursor a,
-  html.has-custom-cursor button,
-  html.has-custom-cursor [role="button"],
-  html.has-custom-cursor summary,
-  html.has-custom-cursor label[for],
-  html.has-custom-cursor input[type="submit"],
-  html.has-custom-cursor input[type="button"],
-  html.has-custom-cursor input[type="checkbox"],
-  html.has-custom-cursor input[type="radio"],
-  html.has-custom-cursor select {
-    cursor: none;
-  }
+/* Le curseur natif n'est masqué que si le curseur personnalisé est actif (classe posée par le composant). */
+html.has-custom-cursor,
+html.has-custom-cursor body,
+html.has-custom-cursor a,
+html.has-custom-cursor button,
+html.has-custom-cursor [role="button"],
+html.has-custom-cursor summary,
+html.has-custom-cursor label[for],
+html.has-custom-cursor input[type="submit"],
+html.has-custom-cursor input[type="button"],
+html.has-custom-cursor input[type="checkbox"],
+html.has-custom-cursor input[type="radio"],
+html.has-custom-cursor select {
+  cursor: none;
+}
 
-  html.has-custom-cursor input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),
-  html.has-custom-cursor textarea,
-  html.has-custom-cursor [contenteditable="true"] {
-    cursor: text;
-  }
+html.has-custom-cursor input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),
+html.has-custom-cursor textarea,
+html.has-custom-cursor [contenteditable="true"] {
+  cursor: text;
 }
 
 .page-shell {

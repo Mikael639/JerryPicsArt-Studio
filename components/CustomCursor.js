@@ -102,11 +102,14 @@ function getCursorMode(target) {
   return "default";
 }
 
+// « any » : une souris branchée sur une tablette compte, même si le pointeur principal est le doigt.
+const MOUSE_QUERY = "(any-hover: hover) and (any-pointer: fine)";
+
 function subscribeToFinePointerQuery(onStoreChange) {
   if (typeof window === "undefined") {
     return () => {};
   }
-  const mediaQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
+  const mediaQuery = window.matchMedia(MOUSE_QUERY);
   mediaQuery.addEventListener("change", onStoreChange);
   return () => {
     mediaQuery.removeEventListener("change", onStoreChange);
@@ -117,7 +120,7 @@ function getFinePointerSnapshot() {
   if (typeof window === "undefined") {
     return false;
   }
-  return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  return window.matchMedia(MOUSE_QUERY).matches;
 }
 
 function useEvent(handler) {
@@ -143,8 +146,22 @@ export default function CustomCursor() {
   const scrollTimeoutRef = useRef(null);
 
   const supportsFinePointer = useSyncExternalStore(subscribeToFinePointerQuery, getFinePointerSnapshot, () => false);
-  const isEnabled = supportsFinePointer && !reduceMotion;
+  // Certains navigateurs de tablette ne déclarent pas leur souris : on l'active aussi dès qu'un vrai
+  // mouvement de souris est vu (les doigts et stylets sont ignorés).
+  const [mouseSeen, setMouseSeen] = useState(false);
+  const isEnabled = (supportsFinePointer || mouseSeen) && !reduceMotion;
   const isCursorActive = isEnabled && !isTemporarilyPaused;
+
+  useEffect(() => {
+    if (supportsFinePointer || mouseSeen) return undefined;
+
+    const detectMouse = (event) => {
+      if (event.pointerType === "mouse") setMouseSeen(true);
+    };
+
+    window.addEventListener("pointermove", detectMouse, { passive: true });
+    return () => window.removeEventListener("pointermove", detectMouse);
+  }, [supportsFinePointer, mouseSeen]);
 
   const x = useMotionValue(-100);
   const y = useMotionValue(-100);
