@@ -118,6 +118,18 @@ export default function HomePageExperience({
   const visibleHeroDots = shuffledPhotos.slice(0, 5);
   const shouldCalmHeroMotion = reduceMotion || useCalmHeroMotion;
 
+  // Photo qui vient de quitter l'écran : elle reste affichée dessous le temps du fondu de la suivante (mode tablette).
+  const [outgoingHeroPhoto, setOutgoingHeroPhoto] = useState(null);
+  const lastHeroPhotoRef = useRef(activeHeroPhoto);
+  useEffect(() => {
+    const last = lastHeroPhotoRef.current;
+    lastHeroPhotoRef.current = activeHeroPhoto;
+    if (!last || last.id === activeHeroPhoto.id) return undefined;
+    setOutgoingHeroPhoto(last);
+    const timer = window.setTimeout(() => setOutgoingHeroPhoto(null), 1400);
+    return () => window.clearTimeout(timer);
+  }, [activeHeroPhoto]);
+
   function showPreviousHeroPhoto() {
     setActiveHeroIndex((currentIndex) => (currentIndex === 0 ? shuffledPhotos.length - 1 : currentIndex - 1));
   }
@@ -192,7 +204,7 @@ export default function HomePageExperience({
   return (
     <div ref={containerRef} data-page="home" className="page-shell -mt-20 space-y-20 pb-16 md:space-y-28 xl:space-y-32">
       <section
-        className="relative isolate min-h-screen overflow-hidden"
+        className="relative isolate min-h-screen overflow-hidden bg-[#0c0a08]"
         onTouchStart={(event) => {
           swipeStartRef.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
         }}
@@ -211,7 +223,24 @@ export default function HomePageExperience({
       >
         <div className="absolute inset-0">
           {shouldCalmHeroMotion ? (
-            <div key={activeHeroPhoto.id} className="absolute inset-0 hero-image-container">
+            <>
+              {outgoingHeroPhoto ? (
+                <div key={`out-${outgoingHeroPhoto.id}`} className="absolute inset-0">
+                  <Image
+                    src={outgoingHeroPhoto.src}
+                    alt=""
+                    fill
+                    sizes="100vw"
+                    aria-hidden="true"
+                    className="hero-main-image object-cover sharpen-img"
+                    style={{
+                      "--hero-position": outgoingHeroPhoto.objectPosition || DEFAULT_HERO_POSITION,
+                      "--hero-mobile-position": outgoingHeroPhoto.mobileObjectPosition || DEFAULT_MOBILE_HERO_POSITION,
+                    }}
+                  />
+                </div>
+              ) : null}
+            <div key={activeHeroPhoto.id} className="hero-fade-in absolute inset-0 hero-image-container">
               <Image
                 src={activeHeroPhoto.src}
                 alt={activeHeroPhoto.alt}
@@ -225,12 +254,14 @@ export default function HomePageExperience({
                 }}
               />
             </div>
+            </>
           ) : (
-            <AnimatePresence mode="wait">
+            // Fondu enchaîné : la nouvelle photo apparaît par-dessus l'ancienne, sans jamais laisser l'écran vide.
+            <AnimatePresence>
               <motion.div
                 key={activeHeroPhoto.id}
                 className="absolute inset-0 hero-image-container"
-                initial={{ opacity: 1, scale: 1.08, filter: "blur(8px)" }}
+                initial={{ opacity: 0, scale: 1.08, filter: "blur(8px)" }}
                 animate={{ opacity: 1, scale: 1.04, filter: "blur(0px)" }}
                 exit={{ opacity: 0, scale: 0.98, filter: "blur(4px)" }}
                 transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
@@ -257,14 +288,15 @@ export default function HomePageExperience({
               </motion.div>
             </AnimatePresence>
           )}
-          {shouldCalmHeroMotion && nextHeroPhoto ? (
+          {nextHeroPhoto ? (
             <div className="pointer-events-none absolute h-px w-px overflow-hidden opacity-0">
               <Image
                 src={nextHeroPhoto.src}
                 alt=""
                 width={1}
                 height={1}
-                sizes="1px"
+                sizes="100vw"
+                loading="eager"
                 aria-hidden="true"
               />
             </div>

@@ -161,6 +161,20 @@ html.page-leaving footer {
   scrollbar-width: none;
 }
 
+/* Diaporama de l'accueil (tablette) : la nouvelle photo apparaît en fondu par-dessus l'ancienne */
+.hero-fade-in {
+  animation: hero-fade-in 1.1s ease-out both;
+}
+
+@keyframes hero-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-fade-in { animation: none; }
+}
+
 /* Viseur de la bande « Ils sont passés devant mon objectif » : le cadre glisse de nom en nom, puis un bref flash */
 .viewfinder-frame {
   will-change: transform;
