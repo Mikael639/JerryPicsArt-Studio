@@ -11,6 +11,11 @@ import { translateSerie, UI_COPY } from "../../lib/i18n";
 import { useLanguage } from "../LanguageProvider";
 
 const INITIAL_GRID_COUNT = 8;
+// Parallaxe du défilé : décalage maximal de la photo (px) par rapport à son cadre, de part et d'autre du centre.
+const PARALLAX_PX = 18;
+const PARALLAX_SCALE = 1.14;
+const CURTAIN_EASE = [0.77, 0, 0.18, 1];
+const SETTLE_EASE = [0.16, 1, 0.3, 1];
 const DESKTOP_QUERY = "(min-width: 768px)";
 
 function subscribeToDesktop(onChange) {
@@ -32,8 +37,30 @@ function useIsServerRender() {
   );
 }
 
-function PhotoTile({ photo, index, onOpen, priority, reduceMotion, openLabel }) {
-  const delay = Math.min(index % 4, 3) * 0.08;
+function PhotoTile({ photo, index, onOpen, priority, reduceMotion, openLabel, variant = "grid" }) {
+  const isCarousel = variant === "carousel";
+  const delay = Math.min(index % 4, 3) * (isCarousel ? 0.1 : 0.08);
+
+  // Défilé : le cadre s'ouvre comme un rideau de gauche à droite, la photo glisse en place.
+  // Grille : le cadre se dévoile de haut en bas, avec un léger zoom arrière.
+  const clipVariants = isCarousel
+    ? {
+        hidden: { clipPath: "inset(0 100% 0 0)" },
+        visible: { clipPath: "inset(0 0% 0 0)", transition: { duration: 1.1, delay, ease: CURTAIN_EASE } },
+      }
+    : {
+        hidden: { clipPath: "inset(0 0 100% 0)" },
+        visible: { clipPath: "inset(0 0 0% 0)", transition: { duration: 1.05, delay, ease: SETTLE_EASE } },
+      };
+  const imageVariants = isCarousel
+    ? {
+        hidden: { scale: 1.12, x: "-10%" },
+        visible: { scale: 1, x: "0%", transition: { duration: 1.5, delay, ease: SETTLE_EASE } },
+      }
+    : {
+        hidden: { scale: 1.18 },
+        visible: { scale: 1, transition: { duration: 1.4, delay, ease: SETTLE_EASE } },
+      };
 
   // Le bouton est observé (visible à l'écran) ; le masque et le zoom sont animés sur ses enfants,
   // car un élément entièrement masqué par clip-path ne déclenche pas l'observation.
@@ -48,30 +75,25 @@ function PhotoTile({ photo, index, onOpen, priority, reduceMotion, openLabel }) 
       whileInView="visible"
       viewport={{ once: true, amount: 0.15 }}
     >
-      <motion.div
-        className="absolute inset-0"
-        variants={{
-          hidden: { clipPath: "inset(0 0 100% 0)" },
-          visible: { clipPath: "inset(0 0 0% 0)", transition: { duration: 1.05, delay, ease: [0.16, 1, 0.3, 1] } },
-        }}
-      >
-        <motion.div
-          className="absolute inset-0"
-          variants={{
-            hidden: { scale: 1.18 },
-            visible: { scale: 1, transition: { duration: 1.4, delay, ease: [0.16, 1, 0.3, 1] } },
-          }}
-        >
-          <Image
-            src={photo.src}
-            alt={photo.alt}
-            fill
-            loading={priority && index < 4 ? "eager" : "lazy"}
-            sizes="(max-width: 768px) 72vw, (max-width: 1024px) 44vw, 28vw"
-            className="object-cover transition duration-700 ease-out group-hover:scale-[1.05]"
-            style={{ objectPosition: photo.objectPosition || "center center" }}
-            quality={85}
-          />
+      <motion.div className="absolute inset-0" variants={clipVariants}>
+        <motion.div className="absolute inset-0" variants={imageVariants}>
+          {/* Calque de parallaxe : déplacé par Series pendant le défilé (surdimensionné pour ne jamais montrer de bord). */}
+          <div
+            data-parallax-layer={isCarousel && !reduceMotion ? "" : undefined}
+            className="absolute inset-0 will-change-transform"
+            style={isCarousel && !reduceMotion ? { transform: `scale(${PARALLAX_SCALE})` } : undefined}
+          >
+            <Image
+              src={photo.src}
+              alt={photo.alt}
+              fill
+              loading={priority && index < 4 ? "eager" : "lazy"}
+              sizes="(max-width: 768px) 72vw, (max-width: 1024px) 44vw, 28vw"
+              className="object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.06]"
+              style={{ objectPosition: photo.objectPosition || "center center" }}
+              quality={85}
+            />
+          </div>
         </motion.div>
       </motion.div>
       <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,transparent_55%,rgba(12,10,8,0.3))] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
@@ -135,6 +157,43 @@ export default function Series({ serie, withBridge = false, priority = false }) 
     };
   }, [mode, updateProgress]);
 
+  // Parallaxe : chaque photo glisse lentement dans son cadre selon sa distance au centre du défilé.
+  // On écrit directement dans le style (pas d'état React) et on ne traite que les photos proches de l'écran.
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!showCarousel || reduceMotion || !track) return undefined;
+
+    const layers = Array.from(track.querySelectorAll("[data-parallax-layer]"));
+    let frame = 0;
+
+    const apply = () => {
+      frame = 0;
+      const trackBox = track.getBoundingClientRect();
+      const center = trackBox.left + trackBox.width / 2;
+
+      layers.forEach((layer) => {
+        const box = layer.parentElement.getBoundingClientRect();
+        if (box.right < trackBox.left - 240 || box.left > trackBox.right + 240) return;
+        const distance = Math.max(-1, Math.min(1, (box.left + box.width / 2 - center) / (trackBox.width / 2)));
+        layer.style.transform = `translate3d(${(-distance * PARALLAX_PX).toFixed(1)}px, 0, 0) scale(${PARALLAX_SCALE})`;
+      });
+    };
+
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(apply);
+    };
+
+    track.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    apply();
+
+    return () => {
+      track.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      window.cancelAnimationFrame(frame);
+    };
+  }, [showCarousel, reduceMotion, images.length]);
+
   function slide(direction) {
     const track = trackRef.current;
     if (!track) return;
@@ -186,6 +245,7 @@ export default function Series({ serie, withBridge = false, priority = false }) 
                   priority={priority}
                   reduceMotion={reduceMotion}
                   openLabel={copy.openPhoto(photo.alt)}
+                  variant="carousel"
                 />
               </div>
             ))}
