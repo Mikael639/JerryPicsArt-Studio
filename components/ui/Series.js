@@ -97,6 +97,7 @@ export default function Series({ serie, withBridge = false, priority = false }) 
   const [expanded, setExpanded] = useState(false);
   const [progress, setProgress] = useState(0);
   const images = serie.images;
+  const [canScroll, setCanScroll] = useState(images.length > 3);
   const gridImages = expanded ? images : images.slice(0, INITIAL_GRID_COUNT);
   const meta = [localizedSerie.saison, localizedSerie.lieu].filter(Boolean).join(" · ");
 
@@ -114,12 +115,24 @@ export default function Series({ serie, withBridge = false, priority = false }) 
     const track = trackRef.current;
     if (!track) return;
     const max = track.scrollWidth - track.clientWidth;
-    setProgress(max > 0 ? track.scrollLeft / max : 1);
+    const scrollable = max > 4;
+    setCanScroll(scrollable);
+    setProgress(scrollable ? track.scrollLeft / max : 0);
   }, []);
 
   useEffect(() => {
+    const track = trackRef.current;
     const frame = window.requestAnimationFrame(updateProgress);
-    return () => window.cancelAnimationFrame(frame);
+    if (!track || typeof ResizeObserver === "undefined") {
+      return () => window.cancelAnimationFrame(frame);
+    }
+
+    const observer = new ResizeObserver(updateProgress);
+    observer.observe(track);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
   }, [mode, updateProgress]);
 
   function slide(direction) {
@@ -178,32 +191,34 @@ export default function Series({ serie, withBridge = false, priority = false }) 
             ))}
           </div>
 
-          <div className="mt-5 flex items-center gap-4">
-            <div className="relative h-px flex-1 bg-ink/15">
-              <div
-                className="absolute inset-y-0 left-0 bg-ink/70 transition-[width] duration-300"
-                style={{ width: `${Math.max(8, progress * 100)}%` }}
-              />
+          {canScroll ? (
+            <div className="mt-5 flex items-center gap-4">
+              <div className="relative h-px flex-1 bg-ink/15">
+                <div
+                  className="absolute inset-y-0 left-0 bg-ink/70 transition-[width] duration-300"
+                  style={{ width: `${Math.max(8, progress * 100)}%` }}
+                />
+              </div>
+              <div className="hidden gap-2 md:flex">
+                <button
+                  type="button"
+                  onClick={() => slide(-1)}
+                  aria-label={copy.prevPhotos}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-line/25 text-ink/70 transition hover:border-ink hover:text-ink"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  onClick={() => slide(1)}
+                  aria-label={copy.nextPhotos}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-line/25 text-ink/70 transition hover:border-ink hover:text-ink"
+                >
+                  ›
+                </button>
+              </div>
             </div>
-            <div className="hidden gap-2 md:flex">
-              <button
-                type="button"
-                onClick={() => slide(-1)}
-                aria-label={copy.prevPhotos}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-line/25 text-ink/70 transition hover:border-ink hover:text-ink"
-              >
-                ‹
-              </button>
-              <button
-                type="button"
-                onClick={() => slide(1)}
-                aria-label={copy.nextPhotos}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-line/25 text-ink/70 transition hover:border-ink hover:text-ink"
-              >
-                ›
-              </button>
-            </div>
-          </div>
+          ) : null}
         </div>
       ) : null}
 
