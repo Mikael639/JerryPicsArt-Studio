@@ -182,18 +182,38 @@ export default function Navbar({ previews = {} }) {
               aria-controls="mobile-navigation desktop-navigation"
               aria-label={isOpen ? copy.closeMenu : copy.openMenu}
               onClick={() => setIsOpen((current) => !current)}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-line/20 bg-white/80 text-ink shadow-sm transition-all hover:bg-white active:scale-95"
+              className="group inline-flex h-11 w-11 items-center justify-center gap-2.5 rounded-full border border-line/20 bg-white/80 text-ink shadow-sm transition-all hover:bg-white active:scale-95 sm:w-auto sm:pl-3 sm:pr-4"
             >
-              <span aria-hidden="true" className="relative block h-3 w-5">
-                <span
-                  className={`absolute inset-x-0 h-px bg-ink transition-all duration-500 ${isOpen ? "top-1/2 rotate-45" : "top-0"}`}
-                />
-                <span
-                  className={`absolute inset-x-0 top-1/2 h-px bg-ink transition-opacity duration-300 ${isOpen ? "opacity-0" : "opacity-100"}`}
-                />
-                <span
-                  className={`absolute inset-x-0 h-px bg-ink transition-all duration-500 ${isOpen ? "top-1/2 -rotate-45" : "bottom-0"}`}
-                />
+              {/* Diaphragme d'objectif : il tourne et se referme en croix à l'ouverture du menu. */}
+              <span aria-hidden="true" className="relative block h-6 w-6 shrink-0">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                  className={`absolute inset-0 h-full w-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:rotate-[30deg] ${
+                    isOpen ? "rotate-[120deg] scale-50 opacity-0" : "opacity-100"
+                  }`}
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12.00 3.00L14.94 13.70M19.79 7.50L12.00 15.40M19.79 16.50L9.06 13.70M12.00 21.00L9.06 10.30M4.21 16.50L12.00 8.60M4.21 7.50L14.94 10.30" />
+                </svg>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                  className={`absolute inset-0 h-full w-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    isOpen ? "rotate-0 opacity-100" : "-rotate-90 scale-50 opacity-0"
+                  }`}
+                >
+                  <path d="M6 6L18 18M18 6L6 18" />
+                </svg>
+              </span>
+              <span className="hidden text-[11px] font-bold uppercase tracking-[0.18em] sm:inline">
+                {isOpen ? copy.closeLabel : copy.menuLabel}
               </span>
             </button>
           </div>
