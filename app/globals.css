@@ -160,33 +160,27 @@ html.page-leaving footer {
   scrollbar-width: none;
 }
 
-/* Éclairs d'appareil photo et halos lents derrière la bande « Ils sont passés devant mon objectif » */
-.flash-dot {
-  position: absolute;
-  border-radius: 9999px;
-  opacity: 0;
-  animation: camera-flash 7s ease-out infinite;
-}
-
-.flash-orb {
-  position: absolute;
-  border-radius: 9999px;
+/* Viseur de la bande « Ils sont passés devant mon objectif » : le cadre glisse de nom en nom, puis un bref flash */
+.viewfinder-frame {
   will-change: transform;
-  animation: orb-drift 18s ease-in-out infinite alternate;
+  transition:
+    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+    width 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+    height 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.4s ease;
 }
 
-@keyframes camera-flash {
-  0%, 62% { opacity: 0; transform: scale(0.6); }
-  66% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(1.35); }
+.viewfinder-flash {
+  position: absolute;
+  inset: -0.45em -0.8em;
+  border-radius: 9999px;
+  background: radial-gradient(closest-side, rgba(176, 127, 90, 0.22), transparent);
+  opacity: 0;
+  animation: viewfinder-flash 0.65s ease-out;
 }
 
-@keyframes orb-drift {
-  from { transform: translate3d(-6%, -4%, 0) scale(1); }
-  to { transform: translate3d(8%, 6%, 0) scale(1.15); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .flash-dot, .flash-orb { animation: none; }
-  .flash-dot { opacity: 0; }
+@keyframes viewfinder-flash {
+  0% { opacity: 0; transform: scale(0.85); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.2); }
 }
