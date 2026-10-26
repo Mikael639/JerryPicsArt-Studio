@@ -139,7 +139,9 @@ export default function HomePageExperience({
   }
 
   useEffect(() => {
-    const query = window.matchMedia("(pointer: coarse) and (min-width: 768px) and (max-width: 1180px)");
+    // Toute tablette tactile, quelle que soit sa taille : une grande tablette (ex. 13 pouces, ~1440 px de large)
+    // ne supporte pas mieux les flous animés sur une photo plein écran, au contraire.
+    const query = window.matchMedia("(pointer: coarse) and (min-width: 768px)");
     const updateMotionMode = () => setUseCalmHeroMotion(query.matches);
 
     updateMotionMode();
