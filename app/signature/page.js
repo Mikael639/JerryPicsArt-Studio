@@ -8,6 +8,8 @@ import { loadSeries } from "../../lib/loadSeries";
 import { getIntroPhotos } from "../../lib/introPhotos";
 import { getReferences } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
+import { PAGES_COPY } from "../../lib/i18n";
+import { getServerLang } from "../../lib/serverLang";
 
 export async function generateMetadata() {
   return buildPageMetadata({
@@ -20,7 +22,8 @@ export async function generateMetadata() {
 }
 
 export default async function SignaturePage() {
-  const [all, references] = await Promise.all([loadSeries(), getReferences()]);
+  const [all, references, lang] = await Promise.all([loadSeries(), getReferences(), getServerLang()]);
+  const copy = PAGES_COPY.signature[lang] || PAGES_COPY.signature.fr;
   // Amiri est un défilé : il figure aussi ici, même si ses photos sont classées en événements.
   const series = [...pickSeries(all, "signature"), ...findSeriesBySlugs(all, ["amiri"])]
     .filter((serie, index, list) => list.findIndex((other) => other.slug === serie.slug) === index)
@@ -31,10 +34,10 @@ export default async function SignaturePage() {
   return (
     <div className="page-shell space-y-16 md:space-y-24">
       <PageIntro
-        eyebrow="Signature"
-        title="Fashion Week de Paris : défilés, maisons et personnalités"
-        lead="Depuis plusieurs saisons, je photographie les défilés, les invités et les personnalités de la Fashion Week de Paris."
-        bridge="La même exigence guide chacun de mes mariages et de mes événements."
+        eyebrow={copy.eyebrow}
+        title={copy.title}
+        lead={copy.lead}
+        bridge={copy.bridge}
         image={introPhoto}
       />
 
@@ -54,12 +57,12 @@ export default async function SignaturePage() {
         </div>
 
         <ContactBlock
-          title="Le même regard pour votre événement"
-          text="Lancement, soirée, gala ou mariage : parlons de votre projet."
-          label="Le même regard pour votre événement"
+          title={copy.contactTitle}
+          text={copy.contactText}
+          label={copy.contactLabel}
           href="/evenements"
           event="bridge_cta_signature_final"
-          secondary={{ href: "/mariage", label: "ou pour votre mariage" }}
+          secondary={{ href: "/mariage", label: copy.contactSecondary }}
         />
       </DarkChapter>
     </div>

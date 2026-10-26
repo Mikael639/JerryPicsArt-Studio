@@ -2,11 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { UI_COPY } from "../lib/i18n";
+import { useLanguage } from "./LanguageProvider";
 
 const SESSION_KEY = "jp_intro_seen";
 
 export default function IntroSplash() {
   const pathname = usePathname();
+  const { lang } = useLanguage();
+  const copy = UI_COPY[lang]?.splash || UI_COPY.fr.splash;
   const [isVisible, setIsVisible] = useState(true);
   const [isLeaving, setIsLeaving] = useState(false);
 
@@ -62,7 +66,7 @@ export default function IntroSplash() {
           JerryPicsArt
         </p>
         <div className="mt-8 flex w-full items-center gap-4">
-          <span className="text-[10px] font-bold uppercase tracking-[0.32em] text-ink/35">Chargement</span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.32em] text-ink/35">{copy.loading}</span>
           <div className="h-px flex-1 overflow-hidden bg-ink/10">
             <div className="h-full w-1/3 animate-[loading_line_1.25s_ease-in-out_infinite] bg-ink" />
           </div>

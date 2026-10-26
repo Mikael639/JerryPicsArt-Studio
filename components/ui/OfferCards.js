@@ -1,7 +1,14 @@
-import Reveal from "./Reveal";
+"use client";
 
-// Cartes de formules et de tarifs, toujours affichés « à partir de ».
+import Reveal from "./Reveal";
+import { UI_COPY } from "../../lib/i18n";
+import { useLanguage } from "../LanguageProvider";
+
+// Cartes de formules et de tarifs, toujours affichés « à partir de » / « From ».
 export default function OfferCards({ offers, columns = "md:grid-cols-3" }) {
+  const { lang } = useLanguage();
+  const copy = UI_COPY[lang]?.offerCards || UI_COPY.fr.offerCards;
+
   return (
     <div className={`grid gap-5 ${columns}`}>
       {offers.map((offer, index) => {
@@ -20,13 +27,13 @@ export default function OfferCards({ offers, columns = "md:grid-cols-3" }) {
               <h3 className="font-serif text-3xl tracking-tight">{offer.titre}</h3>
               {featured ? (
                 <span className="rounded-full border border-paper/30 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-paper/80">
-                  Recommandée
+                  {copy.recommended}
                 </span>
               ) : null}
             </div>
             <p className="mt-6">
               <span className={`block text-[11px] font-bold uppercase tracking-[0.24em] ${featured ? "text-paper/50" : "text-ink/45"}`}>
-                À partir de
+                {copy.from}
               </span>
               <span className="font-serif text-5xl tracking-tight">{offer.prix}</span>
             </p>

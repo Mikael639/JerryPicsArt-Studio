@@ -1,24 +1,31 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { references as defaultReferences } from "../../data/references";
+import { UI_COPY } from "../../lib/i18n";
+import { useLanguage } from "../LanguageProvider";
 
-const COLUMNS = [
-  { groupe: "artistes", titre: "Artistes" },
-  { groupe: "personnalites", titre: "Personnalités" },
-  { groupe: "mode", titre: "Maisons, médias et lieux" },
-];
+const COLUMN_KEYS = ["artistes", "personnalites", "mode"];
 
-const FOCUS_INTERVAL_MS = 2600;
-const FRAME_TRAVEL_MS = 650;
-const FLASH_MS = 650;
+const LENS_META_BY_TYPE = {
+  personnalite: "85MM F/1.4",
+  maison: "50MM F/1.2",
+  media: "50MM F/1.4",
+  lieu: "35MM F/1.4",
+};
+
+const FOCUS_INTERVAL_MS = 2800;
+const AUTO_TRAVEL_MS = 620;
+const HOVER_TRAVEL_MS = 240;
+const FLASH_MS = 600;
 
 // Références en trois colonnes : artistes, personnalités, puis maisons, médias et lieux.
-// Un cadre de viseur passe de nom en nom et fait la mise au point, suivie d'un bref flash.
-// Au survol d'un nom, le viseur s'y pose. Animation coupée hors de l'écran et si les animations sont réduites.
-// tone="dark" pour un fond sombre, tone="light" pour un fond clair.
+// Effet « Mise au point optique » (profondeur de champ f/1.4) :
+// les noms hors champ prennent un léger flou de bokeh tandis que le sujet visé devient ultra-net.
 export default function ReferencesBand({ items = defaultReferences, tone = "light", className = "" }) {
+  const { lang } = useLanguage();
+  const copy = UI_COPY[lang]?.references || UI_COPY.fr.references;
   const dark = tone === "dark";
   const reduceMotion = useReducedMotion();
   const animated = !reduceMotion;
@@ -33,11 +40,25 @@ export default function ReferencesBand({ items = defaultReferences, tone = "ligh
   const [phase, setPhase] = useState("idle");
   const [flashCount, setFlashCount] = useState(0);
 
-  const groups = COLUMNS.map((column) => ({
-    ...column,
-    names: items.filter((item) => item.groupe === column.groupe).map((item) => item.nom),
-  }));
-  const allNames = groups.flatMap((group) => group.names);
+  const itemByName = useMemo(() => {
+    const map = new Map();
+    for (const item of items) {
+      map.set(item.nom, item);
+    }
+    return map;
+  }, [items]);
+
+  const groups = useMemo(
+    () =>
+      COLUMN_KEYS.map((groupe) => ({
+        groupe,
+        titre: copy.columns[groupe] || groupe,
+        names: items.filter((item) => item.groupe === groupe).map((item) => item.nom),
+      })),
+    [items, copy.columns]
+  );
+
+  const allNames = useMemo(() => groups.flatMap((group) => group.names), [groups]);
   const namesKey = allNames.join("|");
 
   // Place le cadre exactement sur le nom (coordonnées relatives à la grille).
@@ -56,21 +77,22 @@ export default function ReferencesBand({ items = defaultReferences, tone = "ligh
   }, []);
 
   const focusName = useCallback(
-    (name) => {
+    (name, { immediate = false } = {}) => {
       timersRef.current.forEach((timer) => window.clearTimeout(timer));
       targetRef.current = name;
       setTarget(name);
       setPhase("moving");
       placeFrame(name);
 
+      const travelMs = immediate ? HOVER_TRAVEL_MS : AUTO_TRAVEL_MS;
+
       timersRef.current = [
         window.setTimeout(() => {
-          // Recale le cadre : le nom a pu bouger pendant le trajet (fin de son apparition, retour à la ligne).
           placeFrame(name);
           setPhase("flash");
           setFlashCount((count) => count + 1);
-        }, FRAME_TRAVEL_MS),
-        window.setTimeout(() => setPhase("hold"), FRAME_TRAVEL_MS + FLASH_MS),
+        }, travelMs),
+        window.setTimeout(() => setPhase("hold"), travelMs + FLASH_MS),
       ];
     },
     [placeFrame]
@@ -91,13 +113,12 @@ export default function ReferencesBand({ items = defaultReferences, tone = "ligh
       do {
         next = names[Math.floor(Math.random() * names.length)];
       } while (next === targetRef.current);
-      focusName(next);
+      focusName(next, { immediate: false });
     };
 
     const start = () => {
       if (interval) return;
-      // Laisse les noms finir leur apparition avant le premier déplacement du viseur.
-      startTimeout = window.setTimeout(step, 1800);
+      startTimeout = window.setTimeout(step, 1400);
       interval = window.setInterval(step, FOCUS_INTERVAL_MS);
     };
 
@@ -112,7 +133,6 @@ export default function ReferencesBand({ items = defaultReferences, tone = "ligh
     });
     observer.observe(grid);
 
-    // Les noms passent à la ligne autrement si la largeur change : on recale le cadre.
     const resizeObserver = new ResizeObserver(() => {
       if (targetRef.current) placeFrame(targetRef.current);
     });
@@ -127,12 +147,30 @@ export default function ReferencesBand({ items = defaultReferences, tone = "ligh
     };
   }, [animated, namesKey, focusName, placeFrame]);
 
-  function nameClass(name) {
-    if (!animated) return dark ? "text-paper" : "text-ink";
-    if (name !== target) return dark ? "text-paper/60" : "text-ink/60";
-    if (phase === "flash") return "text-accent";
-    return dark ? "text-paper" : "text-ink";
+  function getOpticalClasses(name) {
+    const baseTone = dark ? "text-paper" : "text-ink";
+    if (!animated || !target) {
+      return `${baseTone} opacity-90 blur-0 scale-100`;
+    }
+
+    if (name !== target) {
+      // Hors mise au point : léger bokeh optique sur écran moyen/grand et retrait en opacité
+      return `${dark ? "text-paper/45" : "text-ink/45"} scale-100 md:blur-[0.95px]`;
+    }
+
+    // Sujet visé : mise au point nette + léger grossissement optique
+    if (phase === "moving") {
+      return `${baseTone} scale-[1.02] blur-[0.3px]`;
+    }
+    if (phase === "flash") {
+      return "text-accent scale-[1.045] blur-0";
+    }
+    return `${baseTone} scale-[1.04] blur-0`;
   }
+
+  const activeItem = target ? itemByName.get(target) : null;
+  const lensLabel = activeItem ? LENS_META_BY_TYPE[activeItem.type] || "85MM F/1.4" : "85MM F/1.4";
+  const isLocked = phase === "flash" || phase === "hold";
 
   return (
     <section aria-labelledby="references-titre" className={`mx-auto max-w-7xl px-4 md:px-8 ${className}`}>
@@ -141,7 +179,7 @@ export default function ReferencesBand({ items = defaultReferences, tone = "ligh
           id="references-titre"
           className="mx-auto max-w-3xl text-center font-serif text-3xl leading-tight tracking-[-0.03em] md:text-5xl"
         >
-          Ils sont passés devant mon objectif
+          {copy.title}
         </h2>
 
         <div ref={gridRef} className="relative mt-10 grid gap-10 md:mt-14 md:grid-cols-3 md:gap-8">
@@ -169,12 +207,14 @@ export default function ReferencesBand({ items = defaultReferences, tone = "ligh
                         animated
                           ? () => {
                               hoverRef.current = true;
-                              focusName(name);
+                              focusName(name, { immediate: true });
                             }
                           : undefined
                       }
                       onMouseLeave={animated ? () => (hoverRef.current = false) : undefined}
-                      className={`inline-block px-1 transition-colors duration-500 ${nameClass(name)}`}
+                      className={`inline-block origin-center px-2 py-0.5 transition-[color,opacity,transform,filter] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${getOpticalClasses(
+                        name
+                      )}`}
                     >
                       {name}
                     </span>
@@ -191,16 +231,37 @@ export default function ReferencesBand({ items = defaultReferences, tone = "ligh
               className="viewfinder-frame pointer-events-none absolute left-0 top-0 opacity-0"
             >
               {flashCount > 0 ? <span key={flashCount} className="viewfinder-flash" /> : null}
-              {["left-0 top-0 border-l border-t", "right-0 top-0 border-r border-t", "bottom-0 left-0 border-b border-l", "bottom-0 right-0 border-b border-r"].map(
-                (corner) => (
-                  <span
-                    key={corner}
-                    className={`absolute h-2.5 w-2.5 border-accent transition-[margin] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${corner} ${
-                      phase === "moving" ? "-m-2.5" : "-m-1.5"
-                    }`}
-                  />
-                )
-              )}
+
+              {/* Micro-indicateur optique de viseur (AF + focale) */}
+              <span
+                className={`absolute -top-5 left-0 flex items-center gap-1.5 whitespace-nowrap font-sans text-[9px] font-bold uppercase tracking-[0.22em] transition-opacity duration-300 ${
+                  isLocked ? "text-accent opacity-95" : dark ? "text-paper/50 opacity-70" : "text-ink/45 opacity-70"
+                }`}
+              >
+                <span
+                  className={`h-1.5 w-1.5 rounded-full transition-transform duration-300 ${
+                    isLocked ? "scale-100 bg-accent" : "scale-75 bg-current"
+                  }`}
+                />
+                <span>{isLocked ? `AF · ${lensLabel}` : "FOCUS…"}</span>
+              </span>
+
+              {/* 4 équerres de mise au point optique */}
+              {[
+                "left-0 top-0 border-l-[1.5px] border-t-[1.5px]",
+                "right-0 top-0 border-r-[1.5px] border-t-[1.5px]",
+                "bottom-0 left-0 border-b-[1.5px] border-l-[1.5px]",
+                "bottom-0 right-0 border-b-[1.5px] border-r-[1.5px]",
+              ].map((corner) => (
+                <span
+                  key={corner}
+                  className={`absolute h-3 w-3 transition-[margin,border-color,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${corner} ${
+                    phase === "moving"
+                      ? `-m-3 ${dark ? "border-paper/45" : "border-ink/35"}`
+                      : "-m-1.5 border-accent"
+                  }`}
+                />
+              ))}
             </div>
           ) : null}
         </div>

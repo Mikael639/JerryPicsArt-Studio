@@ -13,6 +13,8 @@ import { getIntroPhotos } from "../../lib/introPhotos";
 import { loadSeries } from "../../lib/loadSeries";
 import { getTestimonials } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
+import { PAGES_COPY } from "../../lib/i18n";
+import { getServerLang } from "../../lib/serverLang";
 
 export async function generateMetadata() {
   return buildPageMetadata({
@@ -24,111 +26,20 @@ export async function generateMetadata() {
   });
 }
 
-const steps = [
-  {
-    titre: "Rencontre",
-    texte: "Rendez-vous en visio ou en présentiel pour faire connaissance et comprendre votre histoire.",
-  },
-  {
-    titre: "Préparation",
-    texte: "Questionnaire, moodboard de vos envies, planning photo construit ensemble.",
-  },
-  {
-    titre: "Jour J",
-    texte: "Présence discrète, direction de pose naturelle, aucune image figée.",
-  },
-  {
-    titre: "Livraison",
-    texte: "Galerie en ligne privée, images retouchées une à une.",
-  },
-];
-
-const offers = [
-  {
-    titre: "Essentiel",
-    prix: "1 500 €",
-    inclus: [
-      "Rendez-vous découverte en visio ou en présentiel",
-      "Questionnaire de préparation",
-      "6 h de couverture (cérémonie, cocktail, photos de groupe)",
-      "Environ 300 images retouchées",
-      "Galerie en ligne livrée sous 4 semaines",
-    ],
-  },
-  {
-    titre: "Signature",
-    prix: "2 400 €",
-    miseEnAvant: true,
-    inclus: [
-      "Tout l'Essentiel",
-      "Rendez-vous de préparation",
-      "Moodboard personnalisé",
-      "Planning photo construit ensemble",
-      "10 h de couverture (des préparatifs à l'ouverture de bal)",
-      "Séance couple éditoriale le jour J",
-      "Environ 500 images",
-      "Galerie sous 3 semaines",
-    ],
-  },
-  {
-    titre: "Prestige",
-    prix: "3 500 €",
-    inclus: [
-      "Tout le Signature",
-      "Repérage du lieu",
-      "Séance avant le mariage",
-      "Second photographe",
-      "Journée complète",
-      "Environ 800 images",
-      "Sélection express pour les réseaux le soir même",
-      "Galerie sous 3 semaines",
-    ],
-  },
-];
-
-const faq = [
-  {
-    question: "Comment se passe le versement de l'acompte ?",
-    reponse: "Un acompte de 30 % est demandé à la réservation pour bloquer votre date.",
-  },
-  {
-    question: "Comment se déroulent les rendez-vous ?",
-    reponse:
-      "Nous nous rencontrons d'abord en visio ou en présentiel. Avec les formules Signature et Prestige, un rendez-vous de préparation permet de construire ensemble le moodboard et le planning photo.",
-  },
-  {
-    question: "Vous déplacez-vous en dehors de Paris ?",
-    reponse:
-      "Oui. Paris est ma base, mais je me déplace régulièrement en France et à l'international. Les déplacements font l'objet d'une ligne séparée sur le devis.",
-  },
-  {
-    question: "Un second photographe est-il possible ?",
-    reponse: "Oui. Il est inclus dans la formule Prestige.",
-  },
-  {
-    question: "Combien d'images recevrons-nous ?",
-    reponse: "Environ 300 images avec l'Essentiel, 500 avec le Signature et 800 avec le Prestige.",
-  },
-  {
-    question: "Quels sont les délais de livraison ?",
-    reponse:
-      "La galerie en ligne est livrée sous 4 semaines avec l'Essentiel et sous 3 semaines avec les formules Signature et Prestige. La formule Prestige inclut une sélection express le soir même.",
-  },
-];
-
 export default async function MariagePage() {
-  const [allSeries, testimonials] = await Promise.all([loadSeries(), getTestimonials()]);
+  const [allSeries, testimonials, lang] = await Promise.all([loadSeries(), getTestimonials(), getServerLang()]);
+  const copy = PAGES_COPY.mariage[lang] || PAGES_COPY.mariage.fr;
   const series = pickSeries(allSeries, "mariage", 3);
   const introPhoto = (await getIntroPhotos())["/mariage"] || series[0]?.images?.[0] || null;
 
   return (
     <div className="page-shell space-y-16 md:space-y-24">
       <PageIntro
-        eyebrow="Mariage"
-        title="Photographe de mariage haut de gamme à Paris"
-        lead="Votre mariage, photographié comme un éditorial."
-        bridge="Le regard de la Fashion Week, pour votre mariage : lumière éditoriale, direction de pose naturelle, aucune image figée."
-        cta={{ href: "/contact?type=mariage", label: "Vérifier ma date", event: "verifier_ma_date" }}
+        eyebrow={copy.eyebrow}
+        title={copy.title}
+        lead={copy.lead}
+        bridge={copy.bridge}
+        cta={{ href: "/contact?type=mariage", label: copy.ctaLabel, event: "verifier_ma_date" }}
         image={introPhoto}
       />
 
@@ -147,30 +58,30 @@ export default async function MariagePage() {
         <section className="mx-auto max-w-7xl space-y-8 px-4 md:px-8">
           <Reveal className="max-w-3xl space-y-3">
             <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-5xl">
-              L&apos;expérience, du premier rendez-vous à la livraison
+              {copy.experienceTitle}
             </h2>
             <p className="text-base leading-relaxed text-ink/65 md:text-lg">
-              Vous êtes accompagnés du début à la fin, pour vous projeter sereinement.
+              {copy.experienceLead}
             </p>
           </Reveal>
-          <Steps steps={steps} />
+          <Steps steps={copy.steps} />
         </section>
 
         <section className="mx-auto max-w-7xl space-y-8 px-4 md:px-8">
           <Reveal>
-            <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-5xl">Trois formules</h2>
+            <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-5xl">{copy.packagesTitle}</h2>
           </Reveal>
-          <OfferCards offers={offers} />
+          <OfferCards offers={copy.offers} />
         </section>
 
-        <Faq items={faq} />
+        <Faq items={copy.faq} title={copy.faqTitle} />
 
-        <Testimonials items={testimonials} prestation="mariage" title="Ce que disent les mariés" />
+        <Testimonials items={testimonials} prestation="mariage" title={copy.testimonialsTitle} />
 
         <ContactBlock
-          title="Votre date est-elle disponible ?"
-          text="Indiquez la date et le lieu de votre mariage. Réponse sous 24 à 48 h."
-          label="Vérifier ma date"
+          title={copy.contactTitle}
+          text={copy.contactText}
+          label={copy.contactLabel}
           href="/contact?type=mariage"
           event="verifier_ma_date_final"
         />

@@ -7,6 +7,8 @@ import { Fragment, useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { siteConfig } from "../../lib/siteConfig";
+import { PAGES_COPY } from "../../lib/i18n";
+import { useLanguage } from "../LanguageProvider";
 
 function getRevealProps(reduceMotion, delay = 0, amount = 0.22) {
   if (reduceMotion) {
@@ -28,8 +30,10 @@ function getRevealProps(reduceMotion, delay = 0, amount = 0.22) {
 }
 
 export default function ContactExperience({ type = "" }) {
+  const { lang } = useLanguage();
+  const copy = PAGES_COPY.contact[lang] || PAGES_COPY.contact.fr;
   const reduceMotion = useReducedMotion();
-  const headline = "Parlons de votre projet.";
+  const headline = copy.headline;
   const headlineRef = useRef(null);
 
   useGSAP(() => {
@@ -47,16 +51,16 @@ export default function ContactExperience({ type = "" }) {
         delay: 0.5,
       }
     );
-  }, { scope: headlineRef });
+  }, { scope: headlineRef, dependencies: [headline] });
 
   return (
     <div ref={headlineRef} data-page="contact" className="page-shell mx-auto max-w-7xl space-y-16 px-4 pb-20 pt-12 md:space-y-24 md:px-8">
       <section>
         <motion.div className="space-y-6" {...getRevealProps(reduceMotion)}>
-          <p className="text-[11px] font-medium uppercase tracking-[0.32em] text-ink/50">Contact</p>
+          <p className="text-[11px] font-medium uppercase tracking-[0.32em] text-ink/50">{copy.eyebrow}</p>
           <h1 className="max-w-4xl font-serif text-5xl leading-[0.92] tracking-[-0.05em] md:text-8xl flex flex-wrap gap-x-[0.2em] gap-y-2">
             {headline.split(" ").map((word, i) => (
-              <Fragment key={i}>
+              <Fragment key={`${word}-${i}`}>
                 {i > 0 ? " " : null}
                 <span className="-mb-[0.28em] inline-flex overflow-hidden pb-[0.28em]">
                   <span className="word-stagger inline-block">{word}</span>
@@ -65,8 +69,7 @@ export default function ContactExperience({ type = "" }) {
             ))}
           </h1>
           <p className="max-w-2xl text-base leading-relaxed text-ink/75 md:text-xl">
-             Quelques lignes claires suffisent pour poser la bonne direction. Le formulaire ci-dessous reste la façon la
-             plus simple d&apos;ouvrir la conversation.
+            {copy.lead}
           </p>
           <div className="flex flex-wrap gap-4 pt-4">
             <MagneticElement strength={0.2}>
@@ -74,7 +77,7 @@ export default function ContactExperience({ type = "" }) {
                 href="#contact-form"
                 className="inline-block px-1 py-4 text-[13px] font-semibold uppercase tracking-[0.18em] text-ink/60 underline-offset-4 transition-colors hover:text-ink hover:underline"
               >
-                Aller au formulaire
+                {copy.jumpToForm}
               </a>
             </MagneticElement>
           </div>
@@ -87,13 +90,12 @@ export default function ContactExperience({ type = "" }) {
           {...getRevealProps(reduceMotion, 0.1)}
         >
           <div className="mb-6 space-y-2">
-            <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-ink/45">Demande</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-ink/45">{copy.requestEyebrow}</p>
             <p className="max-w-2xl text-sm leading-relaxed text-ink/62 md:text-base">
-               Plus le brief est précis, plus le retour peut être utile dès le premier message.
+              {copy.requestLead}
             </p>
             <p className="max-w-2xl text-sm leading-relaxed text-ink/75 md:text-base">
-              Nos prestations démarrent à partir de 650 € pour les événements et de 1 500 € pour les mariages. Vous
-              préférez écrire directement ?{" "}
+              {copy.pricingPrefix}{" "}
               <a href={`mailto:${siteConfig.email}`} className="underline underline-offset-4 hover:text-ink">
                 {siteConfig.email}
               </a>
@@ -106,45 +108,31 @@ export default function ContactExperience({ type = "" }) {
           className="rounded-card border border-line/12 bg-[var(--paper)] p-8 shadow-[0_24px_80px_rgba(12,10,8,0.04)] backdrop-blur-sm"
           {...getRevealProps(reduceMotion, 0.16)}
         >
-           <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-ink/40 mb-6">Questions fréquentes</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-ink/40 mb-6">{copy.faqEyebrow}</p>
           <div className="space-y-4">
-            <details className="group cursor-pointer border-b border-line/10 pb-4">
-              <summary className="font-serif text-xl font-medium tracking-tight text-ink flex justify-between items-center outline-none">
-                 Quels sont vos délais de livraison ?
-                 <span className="text-ink/40 group-open:rotate-180 transition-transform">↓</span>
-              </summary>
-               <p className="mt-3 text-sm text-ink/70 leading-relaxed opacity-0 group-open:opacity-100 transition-opacity duration-300">
-                 Pour un mariage, la galerie est livrée sous 3 à 4 semaines selon la formule. Pour un événement, une sélection express le soir même est possible en option, et la galerie complète est livrée sous 7 jours.
-               </p>
-            </details>
-            <details className="group cursor-pointer border-b border-line/10 pb-4">
-              <summary className="font-serif text-xl font-medium tracking-tight text-ink flex justify-between items-center outline-none">
-                 Shootez-vous à l&apos;étranger ?
-                 <span className="text-ink/40 group-open:rotate-180 transition-transform">↓</span>
-              </summary>
-               <p className="mt-3 text-sm text-ink/70 leading-relaxed opacity-0 group-open:opacity-100 transition-opacity duration-300">
-                 Oui. Paris est ma base, mais je me déplace régulièrement en France et à l&apos;international. Les déplacements
-                 font l&apos;objet d&apos;une ligne séparée sur le devis.
-               </p>
-            </details>
-            <details className="group cursor-pointer">
-              <summary className="font-serif text-xl font-medium tracking-tight text-ink flex justify-between items-center outline-none">
-                 Comment est gérée la retouche ?
-                 <span className="text-ink/40 group-open:rotate-180 transition-transform">↓</span>
-              </summary>
-               <p className="mt-3 text-sm text-ink/70 leading-relaxed opacity-0 group-open:opacity-100 transition-opacity duration-300">
-                 Ma retouche se concentre sur la lumière, la colorimétrie et la force de l&apos;image. Je ne dénature jamais
-                 les personnes.
-               </p>
-            </details>
+            {copy.faq.map((item, idx) => (
+              <details
+                key={item.q}
+                className={`group cursor-pointer ${idx < copy.faq.length - 1 ? "border-b border-line/10 pb-4" : ""}`}
+              >
+                <summary className="font-serif text-xl font-medium tracking-tight text-ink flex justify-between items-center outline-none">
+                  {item.q}
+                  <span className="text-ink/40 group-open:rotate-180 transition-transform">↓</span>
+                </summary>
+                <p className="mt-3 text-sm text-ink/70 leading-relaxed opacity-0 group-open:opacity-100 transition-opacity duration-300">
+                  {item.a}
+                </p>
+              </details>
+            ))}
           </div>
         </motion.div>
+
         <motion.div
           className="rounded-card border border-line/12 bg-white/40 p-8 text-center backdrop-blur-sm"
           {...getRevealProps(reduceMotion, 0.22)}
         >
-          <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-ink/40 mb-4">Besoin d&apos;une autre voie ?</p>
-          <h3 className="font-serif text-2xl tracking-tight text-ink mb-6">Suivre le travail au quotidien.</h3>
+          <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-ink/40 mb-4">{copy.socialEyebrow}</p>
+          <h3 className="font-serif text-2xl tracking-tight text-ink mb-6">{copy.socialTitle}</h3>
           <div className="flex flex-wrap items-center justify-center gap-3">
             {siteConfig.socialLinks.map((link) => (
               <MagneticElement key={link.href} strength={0.15}>

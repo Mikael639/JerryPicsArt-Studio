@@ -1,7 +1,14 @@
+"use client";
+
 import { siteConfig } from "../../lib/siteConfig";
+import { UI_COPY } from "../../lib/i18n";
+import { useLanguage } from "../LanguageProvider";
 
 // Accordéon accessible (<details>) + données structurées FAQPage.
-export default function Faq({ items, title = "Questions fréquentes" }) {
+export default function Faq({ items, title }) {
+  const { lang } = useLanguage();
+  const resolvedTitle = title || UI_COPY[lang]?.faq?.defaultTitle || UI_COPY.fr.faq.defaultTitle;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -13,9 +20,9 @@ export default function Faq({ items, title = "Questions fréquentes" }) {
   };
 
   return (
-    <section aria-label={`${title} ${siteConfig.name}`} className="mx-auto max-w-4xl px-4 md:px-8">
+    <section aria-label={`${resolvedTitle} ${siteConfig.name}`} className="mx-auto max-w-4xl px-4 md:px-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-5xl">{title}</h2>
+      <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-5xl">{resolvedTitle}</h2>
       <div className="mt-8 divide-y divide-line/12 border-y border-line/12">
         {items.map((item) => (
           <details key={item.question} className="group py-5">

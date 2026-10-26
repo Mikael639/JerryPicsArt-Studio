@@ -7,6 +7,8 @@ import MagneticElement from "../MagneticElement";
 import { defaultAboutCopy } from "../../lib/siteSettings";
 import { stats as defaultStats } from "../../data/stats";
 import { siteConfig } from "../../lib/siteConfig";
+import { PAGES_COPY, translateStat } from "../../lib/i18n";
+import { useLanguage } from "../LanguageProvider";
 
 function getRevealProps(reduceMotion, delay = 0, amount = 0.22) {
   if (reduceMotion) {
@@ -44,8 +46,18 @@ function PortraitPanel({ photo, className = "", imageClassName = "", sizes, prio
 }
 
 export default function AboutExperience({ aboutCopy = defaultAboutCopy, stats = defaultStats }) {
+  const { lang } = useLanguage();
+  const pageCopy = PAGES_COPY.about[lang] || PAGES_COPY.about.fr;
+  const localizedAboutCopy =
+    lang === "en"
+      ? {
+          ...aboutCopy,
+          ...PAGES_COPY.about.en.defaultAboutCopy,
+        }
+      : aboutCopy;
+
   const reduceMotion = useReducedMotion();
-  const chiffres = stats.filter((item) => item.valeur > 0);
+  const chiffres = stats.filter((item) => item.valeur > 0).map((item) => translateStat(item, lang));
   const {
     headline,
     subheadline,
@@ -58,7 +70,7 @@ export default function AboutExperience({ aboutCopy = defaultAboutCopy, stats = 
     profilePhoto,
     convictionTitle,
     convictionText,
-  } = aboutCopy;
+  } = localizedAboutCopy;
 
   const portrait = typeof portraitPhoto === "string" ? { src: portraitPhoto, alt: "Portrait JerryPicsArt" } : portraitPhoto;
   const profile = typeof profilePhoto === "string" ? { src: profilePhoto, alt: "Portrait de JerryPicsArt" } : profilePhoto;
@@ -68,7 +80,9 @@ export default function AboutExperience({ aboutCopy = defaultAboutCopy, stats = 
       <div className="bg-paper pt-12">
         <section className="mx-auto max-w-7xl px-4 md:px-8 grid min-h-[calc(100vh-8rem)] gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-end pb-20">
           <motion.div className="space-y-8 pb-2" {...getRevealProps(reduceMotion)}>
-            <p className="text-[11px] font-medium uppercase tracking-[0.34em] text-ink/50">Derrière l&apos;objectif, {siteConfig.legalName}</p>
+            <p className="text-[11px] font-medium uppercase tracking-[0.34em] text-ink/50">
+              {pageCopy.eyebrowPrefix} {siteConfig.legalName}
+            </p>
             <h1 className="max-w-4xl font-serif text-5xl leading-[0.92] tracking-[-0.05em] md:text-7xl xl:text-8xl text-ink">
               {headline}
             </h1>
@@ -81,7 +95,7 @@ export default function AboutExperience({ aboutCopy = defaultAboutCopy, stats = 
                   href="/contact"
                   className="inline-block rounded-full bg-ink px-8 py-4 text-[13px] font-bold uppercase tracking-[0.2em] text-paper transition-colors hover:bg-accent"
                 >
-                  Parler d&apos;un projet
+                  {pageCopy.ctaPrimary}
                 </Link>
               </MagneticElement>
               <MagneticElement strength={0.15}>
@@ -89,7 +103,7 @@ export default function AboutExperience({ aboutCopy = defaultAboutCopy, stats = 
                   href="/signature"
                   className="inline-block px-2 py-4 text-[13px] font-semibold uppercase tracking-[0.18em] text-ink/60 underline-offset-4 transition-colors hover:text-ink hover:underline"
                 >
-                  Voir les séries Fashion Week
+                  {pageCopy.ctaSecondary}
                 </Link>
               </MagneticElement>
             </div>
@@ -114,108 +128,105 @@ export default function AboutExperience({ aboutCopy = defaultAboutCopy, stats = 
       </div>
 
       <div className="mx-auto max-w-7xl px-4 md:px-8 space-y-20 md:space-y-32">
-
-      <section className="grid gap-10 border-y border-line/12 py-12 md:py-16 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
-        <motion.div className="lg:sticky lg:top-28" {...getRevealProps(reduceMotion)}>
-          <PortraitPanel
-            photo={profile}
-            priority
-            className="min-h-[32rem] rounded-inset border border-line/10 bg-paper md:min-h-[42rem]"
-            imageClassName="object-[55%_38%]"
-            sizes="(max-width: 1024px) 100vw, 38vw"
-          />
-        </motion.div>
-
-        <motion.div
-          className="self-center lg:pl-8"
-          {...getRevealProps(reduceMotion, 0.08)}
-        >
-          <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-ink/40">Parcours</p>
-          <h2 className="mt-6 max-w-2xl font-serif text-4xl leading-[0.98] tracking-[-0.04em] text-ink md:text-6xl">
-            {storyTitle}
-          </h2>
-          <div className="mt-8 max-w-2xl space-y-6 text-base leading-relaxed text-ink/68 md:text-lg">
-            {storyParagraphs.map((paragraph, idx) => (
-              <p key={idx}>{paragraph}</p>
-            ))}
-          </div>
-        </motion.div>
-      </section>
-
-      <section className="grid gap-5 md:grid-cols-3">
-        {values.map((item, index) => (
-          <motion.div
-            key={index}
-            className="border-t border-line/16 pt-6"
-            {...getRevealProps(reduceMotion, index * 0.08)}
-          >
-            <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-ink/38">
-              {String(index + 1).padStart(2, "0")} / {item.label}
-            </p>
-            <p className="mt-5 text-base leading-relaxed text-ink/68 md:text-lg">{item.text}</p>
+        <section className="grid gap-10 border-y border-line/12 py-12 md:py-16 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
+          <motion.div className="lg:sticky lg:top-28" {...getRevealProps(reduceMotion)}>
+            <PortraitPanel
+              photo={profile}
+              priority
+              className="min-h-[32rem] rounded-inset border border-line/10 bg-paper md:min-h-[42rem]"
+              imageClassName="object-[55%_38%]"
+              sizes="(max-width: 1024px) 100vw, 38vw"
+            />
           </motion.div>
-        ))}
-      </section>
 
-      <section className="space-y-10 border-y border-line/12 py-12 md:py-16">
-        <motion.div className="max-w-3xl space-y-5" {...getRevealProps(reduceMotion)}>
-          <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-ink/40">De la Fashion Week à votre événement</p>
-          <p className="font-serif text-3xl leading-snug tracking-tight md:text-4xl">
-            La Fashion Week impose trois réflexes : travailler vite, composer avec une lumière difficile, rester discret
-            au milieu des personnalités.
-          </p>
-          <p className="text-base leading-relaxed text-ink/70 md:text-lg">
-            Ces réflexes servent chaque mariage et chaque événement d&apos;entreprise : une image juste dès le premier
-            déclenchement, sans jamais gêner vos invités.
-          </p>
-        </motion.div>
-        {chiffres.length ? (
-          <dl className="grid gap-6 sm:grid-cols-3">
-            {chiffres.map((item) => (
-              <motion.div key={item.libelle} className="border-t border-line/16 pt-5" {...getRevealProps(reduceMotion)}>
-                <dd className="font-serif text-5xl leading-none tracking-[-0.04em] md:text-6xl">
-                  {item.valeur}
-                  {item.suffixe}
-                </dd>
-                <dt className="mt-4 text-[11px] font-bold uppercase tracking-[0.24em] text-ink/55">{item.libelle}</dt>
-                {item.precision ? <p className="mt-1 text-sm text-ink/45">{item.precision}</p> : null}
-              </motion.div>
-            ))}
-          </dl>
-        ) : null}
-      </section>
-
-      <section data-theme-section="dark" className="overflow-hidden rounded-feature border border-line/12 bg-[linear-gradient(135deg,rgba(18,15,12,0.98),rgba(29,33,41,0.96))] p-8 text-paper shadow-[0_32px_96px_rgba(12,10,8,0.18)] md:p-12 lg:p-16">
-        <motion.div className="grid gap-12 lg:grid-cols-[1.08fr_0.92fr] lg:items-center" {...getRevealProps(reduceMotion)}>
-          <div className="space-y-6">
-            <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-paper/40">Manifeste</p>
-            <h2 className="max-w-4xl font-serif text-4xl leading-[0.94] tracking-[-0.05em] md:text-7xl">
-              {manifestoTitle}
+          <motion.div
+            className="self-center lg:pl-8"
+            {...getRevealProps(reduceMotion, 0.08)}
+          >
+            <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-ink/40">{pageCopy.storyEyebrow}</p>
+            <h2 className="mt-6 max-w-2xl font-serif text-4xl leading-[0.98] tracking-[-0.04em] text-ink md:text-6xl">
+              {storyTitle}
             </h2>
-            <p className="max-w-2xl text-base leading-relaxed text-paper/70 md:text-xl">
-              {manifestoText}
-            </p>
-          </div>
+            <div className="mt-8 max-w-2xl space-y-6 text-base leading-relaxed text-ink/68 md:text-lg">
+              {storyParagraphs.map((paragraph, idx) => (
+                <p key={idx}>{paragraph}</p>
+              ))}
+            </div>
+          </motion.div>
+        </section>
 
-          <div className="flex flex-wrap gap-5">
-            <MagneticElement strength={0.25}>
-              <Link
-                href="/contact"
-                className="inline-block rounded-full border border-paper/30 px-8 py-4 text-[13px] font-bold uppercase tracking-[0.2em] text-paper transition-colors hover:border-paper hover:bg-white/10"
-              >
-                Parler d&apos;un projet
-              </Link>
-            </MagneticElement>
-            <MagneticElement strength={0.15}>
-              <Link
-                href="/signature"
-                className="inline-block px-2 py-4 text-[13px] font-semibold uppercase tracking-[0.18em] text-paper/70 underline-offset-4 transition-colors hover:text-paper hover:underline"
-              >
-                Voir les séries
-              </Link>
-            </MagneticElement>
-          </div>
-        </motion.div>
+        <section className="grid gap-5 md:grid-cols-3">
+          {values.map((item, index) => (
+            <motion.div
+              key={index}
+              className="border-t border-line/16 pt-6"
+              {...getRevealProps(reduceMotion, index * 0.08)}
+            >
+              <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-ink/38">
+                {String(index + 1).padStart(2, "0")} / {item.label}
+              </p>
+              <p className="mt-5 text-base leading-relaxed text-ink/68 md:text-lg">{item.text}</p>
+            </motion.div>
+          ))}
+        </section>
+
+        <section className="space-y-10 border-y border-line/12 py-12 md:py-16">
+          <motion.div className="max-w-3xl space-y-5" {...getRevealProps(reduceMotion)}>
+            <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-ink/40">{pageCopy.fwEyebrow}</p>
+            <p className="font-serif text-3xl leading-snug tracking-tight md:text-4xl">
+              {pageCopy.fwTitle}
+            </p>
+            <p className="text-base leading-relaxed text-ink/70 md:text-lg">
+              {pageCopy.fwText}
+            </p>
+          </motion.div>
+          {chiffres.length ? (
+            <dl className="grid gap-6 sm:grid-cols-3">
+              {chiffres.map((item) => (
+                <motion.div key={item.libelle} className="border-t border-line/16 pt-5" {...getRevealProps(reduceMotion)}>
+                  <dd className="font-serif text-5xl leading-none tracking-[-0.04em] md:text-6xl">
+                    {item.valeur}
+                    {item.suffixe}
+                  </dd>
+                  <dt className="mt-4 text-[11px] font-bold uppercase tracking-[0.24em] text-ink/55">{item.libelle}</dt>
+                  {item.precision ? <p className="mt-1 text-sm text-ink/45">{item.precision}</p> : null}
+                </motion.div>
+              ))}
+            </dl>
+          ) : null}
+        </section>
+
+        <section data-theme-section="dark" className="overflow-hidden rounded-feature border border-line/12 bg-[linear-gradient(135deg,rgba(18,15,12,0.98),rgba(29,33,41,0.96))] p-8 text-paper shadow-[0_32px_96px_rgba(12,10,8,0.18)] md:p-12 lg:p-16">
+          <motion.div className="grid gap-12 lg:grid-cols-[1.08fr_0.92fr] lg:items-center" {...getRevealProps(reduceMotion)}>
+            <div className="space-y-6">
+              <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-paper/40">{pageCopy.manifestoEyebrow}</p>
+              <h2 className="max-w-4xl font-serif text-4xl leading-[0.94] tracking-[-0.05em] md:text-7xl">
+                {manifestoTitle}
+              </h2>
+              <p className="max-w-2xl text-base leading-relaxed text-paper/70 md:text-xl">
+                {manifestoText}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-5">
+              <MagneticElement strength={0.25}>
+                <Link
+                  href="/contact"
+                  className="inline-block rounded-full border border-paper/30 px-8 py-4 text-[13px] font-bold uppercase tracking-[0.2em] text-paper transition-colors hover:border-paper hover:bg-white/10"
+                >
+                  {pageCopy.ctaPrimary}
+                </Link>
+              </MagneticElement>
+              <MagneticElement strength={0.15}>
+                <Link
+                  href="/signature"
+                  className="inline-block px-2 py-4 text-[13px] font-semibold uppercase tracking-[0.18em] text-paper/70 underline-offset-4 transition-colors hover:text-paper hover:underline"
+                >
+                  {pageCopy.manifestoSecondary}
+                </Link>
+              </MagneticElement>
+            </div>
+          </motion.div>
         </section>
       </div>
     </div>

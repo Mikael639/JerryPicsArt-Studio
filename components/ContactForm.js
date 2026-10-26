@@ -7,15 +7,15 @@ import { submitContactForm } from "../app/contact/actions";
 import { initialContactFormState } from "../app/contact/constants";
 import { budgetOptions, getQuoteType, quoteTypeList, sourceOptions } from "../lib/quoteTypes";
 import { trackEvent } from "../lib/analytics";
+import { CONTACT_FORM_COPY } from "../lib/i18n";
+import { useLanguage } from "./LanguageProvider";
 import SubmitButton from "./SubmitButton";
 import CustomSelect from "./CustomSelect";
-
-const PLACEHOLDER = "Choisir…";
 
 const inputClass =
   "w-full rounded-xl border border-line/18 bg-paper/88 px-4 py-3 outline-none transition focus:border-accent focus:bg-white";
 
-function SuccessCard({ message, onReset }) {
+function SuccessCard({ message, onReset, copy }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -37,7 +37,7 @@ function SuccessCard({ message, onReset }) {
           <path d="M20 6 9 17l-5-5" />
         </svg>
       </motion.div>
-      <p className="mt-6 text-[11px] font-bold uppercase tracking-[0.28em] text-emerald-700/80">Demande envoyée</p>
+      <p className="mt-6 text-[11px] font-bold uppercase tracking-[0.28em] text-emerald-700/80">{copy.successBadge}</p>
       <p className="mx-auto mt-4 max-w-xl font-serif text-2xl leading-snug tracking-tight text-ink md:text-3xl">{message}</p>
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
         <button
@@ -45,13 +45,13 @@ function SuccessCard({ message, onReset }) {
           onClick={onReset}
           className="rounded-full border border-line/25 px-6 py-3 text-[12px] font-bold uppercase tracking-[0.18em] text-ink transition hover:border-ink hover:bg-white"
         >
-          Envoyer une autre demande
+          {copy.sendAnother}
         </button>
         <Link
           href="/signature"
           className="text-[12px] font-semibold uppercase tracking-[0.18em] text-ink/60 underline-offset-4 transition hover:text-ink hover:underline"
         >
-          Voir les séries Fashion Week
+          {copy.viewFashionWeek}
         </Link>
       </div>
     </motion.div>
@@ -62,13 +62,14 @@ function FieldError({ message }) {
   return message ? <span className="text-xs text-red-700">{message}</span> : null;
 }
 
-function TypePicker({ value, onChange, error }) {
+function TypePicker({ value, onChange, error, copy }) {
   return (
     <div className="space-y-3 md:col-span-2">
-      <p className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Quel est votre projet ?</p>
-      <div role="radiogroup" aria-label="Type de devis" className="grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-4">
+      <p className="text-[11px] uppercase tracking-[0.2em] text-ink/58">{copy.projectQuestion}</p>
+      <div role="radiogroup" aria-label={copy.quoteTypeAria} className="grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-4">
         {quoteTypeList.map((type) => {
           const active = value === type.id;
+          const localizedType = copy.typeLabels[type.id] || type;
           return (
             <button
               key={type.id}
@@ -85,8 +86,10 @@ function TypePicker({ value, onChange, error }) {
                   : "border-line/20 bg-white/60 text-ink hover:border-ink/40 hover:bg-white"
               }`}
             >
-              <span className="font-serif text-lg leading-tight sm:text-xl">{type.label}</span>
-              <span className={`hidden text-[13px] leading-snug sm:block ${active ? "text-paper/70" : "text-ink/55"}`}>{type.description}</span>
+              <span className="font-serif text-lg leading-tight sm:text-xl">{localizedType.label}</span>
+              <span className={`hidden text-[13px] leading-snug sm:block ${active ? "text-paper/70" : "text-ink/55"}`}>
+                {localizedType.description}
+              </span>
             </button>
           );
         })}
@@ -97,6 +100,8 @@ function TypePicker({ value, onChange, error }) {
 }
 
 export default function ContactForm({ type = "" }) {
+  const { lang } = useLanguage();
+  const copy = CONTACT_FORM_COPY[lang] || CONTACT_FORM_COPY.fr;
   const formRef = useRef(null);
   const [formState, formAction] = useActionState(submitContactForm, initialContactFormState);
   const [selectedType, setSelectedType] = useState(getQuoteType(type) ? type : "");
@@ -107,6 +112,17 @@ export default function ContactForm({ type = "" }) {
   const message = formState.message || "";
   const showSuccessCard = status === "success" && !isSuccessDismissed;
   const config = getQuoteType(selectedType);
+  const localizedConfig = config ? copy.typeLabels[config.id] || config : null;
+
+  function buildSelectOptions(rawValues) {
+    return [
+      { value: "", label: copy.placeholder },
+      ...rawValues.map((val) => ({
+        value: val,
+        label: copy.optionTranslations[val] || val,
+      })),
+    ];
+  }
 
   // Modèle React 19 : dériver l'état pendant le rendu.
   if (status !== lastStatus) {
@@ -126,7 +142,7 @@ export default function ContactForm({ type = "" }) {
   if (showSuccessCard) {
     return (
       <AnimatePresence mode="wait">
-        <SuccessCard key="success" message={message} onReset={() => setIsSuccessDismissed(true)} />
+        <SuccessCard key="success" message={message} onReset={() => setIsSuccessDismissed(true)} copy={copy} />
       </AnimatePresence>
     );
   }
@@ -142,18 +158,21 @@ export default function ContactForm({ type = "" }) {
       className="grid scroll-mt-32 gap-5 rounded-inset border border-line/12 bg-white/52 p-6 md:grid-cols-2 md:p-7"
     >
       <input type="hidden" name="type" value={selectedType} />
+      <input type="hidden" name="lang" value={lang} />
 
-      <TypePicker value={selectedType} onChange={setSelectedType} error={errors.type} />
+      <TypePicker value={selectedType} onChange={setSelectedType} error={errors.type} copy={copy} />
 
       {!config ? (
         <p className="rounded-inset border border-line/10 bg-paper/70 p-5 text-sm leading-relaxed text-ink/65 md:col-span-2">
-          Choisissez votre projet pour afficher le formulaire adapté.
+          {copy.choosePrompt}
         </p>
       ) : (
         <Fragment>
           <div className="space-y-3 rounded-inset border border-line/10 bg-paper/70 p-5 md:col-span-2">
-            <p className="text-[11px] uppercase tracking-[0.24em] text-ink/48">Demande de devis : {config.label}</p>
-            <h2 className="font-serif text-3xl leading-tight md:text-4xl">Parlez-moi de votre projet.</h2>
+            <p className="text-[11px] uppercase tracking-[0.24em] text-ink/48">
+              {copy.quoteRequestPrefix} {localizedConfig.label}
+            </p>
+            <h2 className="font-serif text-3xl leading-tight md:text-4xl">{copy.tellMeMore}</h2>
           </div>
 
           <div key={`audience-${selectedType}`} className="md:col-span-2">
@@ -163,9 +182,9 @@ export default function ContactForm({ type = "" }) {
               <>
                 <CustomSelect
                   name="audience"
-                  label="Vous êtes"
-                  options={[PLACEHOLDER, ...audiences]}
-                  defaultValue={PLACEHOLDER}
+                  label={copy.youAre}
+                  options={buildSelectOptions(audiences)}
+                  defaultValue=""
                   error={errors.audience}
                 />
                 <FieldError message={errors.audience} />
@@ -174,59 +193,61 @@ export default function ContactForm({ type = "" }) {
           </div>
 
           <label className="space-y-2">
-            <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Nom et prénom</span>
+            <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">{copy.fullName}</span>
             <input name="name" autoComplete="name" aria-invalid={Boolean(errors.name)} className={inputClass} required />
             <FieldError message={errors.name} />
           </label>
 
           <label className="space-y-2">
-            <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">E-mail</span>
+            <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">{copy.email}</span>
             <input name="email" type="email" autoComplete="email" aria-invalid={Boolean(errors.email)} className={inputClass} required />
             <FieldError message={errors.email} />
           </label>
 
           <label className="space-y-2">
-            <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Téléphone</span>
+            <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">{copy.phone}</span>
             <input
               name="phone"
               autoComplete="tel"
               inputMode="tel"
               aria-invalid={Boolean(errors.phone)}
               className={inputClass}
-              placeholder="Facultatif"
+              placeholder={copy.optional}
             />
             <FieldError message={errors.phone} />
           </label>
 
-          {config.fields.map((field) =>
-            field.kind === "select" ? (
+          {config.fields.map((field) => {
+            const fieldLabel = copy.fieldLabels[field.name] || field.label;
+            const fieldPlaceholder = copy.fieldPlaceholders[field.name] || field.placeholder;
+            return field.kind === "select" ? (
               <div key={`${selectedType}-${field.name}`}>
                 <CustomSelect
                   name={`extra_${field.name}`}
-                  label={field.label}
-                  options={[PLACEHOLDER, ...field.options]}
-                  defaultValue={PLACEHOLDER}
+                  label={fieldLabel}
+                  options={buildSelectOptions(field.options)}
+                  defaultValue=""
                   error={errors[field.name]}
                 />
                 <FieldError message={errors[field.name]} />
               </div>
             ) : (
               <label key={`${selectedType}-${field.name}`} className="space-y-2">
-                <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">{field.label}</span>
+                <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">{fieldLabel}</span>
                 <input
                   name={`extra_${field.name}`}
                   aria-invalid={Boolean(errors[field.name])}
                   className={inputClass}
-                  placeholder={field.placeholder}
+                  placeholder={fieldPlaceholder}
                   required={field.required}
                 />
                 <FieldError message={errors[field.name]} />
               </label>
-            )
-          )}
+            );
+          })}
 
           <label className="space-y-2">
-            <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">{config.dateLabel}</span>
+            <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">{localizedConfig.dateLabel}</span>
             <input
               name="eventDate"
               type="date"
@@ -239,13 +260,13 @@ export default function ContactForm({ type = "" }) {
 
           {config.locationLabel ? (
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">{config.locationLabel}</span>
+              <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">{localizedConfig.locationLabel}</span>
               <input
                 name="location"
                 autoComplete="address-level2"
                 aria-invalid={Boolean(errors.location)}
                 className={inputClass}
-                placeholder="Ville, salle, lieu…"
+                placeholder={copy.locationPlaceholder}
                 required={config.locationRequired}
               />
               <FieldError message={errors.location} />
@@ -255,9 +276,9 @@ export default function ContactForm({ type = "" }) {
           <div>
             <CustomSelect
               name="budget"
-              label="Budget indicatif"
-              options={[PLACEHOLDER, ...budgetOptions]}
-              defaultValue={PLACEHOLDER}
+              label={copy.budgetLabel}
+              options={buildSelectOptions(budgetOptions)}
+              defaultValue=""
               error={errors.budget}
             />
             <FieldError message={errors.budget} />
@@ -266,22 +287,22 @@ export default function ContactForm({ type = "" }) {
           <div>
             <CustomSelect
               name="source"
-              label="Comment m'avez-vous connu ?"
-              options={[PLACEHOLDER, ...sourceOptions]}
-              defaultValue={PLACEHOLDER}
+              label={copy.sourceLabel}
+              options={buildSelectOptions(sourceOptions)}
+              defaultValue=""
               error={errors.source}
             />
             <FieldError message={errors.source} />
           </div>
 
           <label className="space-y-2 md:col-span-2">
-            <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">Message</span>
+            <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">{copy.messageLabel}</span>
             <textarea
               name="project"
               rows={6}
               aria-invalid={Boolean(errors.project)}
               className="w-full rounded-[1.2rem] border border-line/18 bg-paper/88 px-4 py-3 outline-none transition focus:border-accent focus:bg-white"
-              placeholder="Ambiance recherchée, contraintes utiles, références…"
+              placeholder={copy.messagePlaceholder}
               required
             />
             <FieldError message={errors.project} />
@@ -297,9 +318,9 @@ export default function ContactForm({ type = "" }) {
                 className="mt-1 h-4 w-4 shrink-0 accent-[var(--accent)]"
               />
               <span>
-                J&apos;accepte que mes données soient utilisées pour répondre à ma demande.{" "}
+                {copy.consentPrefix}{" "}
                 <Link href="/confidentialite" className="underline underline-offset-4 hover:text-ink">
-                  Politique de confidentialité
+                  {copy.privacyLink}
                 </Link>
               </span>
             </label>
@@ -308,12 +329,12 @@ export default function ContactForm({ type = "" }) {
 
           <div className="flex flex-wrap items-center gap-3 md:col-span-2">
             <SubmitButton
-              idleLabel="Envoyer la demande"
-              pendingLabel="Envoi…"
+              idleLabel={copy.submitIdle}
+              pendingLabel={copy.submitPending}
               className="w-fit rounded-full bg-ink px-6 py-3 text-sm uppercase tracking-[0.18em] text-paper transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
             />
 
-            <p className="text-sm text-ink/55">Réponse sous 24 à 48 h.</p>
+            <p className="text-sm text-ink/55">{copy.replyTime}</p>
 
             {message && status !== "success" ? (
               <p aria-live="polite" className="text-sm text-red-700">

@@ -1,8 +1,14 @@
+"use client";
+
 import Reveal from "./Reveal";
 import { testimonials as defaultTestimonials } from "../../data/testimonials";
+import { UI_COPY } from "../../lib/i18n";
+import { useLanguage } from "../LanguageProvider";
 
 // Avis réels uniquement. Rien n'est affiché si la liste est vide.
-export default function Testimonials({ items: source = defaultTestimonials, prestation, limit, title = "Ce que disent mes clients", tone = "light" }) {
+export default function Testimonials({ items: source = defaultTestimonials, prestation, limit, title, tone = "light" }) {
+  const { lang } = useLanguage();
+  const resolvedTitle = title || UI_COPY[lang]?.testimonials?.defaultTitle || UI_COPY.fr.testimonials.defaultTitle;
   const dark = tone === "dark";
   let items = prestation ? source.filter((item) => item.prestation === prestation) : source;
   if (limit) items = items.slice(0, limit);
@@ -12,7 +18,7 @@ export default function Testimonials({ items: source = defaultTestimonials, pres
     <section className="mx-auto max-w-7xl px-4 md:px-8">
       <Reveal className="space-y-8">
         <h2 className={`font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-5xl ${dark ? "text-paper" : "text-ink"}`}>
-          {title}
+          {resolvedTitle}
         </h2>
         <div className="grid gap-5 md:grid-cols-3">
           {items.map((item) => (

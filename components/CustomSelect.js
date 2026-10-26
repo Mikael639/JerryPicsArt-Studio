@@ -1,7 +1,14 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
+function normalizeOption(option) {
+  if (option && typeof option === "object" && "value" in option) {
+    return { value: String(option.value), label: String(option.label ?? option.value) };
+  }
+  return { value: String(option ?? ""), label: String(option ?? "") };
+}
 
 export default function CustomSelect({
   name,
@@ -11,14 +18,18 @@ export default function CustomSelect({
   error,
   className = "",
 }) {
+  const normalizedOptions = useMemo(() => (options || []).map(normalizeOption), [options]);
+  const initialVal = defaultValue !== undefined ? String(defaultValue) : normalizedOptions[0]?.value || "";
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedValue, setSelectedValue] = useState(defaultValue || options[0]);
+  const [selectedValue, setSelectedValue] = useState(initialVal);
   const containerRef = useRef(null);
 
-  // Fonction close centralisée et stable
+  // Si la liste change (ex: bascule FR/EN sur le placeholder), garder une valeur valide.
+  const activeOption =
+    normalizedOptions.find((opt) => opt.value === selectedValue) || normalizedOptions[0] || { value: "", label: "" };
+
   const close = useCallback(() => setIsOpen(false), []);
 
-  // Fermer au clic extérieur
   useEffect(() => {
     function handleClickOutside(event) {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
@@ -29,40 +40,42 @@ export default function CustomSelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [close]);
 
-  // Fermer au scroll — capture:true pour attraper tous les conteneurs scrollables
   useEffect(() => {
     if (!isOpen) return;
     window.addEventListener("scroll", close, { passive: true, capture: true });
     return () => window.removeEventListener("scroll", close, { capture: true });
   }, [isOpen, close]);
 
-  const handleSelect = (option) => {
-    setSelectedValue(option);
+  const handleSelect = (optionValue) => {
+    setSelectedValue(optionValue);
     close();
   };
 
   const toggleOpen = () => setIsOpen((prev) => !prev);
 
-  // Navigation clavier complète
   const handleKeyDown = (e) => {
     if (e.key === "Escape") {
       close();
     } else if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       if (isOpen) {
-        // Valider la valeur en cours et fermer
         close();
       } else {
         setIsOpen(true);
       }
-    } else if (isOpen) {
-      const currentIndex = options.indexOf(selectedValue);
+    } else if (isOpen && normalizedOptions.length > 0) {
+      const currentIndex = Math.max(
+        0,
+        normalizedOptions.findIndex((opt) => opt.value === activeOption.value)
+      );
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        setSelectedValue(options[(currentIndex + 1) % options.length]);
+        setSelectedValue(normalizedOptions[(currentIndex + 1) % normalizedOptions.length].value);
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        setSelectedValue(options[(currentIndex - 1 + options.length) % options.length]);
+        setSelectedValue(
+          normalizedOptions[(currentIndex - 1 + normalizedOptions.length) % normalizedOptions.length].value
+        );
       }
     }
   };
@@ -75,7 +88,7 @@ export default function CustomSelect({
         </span>
       )}
 
-      <input type="hidden" name={name} value={selectedValue} />
+      <input type="hidden" name={name} value={activeOption.value} />
 
       <button
         type="button"
@@ -89,7 +102,7 @@ export default function CustomSelect({
             : "border-line/18 bg-paper/88 hover:border-line/40"
         } ${error ? "border-red-400" : ""}`}
       >
-        <span className="text-sm font-medium text-ink">{selectedValue}</span>
+        <span className="text-sm font-medium text-ink">{activeOption.label}</span>
         <motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
@@ -109,19 +122,19 @@ export default function CustomSelect({
             role="listbox"
             className="absolute z-50 w-full overflow-hidden rounded-xl border border-line/15 bg-white/95 p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.08)] backdrop-blur-xl"
           >
-            {options.map((option) => (
+            {normalizedOptions.map((option) => (
               <li
-                key={option}
+                key={option.value}
                 role="option"
-                aria-selected={selectedValue === option}
-                onClick={() => handleSelect(option)}
+                aria-selected={activeOption.value === option.value}
+                onClick={() => handleSelect(option.value)}
                 className={`cursor-pointer rounded-lg px-3 py-2.5 text-sm transition-colors ${
-                  selectedValue === option
+                  activeOption.value === option.value
                     ? "bg-ink text-paper"
                     : "text-ink/80 hover:bg-ink/5"
                 }`}
               >
-                {option}
+                {option.label}
               </li>
             ))}
           </motion.ul>

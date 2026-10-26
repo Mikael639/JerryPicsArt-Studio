@@ -3,6 +3,8 @@ import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { stats as defaultStats } from "../../data/stats";
 import CountUp from "../ui/CountUp";
+import { HOME_PAGE_COPY, translateStat } from "../../lib/i18n";
+import { useLanguage } from "../LanguageProvider";
 
 export function getRevealProps(reduceMotion, delay = 0, amount = 0.24) {
   if (reduceMotion) {
@@ -38,7 +40,9 @@ export const wordRevealVariant = {
 
 // Chiffres affichés en dur (jamais « 0+ ») ; un chiffre à 0 est masqué. Source : data/stats.js
 export function StatsSection({ reduceMotion, items = defaultStats }) {
-  const visibleItems = items.filter((item) => item.valeur > 0);
+  const { lang } = useLanguage();
+  const copy = HOME_PAGE_COPY[lang] || HOME_PAGE_COPY.fr;
+  const visibleItems = items.filter((item) => item.valeur > 0).map((item) => translateStat(item, lang));
   if (!visibleItems.length) return null;
 
   return (
@@ -49,9 +53,9 @@ export function StatsSection({ reduceMotion, items = defaultStats }) {
       >
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-ink/40">Repères</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-ink/40">{copy.statsEyebrow}</p>
             <h2 className="mt-3 max-w-2xl font-serif text-3xl leading-tight tracking-[-0.03em] md:text-5xl">
-              Mon travail en quelques chiffres.
+              {copy.statsTitle}
             </h2>
           </div>
         </div>
@@ -137,6 +141,8 @@ function useMarqueeSlowdown(trackRef, containerRef, slowRate = 0.3) {
 }
 
 export function PartnersSection({ reduceMotion, items = partners }) {
+  const { lang } = useLanguage();
+  const copy = HOME_PAGE_COPY[lang] || HOME_PAGE_COPY.fr;
   const loop = [...items, ...items];
   const trackRef = useRef(null);
   const containerRef = useRef(null);
@@ -146,9 +152,9 @@ export function PartnersSection({ reduceMotion, items = partners }) {
     <section className="mx-auto max-w-7xl px-4 md:px-8">
       <MotionBlock reduceMotion={reduceMotion} className="space-y-10">
         <div className="max-w-2xl space-y-4">
-          <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-paper/55">Partenaires</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-paper/55">{copy.partnersEyebrow}</p>
           <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] text-paper md:text-6xl">
-            Ils nous font confiance.
+            {copy.partnersTitle}
           </h2>
         </div>
 
