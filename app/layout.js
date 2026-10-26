@@ -1,4 +1,4 @@
-import { Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import Navbar from "../components/Navbar";
 import CustomCursor from "../components/CustomCursor";
@@ -17,15 +17,21 @@ import { getIntroPhotos } from "../lib/introPhotos";
 import { getServerLang } from "../lib/serverLang";
 import { headers } from "next/headers";
 
-const display = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+// Polices hébergées dans le projet (app/fonts) : la construction ne dépend plus du téléchargement depuis Google,
+// qui échouait de façon aléatoire sur Vercel. Ce sont des polices variables (tous les graisses en un fichier).
+const display = localFont({
+  src: "./fonts/CormorantGaramond-latin.woff2",
+  weight: "300 700",
+  style: "normal",
+  display: "swap",
   variable: "--font-display",
 });
 
-const body = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+const body = localFont({
+  src: "./fonts/PlusJakartaSans-latin.woff2",
+  weight: "200 800",
+  style: "normal",
+  display: "swap",
   variable: "--font-body",
 });
 
