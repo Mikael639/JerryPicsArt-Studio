@@ -11,6 +11,11 @@ import { translateSerie, UI_COPY } from "../../lib/i18n";
 import { useLanguage } from "../LanguageProvider";
 
 const INITIAL_GRID_COUNT = 8;
+// Parallaxe du défilé : décalage maximal de la photo (px) par rapport à son cadre, de part et d'autre du centre.
+const PARALLAX_PX = 18;
+const PARALLAX_SCALE = 1.14;
+const IRIS_EASE = [0.65, 0, 0.2, 1];
+const SETTLE_EASE = [0.16, 1, 0.3, 1];
 const DESKTOP_QUERY = "(min-width: 768px)";
 
 function subscribeToDesktop(onChange) {
@@ -32,8 +37,28 @@ function useIsServerRender() {
   );
 }
 
-function PhotoTile({ photo, index, onOpen, priority, reduceMotion, openLabel }) {
-  const delay = Math.min(index % 4, 3) * 0.08;
+function PhotoTile({ photo, index, onOpen, priority, reduceMotion, openLabel, variant = "grid" }) {
+  const isCarousel = variant === "carousel";
+  const delay = Math.min(index % 4, 3) * 0.12;
+
+  // Ouverture « diaphragme » : sur fond noir, un cercle s'ouvre depuis le centre et révèle la photo,
+  // qui se pose en zoom arrière. Un fin anneau terracotta part du centre juste avant.
+  const clipVariants = {
+    hidden: { clipPath: "circle(0% at 50% 50%)" },
+    visible: { clipPath: "circle(78% at 50% 50%)", transition: { duration: 1.15, delay, ease: IRIS_EASE } },
+  };
+  const imageVariants = {
+    hidden: { scale: 1.25 },
+    visible: { scale: 1, transition: { duration: 1.5, delay, ease: SETTLE_EASE } },
+  };
+  const ringVariants = {
+    hidden: { opacity: 0, scale: 0.2 },
+    visible: {
+      opacity: [0, 0.9, 0],
+      scale: [0.2, 1.5, 3.4],
+      transition: { duration: 1.15, delay, ease: IRIS_EASE, times: [0, 0.2, 1] },
+    },
+  };
 
   // Le bouton est observé (visible à l'écran) ; le masque et le zoom sont animés sur ses enfants,
   // car un élément entièrement masqué par clip-path ne déclenche pas l'observation.
@@ -43,37 +68,39 @@ function PhotoTile({ photo, index, onOpen, priority, reduceMotion, openLabel }) 
       onClick={() => onOpen(index)}
       data-cursor="gallery-item"
       aria-label={openLabel}
-      className="group relative block aspect-[4/5] w-full overflow-hidden rounded-[0.8rem] bg-neutral-900 text-left"
+      className="group relative block aspect-[4/5] w-full overflow-hidden rounded-[0.8rem] bg-[#0c0a08] text-left"
       initial={reduceMotion ? false : "hidden"}
       whileInView="visible"
       viewport={{ once: true, amount: 0.15 }}
     >
-      <motion.div
-        className="absolute inset-0"
-        variants={{
-          hidden: { clipPath: "inset(0 0 100% 0)" },
-          visible: { clipPath: "inset(0 0 0% 0)", transition: { duration: 1.05, delay, ease: [0.16, 1, 0.3, 1] } },
-        }}
-      >
-        <motion.div
-          className="absolute inset-0"
-          variants={{
-            hidden: { scale: 1.18 },
-            visible: { scale: 1, transition: { duration: 1.4, delay, ease: [0.16, 1, 0.3, 1] } },
-          }}
-        >
-          <Image
-            src={photo.src}
-            alt={photo.alt}
-            fill
-            loading={priority && index < 4 ? "eager" : "lazy"}
-            sizes="(max-width: 768px) 72vw, (max-width: 1024px) 44vw, 28vw"
-            className="object-cover transition duration-700 ease-out group-hover:scale-[1.05]"
-            style={{ objectPosition: photo.objectPosition || "center center" }}
-            quality={85}
-          />
+      <motion.div className="absolute inset-0" variants={clipVariants}>
+        <motion.div className="absolute inset-0" variants={imageVariants}>
+          {/* Calque de parallaxe (défilé seulement) : déplacé par Series pendant le défilement, surdimensionné pour ne jamais montrer de bord. */}
+          <div
+            data-parallax-layer={isCarousel && !reduceMotion ? "" : undefined}
+            className="absolute inset-0 will-change-transform"
+            style={isCarousel && !reduceMotion ? { transform: `scale(${PARALLAX_SCALE})` } : undefined}
+          >
+            <Image
+              src={photo.src}
+              alt={photo.alt}
+              fill
+              loading={priority && index < 4 ? "eager" : "lazy"}
+              sizes="(max-width: 768px) 72vw, (max-width: 1024px) 44vw, 28vw"
+              className="object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.06]"
+              style={{ objectPosition: photo.objectPosition || "center center" }}
+              quality={85}
+            />
+          </div>
         </motion.div>
       </motion.div>
+      {reduceMotion ? null : (
+        <motion.span
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-1/2 -ml-[15%] -mt-[15%] aspect-square w-[30%] rounded-full border border-accent-soft opacity-0"
+          variants={ringVariants}
+        />
+      )}
       <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,transparent_55%,rgba(12,10,8,0.3))] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
     </motion.button>
   );
@@ -135,6 +162,43 @@ export default function Series({ serie, withBridge = false, priority = false }) 
     };
   }, [mode, updateProgress]);
 
+  // Parallaxe : chaque photo glisse lentement dans son cadre selon sa distance au centre du défilé.
+  // On écrit directement dans le style (pas d'état React) et on ne traite que les photos proches de l'écran.
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!showCarousel || reduceMotion || !track) return undefined;
+
+    const layers = Array.from(track.querySelectorAll("[data-parallax-layer]"));
+    let frame = 0;
+
+    const apply = () => {
+      frame = 0;
+      const trackBox = track.getBoundingClientRect();
+      const center = trackBox.left + trackBox.width / 2;
+
+      layers.forEach((layer) => {
+        const box = layer.parentElement.getBoundingClientRect();
+        if (box.right < trackBox.left - 240 || box.left > trackBox.right + 240) return;
+        const distance = Math.max(-1, Math.min(1, (box.left + box.width / 2 - center) / (trackBox.width / 2)));
+        layer.style.transform = `translate3d(${(-distance * PARALLAX_PX).toFixed(1)}px, 0, 0) scale(${PARALLAX_SCALE})`;
+      });
+    };
+
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(apply);
+    };
+
+    track.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    apply();
+
+    return () => {
+      track.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      window.cancelAnimationFrame(frame);
+    };
+  }, [showCarousel, reduceMotion, images.length]);
+
   function slide(direction) {
     const track = trackRef.current;
     if (!track) return;
@@ -186,6 +250,7 @@ export default function Series({ serie, withBridge = false, priority = false }) 
                   priority={priority}
                   reduceMotion={reduceMotion}
                   openLabel={copy.openPhoto(photo.alt)}
+                  variant="carousel"
                 />
               </div>
             ))}
