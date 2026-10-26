@@ -7,7 +7,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 export default function SmoothScroll({ children }) {
   useEffect(() => {
-    const isTablet = window.matchMedia("(pointer: coarse) and (min-width: 768px) and (max-width: 1180px)").matches;
+    const isTablet = window.matchMedia("(pointer: coarse) and (min-width: 768px)").matches;
 
     if (isTablet) {
       return undefined;
