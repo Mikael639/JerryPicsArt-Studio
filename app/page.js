@@ -17,7 +17,6 @@ export async function generateMetadata() {
     description:
       "Photographe éditorial à Paris : Fashion Week, mariages haut de gamme et événements d'entreprise. Un accompagnement de A à Z.",
     path: "/",
-    imageFrom: (photo) => photo.roles?.includes("hero"),
   });
 }
 

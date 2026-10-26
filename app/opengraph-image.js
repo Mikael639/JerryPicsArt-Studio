@@ -1,114 +1,124 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { ImageResponse } from "next/og";
+import sharp from "sharp";
 import { siteConfig } from "../lib/siteConfig";
 import { getPublicPhotos } from "../lib/photoRepository";
 
-export const alt = `${siteConfig.name} portfolio photo`;
-export const size = {
-  width: 1200,
-  height: 630,
-};
-export const contentType = "image/png";
+export const alt = `${siteConfig.name} : photographe éditorial à Paris, Fashion Week, mariage et événements`;
+export const size = { width: 1200, height: 630 };
+export const contentType = "image/jpeg";
+
+// Triptyque : Fashion Week, mariage, événement. Photos repérées par un morceau de leur nom de fichier.
+const TRIPTYCH = [
+  { match: "pfw-011025-jpa-102", position: "50% 30%" },
+  { match: "silhouette-au-flash", position: "50% 35%" },
+  { match: "gala-fc-1ere-edition-jpa-442", position: "50% 25%" },
+];
+
+// Le fichier est lu au moment de la construction (l'image est générée une fois, puis servie telle quelle).
+const font = (name) => readFile(path.join(process.cwd(), "app", "fonts", name));
+
+async function loadPhotos() {
+  try {
+    const photos = await getPublicPhotos({ limit: 500 });
+    return TRIPTYCH.map(({ match, position }) => {
+      const photo = photos.find((item) => item.src?.toLowerCase().includes(match));
+      return { src: photo?.src || null, position };
+    });
+  } catch {
+    return TRIPTYCH.map(({ position }) => ({ src: null, position }));
+  }
+}
 
 export default async function OpengraphImage() {
-  let bgImg = null;
-  try {
-    const photos = await getPublicPhotos({ limit: 12 });
-    const heroPhoto = photos.find((photo) => photo?.src?.startsWith("http"));
-    if (heroPhoto) {
-      bgImg = heroPhoto.src;
-    }
-  } catch {}
+  const [photos, serif, sans] = await Promise.all([
+    loadPhotos(),
+    font("og-CormorantGaramond-500.ttf"),
+    font("og-PlusJakartaSans-700.ttf"),
+  ]);
 
-  return new ImageResponse(
+  const image = new ImageResponse(
     (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          position: "relative",
-          overflow: "hidden",
-          background: bgImg 
-            ? "#171310" // fallback
-            : "radial-gradient(circle at 18% 24%, rgba(233, 215, 194, 0.94), transparent 34%), radial-gradient(circle at 84% 18%, rgba(216, 226, 231, 0.82), transparent 26%), linear-gradient(135deg, #f8f3eb 0%, #efe7db 52%, #e8ddd1 100%)",
-          color: bgImg ? "#ffffff" : "#171310",
-          flexDirection: "column",
-          justifyContent: "space-between",
-        }}
-      >
-        {bgImg && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img 
-            src={bgImg} 
-            alt="background" 
-            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} 
-          />
-        )}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            fontSize: 24,
-            letterSpacing: "0.26em",
-            textTransform: "uppercase",
-            opacity: 0.72,
-          }}
-        >
-          <span>{siteConfig.name}</span>
-          <span>Portfolio éditorial</span>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 840 }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", background: "#0c0a08" }}>
+        {photos.map((photo, index) => (
           <div
+            key={index}
             style={{
-              fontSize: 106,
-              lineHeight: 0.92,
-              letterSpacing: "-0.06em",
+              display: "flex",
+              width: index === 1 ? 398 : 399,
+              height: "100%",
+              marginLeft: index === 0 ? 0 : 3,
+              background: "#17120e",
             }}
           >
-            Des images qui donnent de la tenue a l instant.
+            {photo.src ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={photo.src}
+                alt=""
+                width={399}
+                height={630}
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: photo.position }}
+              />
+            ) : null}
+          </div>
+        ))}
+
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 300,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            paddingBottom: 44,
+            backgroundImage: "linear-gradient(to bottom, rgba(12,10,8,0), rgba(12,10,8,0.9) 55%, rgba(12,10,8,0.96))",
+            color: "#f5efe6",
+          }}
+        >
+          <div style={{ display: "flex", fontFamily: "Jakarta", fontSize: 20, letterSpacing: 9, color: "#b07f5a" }}>
+            PARIS
+          </div>
+          <div style={{ display: "flex", fontFamily: "Cormorant", fontSize: 112, lineHeight: 1, marginTop: 6 }}>
+            {siteConfig.name}
           </div>
           <div
             style={{
               display: "flex",
-              fontSize: 34,
-              lineHeight: 1.35,
-              color: "rgba(23, 19, 16, 0.72)",
-              maxWidth: 760,
+              fontFamily: "Jakarta",
+              fontSize: 21,
+              letterSpacing: 5,
+              marginTop: 16,
+              color: "rgba(245,239,230,0.9)",
             }}
           >
-            Mode et mariages saisis avec une direction visuelle sobre et precise.
+            FASHION WEEK  ·  MARIAGE  ·  ÉVÉNEMENTS
           </div>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            gap: 18,
-            alignItems: "center",
-          }}
-        >
-          {siteConfig.categoryLabels.map((label) => (
-            <div
-              key={label}
-              style={{
-                display: "flex",
-                borderRadius: 999,
-                border: "1px solid rgba(23, 19, 16, 0.16)",
-                background: "rgba(255, 255, 255, 0.58)",
-                padding: "12px 20px",
-                fontSize: 22,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-              }}
-            >
-              {label}
-            </div>
-          ))}
         </div>
       </div>
     ),
-    size
+    {
+      ...size,
+      fonts: [
+        { name: "Cormorant", data: serif, weight: 500, style: "normal" },
+        { name: "Jakarta", data: sans, weight: 700, style: "normal" },
+      ],
+    }
   );
+
+  // WhatsApp n'affiche pas de miniature au-delà d'environ 300 Ko : le PNG (plus d'1 Mo) devient un JPEG léger.
+  const png = Buffer.from(await image.arrayBuffer());
+  const jpeg = await sharp(png).jpeg({ quality: 80, mozjpeg: true, chromaSubsampling: "4:4:4" }).toBuffer();
+
+  return new Response(jpeg, {
+    headers: {
+      "Content-Type": "image/jpeg",
+      "Cache-Control": "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800",
+    },
+  });
 }

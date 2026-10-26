@@ -21,7 +21,6 @@ export async function generateMetadata() {
     description:
       "Photographe pour hôtels, lieux de réception et entreprises à Paris : contrat, droits d'usage, facture HT, tarif partenaire.",
     path: "/entreprises",
-    imageFrom: (photo) => photo.category === "Studio",
   });
 }
 
