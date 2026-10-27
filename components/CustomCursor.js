@@ -200,6 +200,11 @@ export default function CustomCursor() {
   });
 
   const handlePointerDown = useEvent((event) => {
+    if (event.pointerType === "touch") {
+      setIsVisible(false);
+      setIsPressed(false);
+      return;
+    }
     if (event.pointerType && event.pointerType !== "mouse") return;
     setIsPressed(true);
     syncCursorState(event.target);
@@ -234,12 +239,17 @@ export default function CustomCursor() {
     }, 450);
   });
 
+  // Le curseur natif n'est masqué que pendant que le rond est réellement affiché. Dès que le rond est caché
+  // (fenêtre redimensionnée, souris sortie, doigt posé, champ de texte...), le curseur natif reprend :
+  // on ne se retrouve jamais sans aucun curseur, même si le navigateur n'envoie plus de mouvement de souris.
+  const hidesNativeCursor = isCursorActive && isVisible && cursorMode !== "hidden";
+
   useEffect(() => {
-    document.documentElement.classList.toggle("has-custom-cursor", isCursorActive);
+    document.documentElement.classList.toggle("has-custom-cursor", hidesNativeCursor);
     return () => {
       document.documentElement.classList.remove("has-custom-cursor");
     };
-  }, [isCursorActive]);
+  }, [hidesNativeCursor]);
 
   useEffect(() => {
     if (!isEnabled) return;
@@ -264,13 +274,20 @@ export default function CustomCursor() {
       scrollTimeoutRef.current = window.setTimeout(resyncUnderPointer, 1200);
     };
 
+    let lastWidth = window.innerWidth;
+    const handleResize = () => {
+      if (window.innerWidth === lastWidth) return;
+      lastWidth = window.innerWidth;
+      pauseCursorAfterViewportChange();
+    };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerdown", handlePointerDown);
     window.addEventListener("pointerup", handlePointerUp);
     window.addEventListener("blur", handlePointerLeave);
     window.addEventListener("mouseout", handleWindowMouseOut);
-    window.addEventListener("resize", pauseCursorAfterViewportChange);
+    window.addEventListener("resize", handleResize);
     window.addEventListener("orientationchange", pauseCursorAfterViewportChange);
 
     return () => {
@@ -281,7 +298,7 @@ export default function CustomCursor() {
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("blur", handlePointerLeave);
       window.removeEventListener("mouseout", handleWindowMouseOut);
-      window.removeEventListener("resize", pauseCursorAfterViewportChange);
+      window.removeEventListener("resize", handleResize);
       window.removeEventListener("orientationchange", pauseCursorAfterViewportChange);
       if (resizeTimeoutRef.current) {
         window.clearTimeout(resizeTimeoutRef.current);
