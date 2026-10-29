@@ -47,7 +47,6 @@ export default function HomePageExperience({
   doorPhotos = {},
   universCovers = [],
   cinematicPool = [],
-  references: _references = [],
   stats,
   testimonials,
   siteText = {},

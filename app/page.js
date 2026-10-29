@@ -7,7 +7,7 @@ import { getPhotoObjectPosition } from "../lib/photoPresentation";
 import { getPublicPhotos } from "../lib/photoRepository";
 import { getSiteUrl, siteConfig, toAbsoluteUrl } from "../lib/siteConfig";
 import { buildPageMetadata } from "../lib/seo";
-import { getReferences, getStats, getTestimonials } from "../lib/siteContent";
+import { getStats, getTestimonials } from "../lib/siteContent";
 import { getHomeCopy } from "../lib/siteSettings";
 import { METADATA_COPY } from "../lib/i18n";
 import { getServerLang } from "../lib/serverLang";
@@ -190,8 +190,7 @@ export default async function HomePage() {
     sourcePhotos = [];
   }
 
-  const [references, stats, testimonials, lang] = await Promise.all([
-    getReferences(),
+  const [stats, testimonials, lang] = await Promise.all([
     getStats(),
     getTestimonials(),
     getServerLang(),
@@ -250,8 +249,8 @@ export default async function HomePage() {
         supportingPhotos={supportingPhotos}
         doorPhotos={doorPhotos}
         universCovers={await loadUniversCovers()}
-        cinematicPool={photos}
-        references={references}
+        // Seules les photos du diaporama d'ouverture partent au navigateur (pas les centaines du catalogue).
+        cinematicPool={photos.filter((photo) => photo.roles?.includes("hero"))}
         stats={stats}
         testimonials={testimonials}
         siteText={await getHomeCopy()}

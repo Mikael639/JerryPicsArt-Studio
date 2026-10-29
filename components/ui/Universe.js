@@ -56,7 +56,7 @@ export function UniverseNav({ items }) {
               >
                 {cover ? (
                   <span className="relative h-10 w-8 shrink-0 overflow-hidden rounded-[0.4rem] bg-ink/10 md:h-16 md:w-12">
-                    <Image src={cover.src} alt="" fill sizes="48px" quality={60} className="object-cover" />
+                    <Image src={cover.src} alt="" fill sizes="48px" quality={75} className="object-cover" />
                   </span>
                 ) : null}
                 <span className="min-w-0">
