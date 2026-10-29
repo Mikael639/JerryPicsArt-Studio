@@ -11,6 +11,7 @@ import Image from "next/image";
 const LOGO_HEIGHT = {
   Printemps: "h-4 md:h-5",
   Decathlon: "h-4 md:h-5",
+  UNESCO: "h-6 md:h-7",
   "Rolling Stone Africa": "h-6 md:h-7",
   "Kering Eyewear": "h-7 md:h-8",
   "Galeries Lafayette": "h-8 md:h-10",
