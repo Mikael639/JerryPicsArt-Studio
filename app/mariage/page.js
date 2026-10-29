@@ -14,15 +14,18 @@ import { showPlaceholders } from "../../data/placeholders";
 import { getPublicPhotos } from "../../lib/photoRepository";
 import { getTestimonials } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
-import { PAGES_COPY } from "../../lib/i18n";
+import { METADATA_COPY, PAGES_COPY } from "../../lib/i18n";
 import { getServerLang } from "../../lib/serverLang";
 
 export async function generateMetadata() {
+  const lang = await getServerLang();
+  const copy = METADATA_COPY.mariage[lang] || METADATA_COPY.mariage.fr;
+
   return buildPageMetadata({
-    title: "Photographe de mariage haut de gamme à Paris | JerryPicsArt",
-    description:
-      "Votre mariage photographié comme un éditorial. Formules à partir de 1 500 €. Vérifiez la disponibilité de votre date.",
+    title: copy.title,
+    description: copy.description,
     path: "/mariage",
+    lang,
   });
 }
 

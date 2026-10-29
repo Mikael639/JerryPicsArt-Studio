@@ -1,14 +1,18 @@
 import LegalPage from "../../components/ui/LegalPage";
 import { siteConfig } from "../../lib/siteConfig";
 import { buildPageMetadata } from "../../lib/seo";
-import { PAGES_COPY } from "../../lib/i18n";
+import { METADATA_COPY, PAGES_COPY } from "../../lib/i18n";
 import { getServerLang } from "../../lib/serverLang";
 
 export async function generateMetadata() {
+  const lang = await getServerLang();
+  const copy = METADATA_COPY.legal[lang] || METADATA_COPY.legal.fr;
+
   return buildPageMetadata({
-    title: "Mentions légales | JerryPicsArt",
-    description: "Mentions légales du site JerryPicsArt, photographe éditorial à Paris.",
+    title: copy.title,
+    description: copy.description,
     path: "/mentions-legales",
+    lang,
   });
 }
 

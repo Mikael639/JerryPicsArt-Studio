@@ -1,12 +1,17 @@
 import ContactExperience from "../../components/contact/ContactExperience";
 import { buildPageMetadata } from "../../lib/seo";
+import { METADATA_COPY } from "../../lib/i18n";
+import { getServerLang } from "../../lib/serverLang";
 
 export async function generateMetadata() {
+  const lang = await getServerLang();
+  const copy = METADATA_COPY.contact[lang] || METADATA_COPY.contact.fr;
+
   return buildPageMetadata({
-    title: "Contact et devis | JerryPicsArt",
-    description:
-      "Demandez un devis pour votre mariage, votre événement ou votre événement d'entreprise à Paris. Réponse sous 24 à 48 h.",
+    title: copy.title,
+    description: copy.description,
     path: "/contact",
+    lang,
   });
 }
 

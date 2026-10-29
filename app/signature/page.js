@@ -10,15 +10,18 @@ import { loadUniversForPage } from "../../lib/loadUnivers";
 import { getUniversPhoto } from "../../data/univers";
 import { getIntroPhotos } from "../../lib/introPhotos";
 import { buildPageMetadata } from "../../lib/seo";
-import { PAGES_COPY } from "../../lib/i18n";
+import { METADATA_COPY, PAGES_COPY } from "../../lib/i18n";
 import { getServerLang } from "../../lib/serverLang";
 
 export async function generateMetadata() {
+  const lang = await getServerLang();
+  const copy = METADATA_COPY.signature[lang] || METADATA_COPY.signature.fr;
+
   return buildPageMetadata({
-    title: "Photographe Fashion Week Paris : défilés, maisons et célébrités",
-    description:
-      "Séries photo de la Fashion Week de Paris : défilés, invités et personnalités. Le regard éditorial de JerryPicsArt.",
+    title: copy.title,
+    description: copy.description,
     path: "/signature",
+    lang,
   });
 }
 

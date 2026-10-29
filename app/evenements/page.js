@@ -14,15 +14,18 @@ import { getUniversPhoto } from "../../data/univers";
 import { showPlaceholders } from "../../data/placeholders";
 import { getIntroPhotos } from "../../lib/introPhotos";
 import { buildPageMetadata } from "../../lib/seo";
-import { PAGES_COPY } from "../../lib/i18n";
+import { METADATA_COPY, PAGES_COPY } from "../../lib/i18n";
 import { getServerLang } from "../../lib/serverLang";
 
 export async function generateMetadata() {
+  const lang = await getServerLang();
+  const copy = METADATA_COPY.evenements[lang] || METADATA_COPY.evenements.fr;
+
   return buildPageMetadata({
-    title: "Photographe événementiel à Paris : soirées, lancements, galas",
-    description:
-      "Photographe pour vos soirées, lancements et galas à Paris. Sélection express le soir même en option. Devis sous 48 h.",
+    title: copy.title,
+    description: copy.description,
     path: "/evenements",
+    lang,
   });
 }
 

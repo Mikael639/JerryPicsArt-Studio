@@ -10,15 +10,20 @@ import { getSiteUrl, siteConfig, toAbsoluteUrl } from "../lib/siteConfig";
 import { buildPageMetadata } from "../lib/seo";
 import { getReferences, getStats, getTestimonials } from "../lib/siteContent";
 import { getHomeCopy } from "../lib/siteSettings";
+import { METADATA_COPY } from "../lib/i18n";
+import { getServerLang } from "../lib/serverLang";
 
 const FEATURED_ROTATION_INTERVAL_MS = 30 * 60 * 1000;
 
 export async function generateMetadata() {
+  const lang = await getServerLang();
+  const copy = METADATA_COPY.home[lang] || METADATA_COPY.home.fr;
+
   return buildPageMetadata({
-    title: "JerryPicsArt | Photographe éditorial à Paris, mariages et événements",
-    description:
-      "Photographe éditorial à Paris : Fashion Week, mariages haut de gamme et événements d'entreprise. Un accompagnement de A à Z.",
+    title: copy.title,
+    description: copy.description,
     path: "/",
+    lang,
   });
 }
 
@@ -75,29 +80,6 @@ function normalizePhoto(photo) {
     roles: Array.isArray(photo?.roles) ? photo.roles : [],
     objectPosition: getPhotoObjectPosition({ ...photo, title }),
   };
-}
-
-function collectPhotos(pool, count, excludeIds = [], fallbackPhoto = defaultFallbackPhoto) {
-  const taken = [];
-  const seen = new Set(excludeIds);
-
-  for (const photo of pool) {
-    if (!photo || seen.has(photo.id)) continue;
-    seen.add(photo.id);
-    taken.push(photo);
-    if (taken.length === count) return taken;
-  }
-
-  while (taken.length < count) {
-    const index = taken.length + 1;
-    taken.push({
-      ...fallbackPhoto,
-      id: `${fallbackPhoto.id}-fallback-${index}`,
-      src: getFallbackSrc(fallbackPhoto.category),
-    });
-  }
-
-  return taken;
 }
 
 function rotatePhotosByTimeWindow(pool, intervalMs = FEATURED_ROTATION_INTERVAL_MS) {
@@ -209,7 +191,12 @@ export default async function HomePage() {
     sourcePhotos = [];
   }
 
-  const [references, stats, testimonials] = await Promise.all([getReferences(), getStats(), getTestimonials()]);
+  const [references, stats, testimonials, lang] = await Promise.all([
+    getReferences(),
+    getStats(),
+    getTestimonials(),
+    getServerLang(),
+  ]);
   const photos = (sourcePhotos.length ? sourcePhotos : [defaultFallbackPhoto]).map(normalizePhoto);
 
   const heroPool = photos.filter((photo) => photo.category === "Fashion Week & Celebrities");
@@ -234,7 +221,7 @@ export default async function HomePage() {
       "@type": "WebSite",
       name: siteConfig.name,
       url: getSiteUrl(),
-      inLanguage: "fr-FR",
+      inLanguage: lang === "en" ? "en-US" : "fr-FR",
       description: siteConfig.description,
     },
     {

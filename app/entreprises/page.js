@@ -13,15 +13,18 @@ import { loadUniversForPage } from "../../lib/loadUnivers";
 import { getIntroPhotos } from "../../lib/introPhotos";
 import { getClients } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
-import { PAGES_COPY } from "../../lib/i18n";
+import { METADATA_COPY, PAGES_COPY } from "../../lib/i18n";
 import { getServerLang } from "../../lib/serverLang";
 
 export async function generateMetadata() {
+  const lang = await getServerLang();
+  const copy = METADATA_COPY.entreprises[lang] || METADATA_COPY.entreprises.fr;
+
   return buildPageMetadata({
-    title: "Photographe pour événements d'entreprise et lieux à Paris",
-    description:
-      "Photographe pour hôtels, lieux de réception et entreprises à Paris : contrat, droits d'usage, facture HT, tarif partenaire.",
+    title: copy.title,
+    description: copy.description,
     path: "/entreprises",
+    lang,
   });
 }
 
