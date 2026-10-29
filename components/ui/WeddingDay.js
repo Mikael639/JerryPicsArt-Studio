@@ -39,14 +39,15 @@ function Chapter({ chapter, priority }) {
   );
 }
 
-// Le récit d'une journée de mariage, dans l'ordre. La citation s'intercale entre le portrait et le cocktail.
-export default function WeddingDay({ chapters, quote, quoteAfter = 2 }) {
+// Le récit d'une journée de mariage, dans l'ordre. `quoteBefore` place la citation en tête de ce bloc
+// (entre le portrait et le cocktail, quand le récit est coupé en deux par le passage au mode sombre).
+export default function WeddingDay({ chapters, quote, quoteBefore = false, priority = false }) {
   return (
     <div className="space-y-20 md:space-y-28">
+      {quoteBefore ? <PullQuote text={quote} /> : null}
       {chapters.map((chapter, index) => (
         <Fragment key={chapter.key}>
-          <Chapter chapter={chapter} priority={index === 0} />
-          {index === quoteAfter ? <PullQuote text={quote} /> : null}
+          <Chapter chapter={chapter} priority={priority && index === 0} />
         </Fragment>
       ))}
     </div>

@@ -78,9 +78,12 @@ export default async function MariagePage() {
         </div>
       </section>
 
-      <WeddingDay chapters={chapters} quote={copy.quote} quoteAfter={2} />
+      <WeddingDay chapters={chapters.slice(0, 3)} quote={copy.quote} priority />
 
+      {/* Le mode sombre commence au milieu de la page, avec le cocktail et la soirée. */}
       <DarkChapter>
+        <WeddingDay chapters={chapters.slice(3)} quote={copy.quote} quoteBefore />
+
         <section className="mx-auto max-w-7xl space-y-8 px-4 md:px-8">
           <Reveal className="max-w-3xl space-y-3">
             <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-5xl">{copy.experienceTitle}</h2>

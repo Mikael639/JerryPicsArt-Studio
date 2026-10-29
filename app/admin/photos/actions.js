@@ -470,6 +470,41 @@ export async function updateUniversAction(slug, patch) {
   }
 }
 
+const CLIENT_LOGO_MAX_BYTES = 2 * 1024 * 1024;
+
+// Logo d'un client : PNG, WebP ou JPEG (jamais de SVG), 2 Mo au plus. Retourne l'adresse publique et les dimensions.
+export async function uploadClientLogoAction(formData) {
+  const cookieStore = await getAuthorizedCookieStore();
+  if (!cookieStore) return unauthorizedResult();
+
+  if (!isR2Configured()) {
+    return createActionResult({ ok: false, message: "Le stockage R2 n'est pas encore configuré." });
+  }
+
+  const file = formData.get("file");
+  if (!file || typeof file === "string") return createActionResult({ ok: false, message: "Aucun fichier reçu." });
+  if (!["image/png", "image/webp", "image/jpeg"].includes(file.type)) {
+    return createActionResult({ ok: false, message: "Utilisez un logo au format PNG, WebP ou JPEG (pas de SVG)." });
+  }
+  if (file.size > CLIENT_LOGO_MAX_BYTES) return createActionResult({ ok: false, message: "Le logo dépasse 2 Mo." });
+
+  try {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const { width, height } = await sharp(buffer).metadata();
+    if (!width || !height) throw new Error("Image illisible.");
+
+    const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+    const { publicUrl } = await uploadR2Object({
+      storagePath: `clients/${crypto.randomUUID()}.${extension}`,
+      buffer,
+      contentType: file.type,
+    });
+    return createActionResult({ ok: true, message: "Logo envoyé.", data: { logo: publicUrl, width, height } });
+  } catch (error) {
+    return createActionResult({ ok: false, message: error.message || "Impossible d'envoyer ce logo." });
+  }
+}
+
 const UNIVERS_MAX_SIDE = 2400;
 
 // Ajout de photos à un univers par envoi direct : redimensionnement à 2 400 px, envoi sur R2, enregistrement.
@@ -584,6 +619,7 @@ const CONTENT_LABELS = {
   stats: "Chiffres enregistrés.",
   references: "Références enregistrées.",
   seriesNotes: "Textes des séries enregistrés.",
+  clients: "Logos clients enregistrés.",
 };
 
 // kind : "testimonials" | "stats" | "references" | "seriesNotes"

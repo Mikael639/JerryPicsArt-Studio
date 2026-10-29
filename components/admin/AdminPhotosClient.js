@@ -20,6 +20,7 @@ import { compressImageFiles, formatFileSize } from "../../lib/imageCompression";
 import AdminAboutEditor from "./AdminAboutEditor";
 import AdminContentEditor from "./AdminContentEditor";
 import AdminUniversEditor from "./AdminUniversEditor";
+import AdminClientsEditor from "./AdminClientsEditor";
 import AdminCategoryManager from "./AdminCategoryManager";
 import AdminDashboard from "./AdminDashboard";
 import AdminFeedback from "./AdminFeedback";
@@ -45,6 +46,7 @@ const settingsSubTabs = [
   { id: "chiffres", label: "Chiffres", description: "Séries livrées, événements, marques" },
   { id: "references", label: "Références", description: "Personnalités, maisons, médias et lieux" },
   { id: "series", label: "Textes des séries", description: "Phrase de contexte sous chaque série" },
+  { id: "clients", label: "Logos clients", description: "Bande « Ils nous ont fait confiance » (Entreprises & lieux)" },
   { id: "univers", label: "Univers", description: "Signature, Événements, Entreprises & lieux : photos et textes" },
   { id: "themes", label: "Catégories & guide", description: "Ajouter une catégorie, pages du site" },
 ];
@@ -660,6 +662,14 @@ export default function AdminPhotosClient({
             <AdminContentEditor
               kind="seriesNotes"
               initialItems={content.seriesList}
+              onStatus={setStatusMessage}
+              onError={setErrorMessage}
+            />
+          ) : null}
+
+          {settingsSubTab === "clients" ? (
+            <AdminClientsEditor
+              initialItems={content.clients || []}
               onStatus={setStatusMessage}
               onError={setErrorMessage}
             />

@@ -11,6 +11,7 @@ import DarkChapter from "../../components/ui/DarkChapter";
 import TrackedLink from "../../components/ui/TrackedLink";
 import { loadUniversForPage } from "../../lib/loadUnivers";
 import { getIntroPhotos } from "../../lib/introPhotos";
+import { getClients } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
 import { PAGES_COPY } from "../../lib/i18n";
 import { getServerLang } from "../../lib/serverLang";
@@ -25,7 +26,7 @@ export async function generateMetadata() {
 }
 
 export default async function EntreprisesPage() {
-  const lang = await getServerLang();
+  const [lang, clients] = await Promise.all([getServerLang(), getClients()]);
   const copy = PAGES_COPY.entreprises[lang] || PAGES_COPY.entreprises.fr;
   const univers = await loadUniversForPage("entreprises");
   const introPhoto = (await getIntroPhotos())["/entreprises"] || univers[0]?.images?.[0] || null;
@@ -40,7 +41,7 @@ export default async function EntreprisesPage() {
         image={introPhoto}
       />
 
-      <ClientsBand title={copy.clientsTitle} />
+      <ClientsBand title={copy.clientsTitle} items={clients} />
 
       <section className="mx-auto grid max-w-7xl gap-5 px-4 md:grid-cols-2 md:px-8">
         <Reveal className="rounded-card border border-line/15 bg-white/60 p-8">
