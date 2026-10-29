@@ -154,11 +154,11 @@ export function PartnersSection({ reduceMotion, items = partners }) {
   useMarqueeSlowdown(trackRef, containerRef);
 
   return (
-    <section className="mx-auto max-w-7xl px-4 md:px-8">
+    <section data-cursor-surface="dark" className="color-transition-section mx-auto max-w-7xl px-4 md:px-8" aria-labelledby="partenaires-titre">
       <MotionBlock reduceMotion={reduceMotion} className="space-y-10">
         <div className="max-w-2xl space-y-4">
           <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-paper/55">{copy.partnersEyebrow}</p>
-          <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] text-paper md:text-6xl">
+          <h2 id="partenaires-titre" className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] text-paper md:text-6xl">
             {copy.partnersTitle}
           </h2>
         </div>

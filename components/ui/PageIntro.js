@@ -51,7 +51,7 @@ export default function PageIntro({ eyebrow, title, lead, bridge, cta, secondary
                 sizes="(max-width: 1024px) 80vw, 352px"
                 className="object-cover"
                 style={{ objectPosition: image.objectPosition || "center center" }}
-                quality={85}
+                quality={75}
               />
             </div>
           </div>

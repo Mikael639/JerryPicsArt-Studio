@@ -1,8 +1,7 @@
 import PageIntro from "../../components/ui/PageIntro";
-import { Fragment } from "react";
+import ClientsBand from "../../components/ui/ClientsBand";
 import Universe, { UniverseNav } from "../../components/ui/Universe";
 import PullQuote from "../../components/ui/PullQuote";
-import DoublePage from "../../components/ui/DoublePage";
 import ArticleEnd from "../../components/ui/ArticleEnd";
 import OfferCards from "../../components/ui/OfferCards";
 import Faq from "../../components/ui/Faq";
@@ -10,9 +9,9 @@ import ContactBlock from "../../components/ui/ContactBlock";
 import DarkChapter from "../../components/ui/DarkChapter";
 import Reveal from "../../components/ui/Reveal";
 import { loadUniversForPage } from "../../lib/loadUnivers";
-import { getUniversPhoto } from "../../data/univers";
 import { showPlaceholders } from "../../data/placeholders";
 import { getIntroPhotos } from "../../lib/introPhotos";
+import { getClients } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
 import { METADATA_COPY, PAGES_COPY } from "../../lib/i18n";
 import { getServerLang } from "../../lib/serverLang";
@@ -30,11 +29,9 @@ export async function generateMetadata() {
 }
 
 export default async function EvenementsPage() {
-  const lang = await getServerLang();
+  const [lang, clients] = await Promise.all([getServerLang(), getClients()]);
   const copy = PAGES_COPY.evenements[lang] || PAGES_COPY.evenements.fr;
   const univers = await loadUniversForPage("evenements");
-  // Double page : le yacht à Monaco, retiré de son univers pour ne pas apparaître deux fois.
-  const doublePage = getUniversPhoto("1pjp5Mqgr6kOHl1Kof7MgaFtAho7qsfY9");
   const introPhoto = (await getIntroPhotos())["/evenements"] || univers[0]?.images?.[0] || null;
 
   return (
@@ -47,6 +44,8 @@ export default async function EvenementsPage() {
         cta={{ href: "/contact?type=evenement", label: copy.ctaLabel, event: "devis_evenement" }}
         image={introPhoto}
       />
+
+      <ClientsBand title={copy.clientsTitle} items={clients} />
 
       <section className="mx-auto max-w-7xl px-4 md:px-8">
         <Reveal className="space-y-6">
@@ -67,15 +66,7 @@ export default async function EvenementsPage() {
         <UniverseNav items={univers} />
         <div className="mt-12 space-y-20 md:mt-16 md:space-y-28">
           {univers.slice(0, 2).map((item, index) => (
-            <Fragment key={item.slug}>
-              <Universe
-                univers={item}
-                number={index + 1}
-                priority={index === 0}
-                excludeIds={item.slug === "monaco-culture" && doublePage ? [doublePage.id] : []}
-              />
-              {index === 0 ? <DoublePage photo={doublePage} /> : null}
-            </Fragment>
+            <Universe key={item.slug} univers={item} number={index + 1} priority={index === 0} />
           ))}
         </div>
 

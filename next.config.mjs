@@ -64,7 +64,7 @@ const nextConfig = {
     ],
     deviceSizes: [640, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    formats: ["image/webp"],
+    formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 2678400,
     qualities: [75, 85, 90],
   },

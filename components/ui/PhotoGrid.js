@@ -6,7 +6,7 @@ import Lightbox from "../Lightbox";
 import { UI_COPY } from "../../lib/i18n";
 import { useLanguage } from "../LanguageProvider";
 
-const MAX_GRID_PHOTOS = 12;
+const MAX_GRID_PHOTOS = 6;
 // Dimensions de repli pour les photos dont on ne connaît pas le format : la hauteur réelle
 // est reprise par le navigateur dès le chargement (h-auto), la photo n'est jamais recadrée.
 const FALLBACK_WIDTH = 1200;
@@ -49,7 +49,7 @@ function FadeImage({ photo, priority, sizes, className = "", style }) {
       height={photo.height || FALLBACK_HEIGHT}
       priority={priority}
       sizes={sizes}
-      quality={85}
+      quality={75}
       onLoad={() => setLoaded(true)}
       data-loaded={loaded ? "" : undefined}
       className={`photo-fade ${className}`}
@@ -83,10 +83,7 @@ function GridPhoto({ photo, index, onOpen, priority, openLabel }) {
         />
         <span className="pointer-events-none absolute inset-0 bg-ink/0 transition-colors duration-300 group-hover:bg-ink/10" />
       </button>
-      {/* Légende : visible dans la grille dès la tablette ; sur téléphone elle est dans la visionneuse. */}
-      {photo.caption ? (
-        <figcaption className="mt-1.5 hidden text-[12px] italic leading-snug text-ink/55 sm:block">{photo.caption}</figcaption>
-      ) : null}
+      {/* Les légendes ne sont plus sous les photos : elles s'affichent dans la visionneuse (clic sur la photo). */}
     </figure>
   );
 }
@@ -135,9 +132,6 @@ export function FeaturedPhoto({ photo, index, onOpen, priority = false }) {
         />
         <span className="pointer-events-none absolute inset-0 bg-ink/0 transition-colors duration-300 group-hover:bg-ink/10" />
       </button>
-      {photo.caption ? (
-        <figcaption className="mt-1.5 hidden text-center text-[12px] italic leading-snug text-ink/55 sm:block">{photo.caption}</figcaption>
-      ) : null}
     </figure>
   );
 }
@@ -161,17 +155,14 @@ export function PhotoPair({ items, onOpen }) {
             <FadeImage photo={photo} sizes="(max-width: 767px) 50vw, 620px" className="block h-auto w-full" />
             <span className="pointer-events-none absolute inset-0 bg-ink/0 transition-colors duration-300 group-hover:bg-ink/10" />
           </button>
-          {photo.caption ? (
-            <figcaption className="mt-1.5 hidden text-[12px] italic leading-snug text-ink/55 sm:block">{photo.caption}</figcaption>
-          ) : null}
         </figure>
       ))}
     </div>
   );
 }
 
-// Bouton texte « Voir les N photos » : ouvre la visionneuse sur la première photo.
-export function SeeAllButton({ count, onClick }) {
+// Bouton texte « Voir les N photos » / « Réduire » : déplie ou replie la suite de la grille, au choix du visiteur.
+export function SeeAllButton({ count, expanded = false, onClick }) {
   const { lang } = useLanguage();
   const copy = UI_COPY[lang]?.series || UI_COPY.fr.series;
 
@@ -182,7 +173,7 @@ export function SeeAllButton({ count, onClick }) {
         onClick={onClick}
         className="-my-2.5 py-2.5 text-[12px] font-bold uppercase tracking-[0.18em] text-ink/70 underline decoration-ink/25 underline-offset-[6px] transition-colors hover:text-ink hover:decoration-ink"
       >
-        {copy.expandAll(count)}
+        {expanded ? copy.collapse : copy.expandAll(count)}
       </button>
     </div>
   );
@@ -193,14 +184,17 @@ export function SeeAllButton({ count, onClick }) {
 // Au-delà de 12 photos, les suivantes ne sont visibles que dans la visionneuse.
 export default function PhotoGrid({ images, priority = false, limit = MAX_GRID_PHOTOS }) {
   const { open, viewer } = usePhotoViewer(images);
-  const items = images.slice(0, limit).map((photo, index) => ({ photo, index }));
+  const [expanded, setExpanded] = useState(false);
+  const items = (expanded ? images : images.slice(0, limit)).map((photo, index) => ({ photo, index }));
 
   if (!images.length) return null;
 
   return (
     <>
       <PhotoTiles items={items} onOpen={open} priority={priority} />
-      {images.length > items.length ? <SeeAllButton count={images.length} onClick={() => open(0)} /> : null}
+      {images.length > limit ? (
+        <SeeAllButton count={images.length} expanded={expanded} onClick={() => setExpanded((value) => !value)} />
+      ) : null}
       {viewer}
     </>
   );

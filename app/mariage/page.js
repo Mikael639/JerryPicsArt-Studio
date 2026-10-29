@@ -64,7 +64,7 @@ export default async function MariagePage() {
               fill
               priority
               sizes="(max-width: 1280px) 100vw, 1200px"
-              quality={85}
+              quality={75}
               className="object-cover object-[50%_32%]"
             />
           </div>

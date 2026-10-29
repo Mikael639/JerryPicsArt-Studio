@@ -20,7 +20,7 @@ export default function DoublePage({ photo }) {
         width={photo.width}
         height={photo.height}
         sizes="100vw"
-        quality={85}
+        quality={75}
         onLoad={() => setLoaded(true)}
         data-loaded={loaded ? "" : undefined}
         className={`photo-fade mx-auto block ${landscape ? "h-auto w-full" : "h-auto max-h-[100svh] w-auto max-w-full"}`}

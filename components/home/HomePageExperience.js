@@ -14,7 +14,6 @@ import {
   PartnersSection,
   StatsSection,
 } from "./homeShared";
-import ReferencesBand from "../ui/ReferencesBand";
 import ArticleEnd from "../ui/ArticleEnd";
 import Steps from "../ui/Steps";
 import Testimonials from "../ui/Testimonials";
@@ -48,7 +47,7 @@ export default function HomePageExperience({
   doorPhotos = {},
   universCovers = [],
   cinematicPool = [],
-  references = [],
+  references: _references = [],
   stats,
   testimonials,
   siteText = {},
@@ -310,7 +309,7 @@ export default function HomePageExperience({
           <motion.p
             initial={false}
             animate={{ opacity: 1 }}
-            className="max-w-md font-serif text-lg italic leading-snug text-paper/85 [text-shadow:0_1px_18px_rgba(12,10,8,0.55)] md:text-xl"
+            className="max-w-xl font-serif text-2xl leading-[1.12] tracking-[-0.015em] text-paper [text-shadow:0_2px_24px_rgba(12,10,8,0.7)] sm:text-3xl md:text-4xl lg:text-[2.65rem]"
           >
             {copy.heroTagline}
           </motion.p>
@@ -399,9 +398,6 @@ export default function HomePageExperience({
           </div>
         </MotionBlock>
       </section>
-
-      <ReferencesBand items={references} />
-
       <section className="mx-auto max-w-7xl px-4 md:px-8" aria-labelledby="portes-titre">
         <MotionBlock reduceMotion={reduceMotion} className="mb-10 max-w-3xl space-y-4">
           <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-ink/45">{copy.doorsEyebrow}</p>
@@ -424,7 +420,7 @@ export default function HomePageExperience({
                     sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-cover transition duration-[1.4s] ease-out group-hover:scale-[1.05]"
                     style={{ objectPosition: door.photo.objectPosition || "center center" }}
-                    quality={85}
+                    quality={75}
                   />
                 ) : null}
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(12,10,8,0.05),rgba(12,10,8,0.82))]" />
@@ -465,7 +461,7 @@ export default function HomePageExperience({
                       fill
                       sizes="(max-width: 768px) 50vw, 20vw"
                       className="object-cover transition duration-[1.4s] ease-out group-hover:scale-[1.05]"
-                      quality={85}
+                      quality={75}
                     />
                     <span className="absolute inset-0 bg-[linear-gradient(180deg,rgba(12,10,8,0)_45%,rgba(12,10,8,0.78))]" />
                     <span className="absolute inset-x-0 bottom-0 p-4 font-serif text-lg leading-tight md:text-xl">
@@ -478,10 +474,13 @@ export default function HomePageExperience({
           </ul>
         </section>
       ) : null}
+      <PartnersSection reduceMotion={reduceMotion} />
+
+
 
       <section
         data-cursor-surface="dark"
-        className="color-transition-section mx-auto max-w-7xl px-4 md:px-8"
+        className="mx-auto max-w-7xl px-4 md:px-8"
         aria-labelledby="methode-titre"
       >
         <MotionBlock reduceMotion={reduceMotion} className="mb-10 max-w-3xl space-y-4">
@@ -493,7 +492,7 @@ export default function HomePageExperience({
         <Steps tone="dark" columns="md:grid-cols-3" steps={copy.method} />
       </section>
 
-      <PartnersSection reduceMotion={reduceMotion} />
+      
 
       <StatsSection reduceMotion={reduceMotion} items={stats} />
 
