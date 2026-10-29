@@ -14,6 +14,8 @@ const FALLBACK_HEIGHT = 1500;
 
 function GridPhoto({ photo, index, onOpen, priority, openLabel }) {
   const [loaded, setLoaded] = useState(false);
+  // Sur téléphone (2 colonnes), une photo horizontale occupe toute la largeur, une verticale une colonne.
+  const isLandscape = (photo.width || FALLBACK_WIDTH) > (photo.height || FALLBACK_HEIGHT);
 
   return (
     <button
@@ -21,7 +23,9 @@ function GridPhoto({ photo, index, onOpen, priority, openLabel }) {
       onClick={() => onOpen(index)}
       data-cursor="gallery-item"
       aria-label={openLabel}
-      className="group relative mb-4 block w-full break-inside-avoid overflow-hidden rounded-[0.8rem] bg-ink/5 text-left"
+      className={`group relative block w-full break-inside-avoid overflow-hidden rounded-[0.8rem] bg-ink/5 text-left sm:mb-4 ${
+        isLandscape ? "col-span-2 sm:col-span-1" : ""
+      }`}
     >
       <Image
         src={photo.src}
@@ -29,7 +33,11 @@ function GridPhoto({ photo, index, onOpen, priority, openLabel }) {
         width={photo.width || FALLBACK_WIDTH}
         height={photo.height || FALLBACK_HEIGHT}
         priority={priority && index < 2}
-        sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 420px"
+        sizes={
+          isLandscape
+            ? "(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 420px"
+            : "(max-width: 639px) 50vw, (max-width: 1023px) 50vw, 420px"
+        }
         quality={85}
         onLoad={() => setLoaded(true)}
         data-loaded={loaded ? "" : undefined}
@@ -40,7 +48,7 @@ function GridPhoto({ photo, index, onOpen, priority, openLabel }) {
   );
 }
 
-// Grille éditoriale fixe : 3 colonnes sur ordinateur, 2 sur tablette, 1 sur téléphone, format d'origine
+// Grille éditoriale fixe : 3 colonnes sur ordinateur, 2 sur tablette et sur téléphone, format d'origine
 // de chaque photo. Aucune animation au défilement ; seul un fondu de 200 ms à l'arrivée de chaque photo.
 // Au-delà de 12 photos, les suivantes ne sont visibles que dans la visionneuse.
 export default function PhotoGrid({ images, priority = false, limit = MAX_GRID_PHOTOS }) {
@@ -63,7 +71,7 @@ export default function PhotoGrid({ images, priority = false, limit = MAX_GRID_P
 
   return (
     <>
-      <div className="-mb-4 gap-4 md:columns-2 lg:columns-3">
+      <div className="grid grid-cols-2 gap-1.5 sm:-mb-4 sm:block sm:columns-2 sm:gap-4 lg:columns-3">
         {visible.map((photo, index) => (
           <GridPhoto
             key={photo.id || photo.src}
