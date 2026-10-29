@@ -21,6 +21,7 @@ import {
 } from "../../../lib/googleDrive";
 import { getAdminContent } from "../../../lib/adminContent";
 import { updateSiteContent } from "../../../lib/siteContent";
+import { updateUniversOverride } from "../../../lib/universContent";
 import { deleteContactMessage, listContactMessages, updateContactMessageStatus } from "../../../lib/contactStore";
 import {
   createAdminPhotos,
@@ -436,6 +437,33 @@ export async function deleteContactMessageAction(id) {
     return createActionResult({ ok: true, message: "Message supprimé définitivement.", data: messages });
   } catch (error) {
     return createActionResult({ ok: false, message: error.message || "Impossible de supprimer le message." });
+  }
+}
+
+// Un univers : titre, crédits, contexte, ordre des photos, photos masquées, couverture, textes
+// alternatifs. Un champ texte vide efface la modification et revient à data/univers.js (import du Drive).
+export async function updateUniversAction(slug, patch) {
+  const cookieStore = await getAuthorizedCookieStore();
+  if (!cookieStore) return unauthorizedResult();
+
+  try {
+    await updateUniversOverride(slug, {
+      titre: toStringValue(patch?.titre),
+      credits: toStringValue(patch?.credits),
+      contexte: toStringValue(patch?.contexte),
+      order: Array.isArray(patch?.order) ? patch.order : [],
+      hidden: Array.isArray(patch?.hidden) ? patch.hidden : [],
+      cover: toStringValue(patch?.cover),
+      alt: patch?.alt && typeof patch.alt === "object" ? patch.alt : {},
+    });
+
+    revalidateTag("site-settings");
+    revalidatePath("/", "layout");
+    revalidateAdminViews();
+    const content = await getAdminContent();
+    return createActionResult({ ok: true, message: "Univers enregistré.", data: content.universList });
+  } catch (error) {
+    return createActionResult({ ok: false, message: error.message || "Impossible d'enregistrer cet univers." });
   }
 }
 

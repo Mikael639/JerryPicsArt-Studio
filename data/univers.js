@@ -258,7 +258,7 @@ const UNIVERS = [
   },
 ];
 
-const PAGE_PATHS = { signature: "/signature", evenements: "/evenements", entreprises: "/entreprises" };
+export const PAGE_PATHS = { signature: "/signature", evenements: "/evenements", entreprises: "/entreprises" };
 
 export function localize(value, lang) {
   if (!value || typeof value === "string") return value || "";
@@ -284,18 +284,61 @@ function withImages(univers) {
   };
 }
 
+// Les 10 univers tels qu'importés du Drive (annexe A), sans modification de l'administration.
+export function getUniversList() {
+  return UNIVERS.map(withImages);
+}
+
+// Applique les modifications faites depuis l'administration (textes, ordre, photos masquées,
+// couverture, textes alternatifs) à un univers tel que renvoyé par getUniversList/withImages.
+export function applyUniversOverride(univers, override) {
+  if (!override) return univers;
+
+  let images = univers.images;
+  if (override.hidden?.length) {
+    const hidden = new Set(override.hidden);
+    images = images.filter((image) => !hidden.has(image.id));
+  }
+  if (override.order?.length) {
+    const byId = new Map(images.map((image) => [image.id, image]));
+    const ordered = override.order.map((id) => byId.get(id)).filter(Boolean);
+    const rest = images.filter((image) => !override.order.includes(image.id));
+    images = [...ordered, ...rest];
+  }
+  if (override.alt) {
+    images = images.map((image) => (override.alt[image.id] ? { ...image, alt: override.alt[image.id] } : image));
+  }
+
+  const couverture = (override.cover && images.find((image) => image.id === override.cover)) || images[0] || null;
+
+  return {
+    ...univers,
+    titre: override.titre ? { fr: override.titre, en: univers.titre.en } : univers.titre,
+    credits: override.credits || univers.credits,
+    contexte: override.contexte ? { fr: override.contexte, en: univers.contexte.en } : univers.contexte,
+    couverture,
+    images,
+  };
+}
+
+export function withUniversOverrides(universList, overrides) {
+  return universList.map((univers) => applyUniversOverride(univers, overrides?.[univers.slug]));
+}
+
 // Univers d'une page (« signature », « evenements », « entreprises »), dans l'ordre d'affichage.
+// Sans les modifications de l'administration : lib/loadUnivers.js les applique pour les pages du site.
 export function getUniversForPage(page) {
-  return UNIVERS.filter((univers) => univers.page === page)
-    .map(withImages)
+  return getUniversList()
+    .filter((univers) => univers.page === page)
     .filter((univers) => univers.images.length);
 }
 
 // Accueil : une couverture par univers, chacune mène à l'univers sur sa page.
 export function getUniversCovers() {
-  return UNIVERS.map(withImages)
+  return getUniversList()
     .filter((univers) => univers.couverture)
     .map((univers) => ({
+      slug: univers.slug,
       href: `${PAGE_PATHS[univers.page]}#${univers.slug}`,
       titre: univers.titre,
       cover: univers.couverture,
