@@ -32,7 +32,7 @@ export default async function AdminPhotosPage() {
   let initialHomeCopy = defaultHomeCopy;
   let initialAboutCopy = defaultAboutCopy;
   let initialMaintenanceMode = false;
-  let initialContent = { testimonials: [], stats: [], references: [], seriesList: [] };
+  let initialContent = { testimonials: [], stats: [], references: [], seriesList: [], universList: [] };
 
   if (isAuthenticated) {
     try {
