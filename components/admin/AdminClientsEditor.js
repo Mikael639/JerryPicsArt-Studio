@@ -84,8 +84,8 @@ export default function AdminClientsEditor({ initialItems = [], onStatus, onErro
         <h2 className="font-serif text-3xl">Logos clients</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink/65">
           La bande « Ils nous ont fait confiance » de la page Entreprises &amp; lieux. Utilisez uniquement des logos
-          officiels (PNG, WebP ou JPEG, de préférence blancs ou noirs sur fond transparent) : ils s&rsquo;affichent en
-          gris. Sans logo, le nom s&rsquo;affiche en texte.
+          officiels (PNG, WebP ou JPEG), de préférence sombres ou en couleur sur fond blanc ou transparent : ils
+          s&rsquo;affichent en gris, le fond blanc disparaît. Sans logo, le nom s&rsquo;affiche en texte.
         </p>
       </div>
 

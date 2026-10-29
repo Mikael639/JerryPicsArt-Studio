@@ -41,7 +41,11 @@ export default function ClientsBand({ title, items = [] }) {
                 alt={client.name}
                 width={client.width}
                 height={client.height}
-                className={`${LOGO_HEIGHT[client.name] || "h-10 md:h-12"} w-auto object-contain opacity-55 brightness-0`}
+                className={`${LOGO_HEIGHT[client.name] || "h-10 md:h-12"} w-auto object-contain ${
+                  // Logos envoyés depuis l'administration (en couleur, souvent sur fond blanc) : passés en gris,
+                  // le fond blanc disparaît. Logos livrés avec le site (blancs sur transparent) : passés en gris foncé.
+                  client.logo.startsWith("http") ? "opacity-70 grayscale mix-blend-multiply" : "opacity-55 brightness-0"
+                }`}
               />
             ) : (
               <span className="whitespace-nowrap font-serif text-xl leading-none tracking-tight text-ink/55 md:text-2xl">
