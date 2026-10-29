@@ -1,13 +1,14 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FeaturedPhoto, isLandscapePhoto, PhotoPair, PhotoTiles, SeeAllButton, usePhotoViewer } from "./PhotoGrid";
 import { localize } from "../../data/univers";
 import { useLanguage } from "../LanguageProvider";
 
-const MAX_GRID_PHOTOS = 12;
-const PAIR_MIN_PHOTOS = 10;
+const MAX_PREVIEW_PHOTOS = 6;
+const PAIR_MIN_PHOTOS = 6;
 
 function pad(number) {
   return String(number).padStart(2, "0");
@@ -40,20 +41,34 @@ export function UniverseNav({ items }) {
       aria-label={lang === "en" ? "Contents" : "Sommaire"}
       className="universe-nav sticky top-[73px] z-30 border-b transition-colors duration-700 border-line/12 bg-paper/92 backdrop-blur-md md:static md:border-b-0 md:bg-transparent md:backdrop-blur-none"
     >
-      <ul className="no-scrollbar mx-auto flex max-w-7xl items-center gap-x-6 overflow-x-auto px-4 py-3.5 md:flex-wrap md:gap-x-8 md:gap-y-2 md:overflow-visible md:px-8 md:py-0">
+      <ul className="no-scrollbar mx-auto flex max-w-7xl items-stretch gap-2 overflow-x-auto px-4 py-2 md:grid md:grid-flow-col md:auto-cols-fr md:gap-4 md:overflow-visible md:px-8 md:py-0">
         {items.map((item, index) => {
           const active = activeSlug === item.slug;
+          const cover = item.couverture || item.images?.[0];
           return (
-            <li key={item.slug} className="shrink-0">
+            <li key={item.slug} className="shrink-0 md:shrink">
               <Link
                 href={`#${item.slug}`}
                 aria-current={active ? "true" : undefined}
-                className={`-my-2 block whitespace-nowrap py-2 text-[11px] font-bold uppercase tracking-[0.22em] transition-colors hover:text-ink ${
-                  active ? "text-ink underline decoration-accent underline-offset-[10px]" : "text-ink/55"
+                className={`flex h-full items-center gap-3 rounded-[0.7rem] border p-1.5 pr-3 transition-colors md:p-2 md:pr-4 ${
+                  active ? "border-accent bg-white/60" : "border-line/15 hover:border-ink/35"
                 }`}
               >
-                <span className="mr-1.5 font-serif text-[13px] font-medium tracking-normal text-ink/40">{pad(index + 1)}</span>
-                {localize(item.court, lang)}
+                {cover ? (
+                  <span className="relative h-10 w-8 shrink-0 overflow-hidden rounded-[0.4rem] bg-ink/10 md:h-16 md:w-12">
+                    <Image src={cover.src} alt="" fill sizes="48px" quality={75} className="object-cover" />
+                  </span>
+                ) : null}
+                <span className="min-w-0">
+                  <span className="block font-serif text-[13px] leading-none text-ink/45 md:text-[15px]">{pad(index + 1)}</span>
+                  <span
+                    className={`mt-1 block whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.18em] md:whitespace-normal md:text-[11px] md:leading-tight ${
+                      active ? "text-ink" : "text-ink/65"
+                    }`}
+                  >
+                    {localize(item.court, lang)}
+                  </span>
+                </span>
               </Link>
             </li>
           );
@@ -70,6 +85,8 @@ export default function Universe({ univers, number = 1, priority = false, exclud
   const titre = localize(univers.titre, lang);
   const images = univers.images.filter((image) => !excludeIds.includes(image.id));
   const { open, viewer } = usePhotoViewer(images);
+  const [expanded, setExpanded] = useState(false);
+  const sectionRef = useRef(null);
 
   if (!images.length) return null;
 
@@ -83,12 +100,22 @@ export default function Universe({ univers, number = 1, priority = false, exclud
       : [];
   const pairComplete = pair.length === 2 ? pair : [];
   const usedIndexes = new Set([0, ...pairComplete.map((item) => item.index)]);
-  const gridItems = indexed.filter((item) => !usedIndexes.has(item.index)).slice(0, MAX_GRID_PHOTOS);
-  const shownCount = usedIndexes.size + gridItems.length;
+  const remainingSlots = Math.max(0, MAX_PREVIEW_PHOTOS - usedIndexes.size);
+  const restItems = indexed.filter((item) => !usedIndexes.has(item.index));
+  // Au départ, quelques photos seulement ; « Voir les N photos » déplie le reste, « Réduire » le replie.
+  const gridItems = expanded ? restItems : restItems.slice(0, remainingSlots);
+  const shownCount = usedIndexes.size + restItems.slice(0, remainingSlots).length;
+
+  function toggleExpanded() {
+    // En repliant, on revient en haut de l'univers pour ne pas laisser le visiteur perdu au milieu de la page.
+    if (expanded) sectionRef.current?.scrollIntoView({ block: "start" });
+    setExpanded((value) => !value);
+  }
   const label = lang === "en" ? "With" : "Avec";
 
   return (
     <section
+      ref={sectionRef}
       id={univers.slug}
       aria-labelledby={`${univers.slug}-titre`}
       className="mx-auto max-w-7xl scroll-mt-36 px-4 md:scroll-mt-28 md:px-8"
@@ -135,7 +162,9 @@ export default function Universe({ univers, number = 1, priority = false, exclud
         </div>
       ) : null}
 
-      {images.length > shownCount ? <SeeAllButton count={images.length} onClick={() => open(0)} /> : null}
+      {images.length > shownCount ? (
+        <SeeAllButton count={images.length} expanded={expanded} onClick={toggleExpanded} />
+      ) : null}
       {viewer}
     </section>
   );

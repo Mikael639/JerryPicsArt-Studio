@@ -90,6 +90,7 @@ export const partners = [
   { name: "Galeries Lafayette", logo: "/images/partners/galeries-lafayette.png", size: "h-16 md:h-20", width: 900, height: 472 },
   { name: "Printemps", logo: "/images/partners/printemps.png", size: "h-10 md:h-11", width: 342, height: 49 },
   { name: "Decathlon", logo: "/images/partners/decathlon.png", size: "h-10 md:h-12", width: 1011, height: 152 },
+  { name: "UNESCO", logo: "/images/partners/unesco.png", size: "h-12 md:h-14", width: 3648, height: 774 },
   { name: "Les Flammes", logo: "/images/partners/les-flammes.png", size: "h-16 md:h-20", width: 486, height: 220 },
   { name: "Valeo", logo: "/images/partners/valeo.png", size: "h-14 md:h-16", width: 950, height: 412 },
   { name: "Rolling Stone Africa", logo: "/images/partners/rolling-stone-africa.png", size: "h-12 md:h-14", width: 900, height: 179 },
@@ -153,11 +154,11 @@ export function PartnersSection({ reduceMotion, items = partners }) {
   useMarqueeSlowdown(trackRef, containerRef);
 
   return (
-    <section className="mx-auto max-w-7xl px-4 md:px-8">
+    <section data-cursor-surface="dark" className="color-transition-section mx-auto max-w-7xl px-4 md:px-8" aria-labelledby="partenaires-titre">
       <MotionBlock reduceMotion={reduceMotion} className="space-y-10">
         <div className="max-w-2xl space-y-4">
           <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-paper/55">{copy.partnersEyebrow}</p>
-          <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] text-paper md:text-6xl">
+          <h2 id="partenaires-titre" className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] text-paper md:text-6xl">
             {copy.partnersTitle}
           </h2>
         </div>

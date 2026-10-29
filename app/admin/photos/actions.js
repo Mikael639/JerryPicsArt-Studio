@@ -489,11 +489,18 @@ export async function uploadClientLogoAction(formData) {
   if (file.size > CLIENT_LOGO_MAX_BYTES) return createActionResult({ ok: false, message: "Le logo dépasse 2 Mo." });
 
   try {
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const { width, height } = await sharp(buffer).metadata();
+    // Un logo s'affiche en petit : on le réduit à 800 px de large au plus (transparence conservée), même format.
+    const pipeline = sharp(Buffer.from(await file.arrayBuffer())).rotate().resize({ width: 800, height: 800, fit: "inside", withoutEnlargement: true });
+    const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+    const { data: buffer, info } = await (extension === "png"
+      ? pipeline.png({ compressionLevel: 9 })
+      : extension === "webp"
+      ? pipeline.webp({ quality: 85 })
+      : pipeline.jpeg({ quality: 88, mozjpeg: true })
+    ).toBuffer({ resolveWithObject: true });
+    const { width, height } = info;
     if (!width || !height) throw new Error("Image illisible.");
 
-    const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
     const { publicUrl } = await uploadR2Object({
       storagePath: `clients/${crypto.randomUUID()}.${extension}`,
       buffer,

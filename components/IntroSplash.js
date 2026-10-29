@@ -21,8 +21,8 @@ export default function IntroSplash() {
     }
 
     sessionStorage.setItem(SESSION_KEY, "1");
-    const leaveTimeout = window.setTimeout(() => setIsLeaving(true), 1300);
-    const removeTimeout = window.setTimeout(() => setIsVisible(false), 2050);
+    const leaveTimeout = window.setTimeout(() => setIsLeaving(true), 650);
+    const removeTimeout = window.setTimeout(() => setIsVisible(false), 1250);
 
     return () => {
       window.clearTimeout(leaveTimeout);
