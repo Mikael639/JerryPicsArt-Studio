@@ -18,15 +18,14 @@ function GridPhoto({ photo, index, onOpen, priority, openLabel }) {
   const isLandscape = (photo.width || FALLBACK_WIDTH) > (photo.height || FALLBACK_HEIGHT);
 
   return (
-    <button
-      type="button"
-      onClick={() => onOpen(index)}
-      data-cursor="gallery-item"
-      aria-label={openLabel}
-      className={`group relative block w-full break-inside-avoid overflow-hidden rounded-[0.8rem] bg-ink/5 text-left sm:mb-4 ${
-        isLandscape ? "col-span-2 sm:col-span-1" : ""
-      }`}
-    >
+    <figure className={`break-inside-avoid sm:mb-4 ${isLandscape ? "col-span-2 sm:col-span-1" : ""}`}>
+      <button
+        type="button"
+        onClick={() => onOpen(index)}
+        data-cursor="gallery-item"
+        aria-label={openLabel}
+        className="group relative block w-full overflow-hidden rounded-[0.8rem] bg-ink/5 text-left"
+      >
       <Image
         src={photo.src}
         alt={photo.alt}
@@ -44,7 +43,12 @@ function GridPhoto({ photo, index, onOpen, priority, openLabel }) {
         className="photo-fade block h-auto w-full"
       />
       <span className="pointer-events-none absolute inset-0 bg-ink/0 transition-colors duration-300 group-hover:bg-ink/10" />
-    </button>
+      </button>
+      {/* Légende : visible dans la grille dès la tablette ; sur téléphone elle est dans la visionneuse. */}
+      {photo.caption ? (
+        <figcaption className="mt-1.5 hidden text-[12px] italic leading-snug text-ink/55 sm:block">{photo.caption}</figcaption>
+      ) : null}
+    </figure>
   );
 }
 

@@ -258,6 +258,118 @@ const UNIVERS = [
   },
 ];
 
+// Légendes courtes (version abrégée des textes alternatifs), uniquement quand la photo nomme une personne, une maison
+// ou un lieu. Même ordre que les photos de chaque univers ; une chaîne vide = pas de légende.
+const LEGENDES = {
+  "defiles": [
+    "Semaine de la Haute Couture, Paris",
+    "Défilé Georges Chakra, Haute Couture",
+    "Défilé Imane Ayissi, Haute Couture",
+    "Paris Fashion Week, mars 2026",
+    "Paris Fashion Week, mars 2026",
+    "Paris Fashion Week, mars 2026",
+    "",
+    "Défilé D in Paris",
+    "Défilé KidSuper, Paris",
+    "Semaine de la Haute Couture, Paris",
+    "Paris Fashion Week",
+    "Défilé Amiri, Paris",
+    "Semaine de la Haute Couture, Paris",
+    "Défilé D in Paris",
+  ],
+  "personnalites": [
+    "Denzel Ward, défilé Amiri",
+    "Soirée Amiri, Paris",
+    "Michael Rainey Jr, Paris Fashion Week",
+    "Défilé KidSuper, Paris",
+    "Jerami Grant, défilé KidSuper",
+    "Davido, Paris Fashion Week",
+    "Djany, Les Flammes 2026",
+    "Paris Fashion Week, octobre 2025",
+    "Défilé Georges Chakra, Paris",
+    "Kristy Sarah, Paris Fashion Week",
+    "Défilé Casablanca, Paris",
+    "Défilé Elie Saab, Haute Couture",
+    "Défilé Amiri, Paris",
+  ],
+  "editorial": [
+    "",
+    "",
+    "Magnum Online, Côte d'Azur",
+    "Magnum Online, Côte d'Azur",
+    "",
+    "Série Origines",
+    "Série Little Africa, Paris",
+    "",
+    "",
+    "",
+    "Magnum Online, Côte d'Azur",
+    "Magnum Online, Côte d'Azur",
+    "",
+  ],
+  "campagnes": [
+    "Africa Now × Galeries Lafayette, avec Olivia Yacé",
+    "Africa Now × Galeries Lafayette, avec Olivia Yacé",
+    "Africa Now × Galeries Lafayette, avec Olivia Yacé",
+    "Diaka Camara pour le Printemps",
+    "Diaka Camara pour le Printemps",
+    "Diaka Camara pour le Printemps",
+    "",
+    "",
+    "",
+    "",
+  ],
+  "sport": [
+    "Grand Prix de Monaco",
+    "Grand Prix de Monaco",
+    "Grand Prix de Monaco",
+    "Denzel Ward, défilé Amiri",
+    "Jubilé Robert Pirès",
+    "Jubilé Robert Pirès",
+    "Jubilé Robert Pirès",
+    "Jubilé Robert Pirès",
+  ],
+  "monaco-culture": [
+    "Expérience Orun, Grand Prix de Monaco",
+    "Beluga × Monaco",
+    "Manifeste 2026",
+    "Soirée Amiri, Paris",
+    "La Conversation, Paris 2026",
+  ],
+  "diners": [
+    "Gala Mboa Paris 2025",
+    "The Builders' Tables",
+    "The Builders' Tables",
+    "The Builders' Tables",
+    "The Builders' Tables",
+    "Private Fashion Dinner, Mboa Paris",
+    "Private Fashion Dinner, Mboa Paris",
+    "Pink Table, Taptap Send",
+    "Beyond The Glow, Nubiance × Sheek",
+    "Beyond The Glow, Nubiance × Sheek",
+    "Beyond The Glow, Nubiance × Sheek",
+    "Beyond The Glow, Nubiance × Sheek",
+    "Private Fashion Dinner, Mboa Paris",
+    "Beyond The Glow, Nubiance × Sheek",
+    "Private Fashion Dinner, Mboa Paris",
+    "Beyond The Glow, Nubiance × Sheek",
+  ],
+  "scenes": [
+    "Fally Ipupa, Stade de France",
+    "Djany, Les Flammes 2026",
+    "Les Flammes 2025",
+    "Avant-première Rumba Royale",
+    "Avant-première Rumba Royale",
+    "Soirée D in Paris",
+    "Avant-première Joya",
+    "Avant-première Joya",
+    "Les Flammes 2025",
+    "Fally Ipupa, Stade de France",
+    "Fally Ipupa, Stade de France",
+    "Les Flammes 2025",
+  ],
+};
+
 export const PAGE_PATHS = { signature: "/signature", evenements: "/evenements", entreprises: "/entreprises" };
 
 export function localize(value, lang) {
@@ -270,7 +382,15 @@ function withImages(univers) {
   const images = univers.photos
     .map(([driveId, alt]) => ({ driveId, alt, ...UNIVERS_PHOTOS[driveId] }))
     .filter((photo) => photo.src)
-    .map(({ driveId, alt, src, width, height }) => ({ id: driveId, src, alt, width, height, title: titre }));
+    .map(({ driveId, alt, src, width, height }, index) => ({
+      id: driveId,
+      src,
+      alt,
+      caption: LEGENDES[univers.slug]?.[index] || "",
+      width,
+      height,
+      title: titre,
+    }));
 
   return {
     page: univers.page,

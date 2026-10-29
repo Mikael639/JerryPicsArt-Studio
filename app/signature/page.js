@@ -1,11 +1,9 @@
 import PageIntro from "../../components/ui/PageIntro";
-import ReferencesBand from "../../components/ui/ReferencesBand";
 import Universe, { UniverseNav } from "../../components/ui/Universe";
 import ContactBlock from "../../components/ui/ContactBlock";
 import DarkChapter from "../../components/ui/DarkChapter";
 import { loadUniversForPage } from "../../lib/loadUnivers";
 import { getIntroPhotos } from "../../lib/introPhotos";
-import { getReferences } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
 import { PAGES_COPY } from "../../lib/i18n";
 import { getServerLang } from "../../lib/serverLang";
@@ -20,7 +18,7 @@ export async function generateMetadata() {
 }
 
 export default async function SignaturePage() {
-  const [references, lang] = await Promise.all([getReferences(), getServerLang()]);
+  const lang = await getServerLang();
   const copy = PAGES_COPY.signature[lang] || PAGES_COPY.signature.fr;
   const univers = await loadUniversForPage("signature");
   const introPhoto = (await getIntroPhotos())["/signature"] || univers[0]?.images?.[0] || null;
@@ -35,7 +33,9 @@ export default async function SignaturePage() {
         image={introPhoto}
       />
 
-      <ReferencesBand items={references} />
+      <p className="mx-auto max-w-7xl px-4 text-[11px] font-bold uppercase leading-relaxed tracking-[0.28em] text-ink/45 md:px-8">
+        {copy.coverTitles}
+      </p>
 
       {/* La barre d'ancres et tous les univers partagent ce bloc : sur téléphone, la barre reste collée
           jusqu'au dernier univers, y compris dans la partie sombre. */}
