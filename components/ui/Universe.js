@@ -13,7 +13,7 @@ export function UniverseNav({ items }) {
   return (
     <nav
       aria-label={lang === "en" ? "Collections on this page" : "Univers de la page"}
-      className="sticky top-[73px] z-30 border-b border-line/12 bg-paper/92 backdrop-blur-md md:static md:border-b-0 md:bg-transparent md:backdrop-blur-none"
+      className="universe-nav sticky top-[73px] z-30 border-b transition-colors duration-700 border-line/12 bg-paper/92 backdrop-blur-md md:static md:border-b-0 md:bg-transparent md:backdrop-blur-none"
     >
       <ul className="no-scrollbar mx-auto flex max-w-7xl items-center gap-x-6 overflow-x-auto px-4 py-3.5 md:flex-wrap md:gap-y-2 md:overflow-visible md:px-8 md:py-0">
         {items.map((item, index) => (

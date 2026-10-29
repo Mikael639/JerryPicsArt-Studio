@@ -128,7 +128,8 @@ html.has-custom-cursor [contenteditable="true"] {
 }
 
 /* En-tête : suit le mode sombre quand le fond de la page est sombre. */
-html[data-theme="dark"] header {
+html[data-theme="dark"] header,
+html[data-theme="dark"] .universe-nav {
   --accent: #b07f5a;
   --ink: #fafafa;
   --paper: #0c0a08;

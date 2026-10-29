@@ -37,25 +37,34 @@ export default async function SignaturePage() {
 
       <ReferencesBand items={references} />
 
-      <div className="space-y-12 md:space-y-16">
+      {/* La barre d'ancres et tous les univers partagent ce bloc : sur téléphone, la barre reste collée
+          jusqu'au dernier univers, y compris dans la partie sombre. */}
+      <div>
         <UniverseNav items={univers} />
-        <div className="space-y-20 md:space-y-28">
-          {univers.map((item, index) => (
+        <div className="mt-12 space-y-20 md:mt-16 md:space-y-28">
+          {univers.slice(0, 3).map((item, index) => (
             <Universe key={item.slug} univers={item} priority={index === 0} />
           ))}
         </div>
-      </div>
 
-      <DarkChapter>
-        <ContactBlock
-          title={copy.contactTitle}
-          text={copy.contactText}
-          label={copy.contactLabel}
-          href="/evenements"
-          event="bridge_cta_signature_final"
-          secondary={{ href: "/mariage", label: copy.contactSecondary }}
-        />
-      </DarkChapter>
+        {/* Passage en mode sombre au milieu de la page : les derniers univers et le contact. */}
+        <DarkChapter className="mt-16 md:mt-24">
+          <div className="space-y-20 md:space-y-28">
+            {univers.slice(3).map((item) => (
+              <Universe key={item.slug} univers={item} />
+            ))}
+          </div>
+
+          <ContactBlock
+            title={copy.contactTitle}
+            text={copy.contactText}
+            label={copy.contactLabel}
+            href="/evenements"
+            event="bridge_cta_signature_final"
+            secondary={{ href: "/mariage", label: copy.contactSecondary }}
+          />
+        </DarkChapter>
+      </div>
     </div>
   );
 }
