@@ -15,6 +15,7 @@ import {
   StatsSection,
 } from "./homeShared";
 import Portraits from "./Portraits";
+import ArticleEnd from "../ui/ArticleEnd";
 import Steps from "../ui/Steps";
 import Testimonials from "../ui/Testimonials";
 import ContactBlock from "../ui/ContactBlock";
@@ -497,6 +498,8 @@ export default function HomePageExperience({
       <StatsSection reduceMotion={reduceMotion} items={stats} />
 
       <Testimonials items={testimonials} limit={1} tone="dark" title={copy.testimonialsTitle} />
+
+      <ArticleEnd />
 
       <ContactBlock
         title={copy.contactTitle}
