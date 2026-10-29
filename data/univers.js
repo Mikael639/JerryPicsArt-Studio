@@ -464,3 +464,12 @@ export function getUniversCovers() {
       cover: univers.couverture,
     }));
 }
+
+// Une photo des univers retrouvée par son identifiant Drive (double page, portraits...).
+export function getUniversPhoto(driveId) {
+  for (const univers of getUniversList()) {
+    const photo = univers.images.find((image) => image.id === driveId);
+    if (photo) return photo;
+  }
+  return null;
+}

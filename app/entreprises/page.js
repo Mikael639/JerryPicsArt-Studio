@@ -1,6 +1,8 @@
 import PageIntro from "../../components/ui/PageIntro";
 import ClientsBand from "../../components/ui/ClientsBand";
 import Universe, { UniverseNav } from "../../components/ui/Universe";
+import PullQuote from "../../components/ui/PullQuote";
+import ArticleEnd from "../../components/ui/ArticleEnd";
 import Steps from "../../components/ui/Steps";
 import Reveal from "../../components/ui/Reveal";
 import OfferCards from "../../components/ui/OfferCards";
@@ -64,8 +66,9 @@ export default async function EntreprisesPage() {
         <UniverseNav items={univers} />
         <div className="mt-12 space-y-20 md:mt-16 md:space-y-28">
           {univers.slice(0, 1).map((item, index) => (
-            <Universe key={item.slug} univers={item} priority={index === 0} />
+            <Universe key={item.slug} univers={item} number={index + 1} priority={index === 0} />
           ))}
+          <PullQuote text={copy.quote} />
         </div>
 
         {/* Passage en mode sombre plus tard sur cette page, plus courte : tarifs, garanties,
@@ -94,8 +97,8 @@ export default async function EntreprisesPage() {
 
           <div className="space-y-12 md:space-y-16">
             <div className="space-y-20 md:space-y-28">
-              {univers.slice(1).map((item) => (
-                <Universe key={item.slug} univers={item} />
+              {univers.slice(1).map((item, index) => (
+                <Universe key={item.slug} univers={item} number={index + 2} />
               ))}
             </div>
             <section className="mx-auto max-w-7xl px-4 md:px-8">
@@ -141,6 +144,7 @@ export default async function EntreprisesPage() {
             </Reveal>
           </section>
 
+          <ArticleEnd />
           <ContactBlock
             title={copy.contactTitle}
             text={copy.contactText}
