@@ -13,9 +13,8 @@ import {
   MotionBlock,
   PartnersSection,
   StatsSection,
-  wordRevealVariant,
 } from "./homeShared";
-import ReferencesBand from "../ui/ReferencesBand";
+import Portraits from "./Portraits";
 import Steps from "../ui/Steps";
 import Testimonials from "../ui/Testimonials";
 import ContactBlock from "../ui/ContactBlock";
@@ -28,7 +27,7 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, useGSAP);
 }
 
-const HERO_SLIDE_DURATION_MS = 8400;
+const HERO_SLIDE_DURATION_MS = 5600;
 const HOME_SLIDESHOW_LIMIT = 10;
 const DEFAULT_HERO_POSITION = "center 16%";
 const DEFAULT_MOBILE_HERO_POSITION = "center center";
@@ -45,11 +44,10 @@ function getHeroPriority(photo) {
 
 export default function HomePageExperience({
   heroPhoto,
-  supportingPhotos,
   doorPhotos = {},
+  portraits = [],
   universCovers = [],
   cinematicPool = [],
-  references,
   stats,
   testimonials,
   siteText = {},
@@ -63,10 +61,6 @@ export default function HomePageExperience({
     lang === "en" ? copy.heroTitle : siteText.heroTitle || copy.heroTitle;
   const heroSubtitle =
     lang === "en" ? copy.heroSubtitle : siteText.heroSubtitle || copy.heroSubtitle;
-
-  function getHeroLabel(category) {
-    return copy.heroLabels[category] || copy.heroLabels.default;
-  }
 
   const doors = [
     {
@@ -118,7 +112,6 @@ export default function HomePageExperience({
     shuffledPhotos.length > 1 ? shuffledPhotos[(activeHeroIndex + 1) % shuffledPhotos.length] : null;
   const containerRef = useRef(null);
   const swipeStartRef = useRef(null);
-  const visibleHeroDots = shuffledPhotos.slice(0, 5);
   const shouldCalmHeroMotion = reduceMotion || calmDevice;
 
   // Photo qui vient de quitter l'écran : elle reste affichée dessous le temps du fondu de la suivante (mode tablette).
@@ -310,141 +303,59 @@ export default function HomePageExperience({
         />
         <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-b from-transparent via-paper/20 to-paper" />
 
-        <div className="relative mx-auto grid min-h-[100svh] max-w-7xl content-end gap-8 px-4 pb-10 pt-28 md:min-h-screen md:gap-12 md:px-8 md:pb-20 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-end">
-          <motion.div
+        {/* Ouverture : les photos parlent. Seuls éléments par-dessus : une phrase d'accroche discrète
+            et les commandes du carrousel avec le compteur. Le H1 et les boutons suivent juste dessous. */}
+        <div className="relative mx-auto flex min-h-[100svh] max-w-7xl flex-col justify-end gap-5 px-4 pb-10 pt-28 md:min-h-screen md:px-8 md:pb-16">
+          <motion.p
             initial={false}
-            animate={{
-              opacity: 1,
-              transition: { staggerChildren: 0.08, delayChildren: 0.3 },
-            }}
-            className="max-w-4xl text-paper"
+            animate={{ opacity: 1 }}
+            className="max-w-md font-serif text-lg italic leading-snug text-paper/85 [text-shadow:0_1px_18px_rgba(12,10,8,0.55)] md:text-xl"
           >
-            <motion.h1
-              variants={wordRevealVariant}
-              className="max-w-[18ch] font-serif text-4xl font-medium leading-[0.98] tracking-[-0.03em] text-paper [text-wrap:balance] [text-shadow:0_2px_30px_rgba(12,10,8,0.45)] sm:text-5xl md:text-6xl xl:text-[4.5rem]"
-            >
-              {heroTitle}
-            </motion.h1>
+            {copy.heroTagline}
+          </motion.p>
 
-            <motion.p
-              variants={wordRevealVariant}
-              className="mt-5 max-w-2xl text-base leading-relaxed text-paper/80 [text-shadow:0_1px_18px_rgba(12,10,8,0.5)] md:text-lg"
-            >
-              {heroSubtitle}
-            </motion.p>
-
-            <motion.div variants={wordRevealVariant} className="mt-7 flex flex-wrap items-center gap-x-8 gap-y-4 hero-content-reveal">
-              <MagneticElement strength={0.25}>
-                <TrackedLink
-                  href="/contact"
-                  event="devis_accueil_hero"
-                  className="inline-block rounded-full bg-paper px-7 py-3.5 text-[12px] font-bold uppercase tracking-[0.18em] text-ink shadow-2xl transition-colors hover:bg-accent hover:text-paper sm:px-8 sm:py-4 sm:text-[13px] sm:tracking-[0.22em]"
-                >
-                  {copy.ctaPrimary}
-                </TrackedLink>
-              </MagneticElement>
-              <Link
-                href="/signature"
-                className="-my-2.5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-paper/80 underline-offset-4 transition-colors hover:text-paper hover:underline sm:text-[13px]"
+          {shuffledPhotos.length > 1 ? (
+            <div className="flex max-w-xl items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                onClick={showPreviousHeroPhoto}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-paper/18 bg-black/18 text-paper/70 transition hover:border-paper/45 hover:text-paper sm:h-9 sm:w-9"
+                aria-label={copy.prevSlide}
               >
-                {copy.ctaSecondary}
-              </Link>
-            </motion.div>
-
-            {shuffledPhotos.length > 1 ? (
-              <motion.div variants={wordRevealVariant} className="mt-5 flex max-w-xl items-center gap-2 sm:gap-3">
-                <button
-                  type="button"
-                  onClick={showPreviousHeroPhoto}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-paper/18 bg-black/18 text-paper/70 transition hover:border-paper/45 hover:text-paper sm:h-9 sm:w-9"
-                  aria-label={copy.prevSlide}
-                >
-                  <span aria-hidden="true">‹</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsHeroPaused((current) => !current)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-paper/18 bg-black/18 text-paper/70 transition hover:border-paper/45 hover:text-paper sm:h-9 sm:w-9"
-                  aria-label={isHeroPaused ? copy.resumeSlide : copy.pauseSlide}
-                >
-                  <span aria-hidden="true">{isHeroPaused ? "▶" : "Ⅱ"}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={showNextHeroPhoto}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-paper/18 bg-black/18 text-paper/70 transition hover:border-paper/45 hover:text-paper sm:h-9 sm:w-9"
-                  aria-label={copy.nextSlide}
-                >
-                  <span aria-hidden="true">›</span>
-                </button>
-                <div className="relative h-px flex-1 overflow-hidden bg-paper/14">
-                  <motion.div
-                    key={`${activeHeroPhoto.id}-${isHeroPaused ? "paused" : "playing"}`}
-                    className="absolute inset-y-0 left-0 bg-paper/70"
-                    initial={{ width: "0%" }}
-                    animate={{ width: isHeroPaused || reduceMotion ? "0%" : "100%" }}
-                    transition={reduceMotion ? undefined : { duration: HERO_SLIDE_DURATION_MS / 1000, ease: "linear" }}
-                  />
-                </div>
-                <span className="min-w-14 text-right font-serif text-xl leading-none text-paper/75">
-                  {String(activeHeroIndex + 1).padStart(2, "0")}
-                  <span className="mx-1 text-paper/25">/</span>
-                  <span className="text-sm text-paper/45">{String(shuffledPhotos.length).padStart(2, "0")}</span>
-                </span>
-              </motion.div>
-            ) : null}
-          </motion.div>
-
-          <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: 40 }}
-            whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={reduceMotion ? undefined : { duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-8 hidden gap-4 hero-content-reveal lg:grid"
-          >
-            {supportingPhotos.map((photo) => (
-              <div
-                key={photo.id}
-                className="relative min-h-[15rem] overflow-hidden rounded-card border border-white/10 bg-black/20 backdrop-blur-sm"
+                <span aria-hidden="true">‹</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsHeroPaused((current) => !current)}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-paper/18 bg-black/18 text-paper/70 transition hover:border-paper/45 hover:text-paper sm:h-9 sm:w-9"
+                aria-label={isHeroPaused ? copy.resumeSlide : copy.pauseSlide}
               >
-                <Image
-                  src={photo.src}
-                  alt={photo.alt}
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 50vw, 22vw"
-                  className="parallax-img object-cover sharpen-img transition-transform duration-1000 hover:scale-110 scale-[1.08]"
-                  style={{ objectPosition: photo.objectPosition || "center center" }}
-                  quality={90}
+                <span aria-hidden="true">{isHeroPaused ? "▶" : "Ⅱ"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={showNextHeroPhoto}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-paper/18 bg-black/18 text-paper/70 transition hover:border-paper/45 hover:text-paper sm:h-9 sm:w-9"
+                aria-label={copy.nextSlide}
+              >
+                <span aria-hidden="true">›</span>
+              </button>
+              <div className="relative h-px flex-1 overflow-hidden bg-paper/14">
+                <motion.div
+                  key={`${activeHeroPhoto.id}-${isHeroPaused ? "paused" : "playing"}`}
+                  className="absolute inset-y-0 left-0 bg-paper/70"
+                  initial={{ width: "0%" }}
+                  animate={{ width: isHeroPaused || reduceMotion ? "0%" : "100%" }}
+                  transition={reduceMotion ? undefined : { duration: HERO_SLIDE_DURATION_MS / 1000, ease: "linear" }}
                 />
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(12,10,8,0),rgba(12,10,8,0.22))]" />
               </div>
-            ))}
-
-            <div className="rounded-card border border-white/10 bg-black/40 p-6 text-paper/90 shadow-2xl backdrop-blur-xl">
-              <div className="flex items-center justify-between gap-4">
-                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/50">{getHeroLabel(activeHeroPhoto.category)}</p>
-                {shuffledPhotos.length > 1 ? (
-                  <div className="flex items-center gap-2">
-                    {visibleHeroDots.map((photo, index) => (
-                      <button
-                        key={photo.id}
-                        type="button"
-                        aria-label={copy.showSlide(photo.title)}
-                        onClick={() => {
-                          setActiveHeroIndex(index);
-                          setIsHeroPaused(true);
-                        }}
-                        className={`h-1.5 rounded-full transition-all duration-500 ${
-                          activeHeroIndex === index ? "w-6 bg-paper/90" : "w-1.5 bg-paper/20 hover:bg-paper/40"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                ) : null}
-              </div>
+              <span className="min-w-14 text-right font-serif text-xl leading-none text-paper/75">
+                {String(activeHeroIndex + 1).padStart(2, "0")}
+                <span className="mx-1 text-paper/25">/</span>
+                <span className="text-sm text-paper/45">{String(shuffledPhotos.length).padStart(2, "0")}</span>
+              </span>
             </div>
-          </motion.div>
+          ) : null}
         </div>
         <style jsx global>{`
           .hero-main-image {
@@ -459,7 +370,36 @@ export default function HomePageExperience({
         `}</style>
       </section>
 
-      <ReferencesBand items={references} />
+      <section className="mx-auto max-w-7xl px-4 md:px-8" aria-labelledby="accueil-titre">
+        <MotionBlock reduceMotion={reduceMotion} className="max-w-4xl space-y-6">
+          <h1
+            id="accueil-titre"
+            className="max-w-[20ch] font-serif text-4xl font-medium leading-[0.98] tracking-[-0.03em] text-ink [text-wrap:balance] sm:text-5xl md:text-6xl xl:text-[4.5rem]"
+          >
+            {heroTitle}
+          </h1>
+          <p className="max-w-2xl text-base leading-relaxed text-ink/70 md:text-lg">{heroSubtitle}</p>
+          <div className="flex flex-wrap items-center gap-x-8 gap-y-4 pt-1">
+            <MagneticElement strength={0.25}>
+              <TrackedLink
+                href="/contact"
+                event="devis_accueil_hero"
+                className="inline-block rounded-full bg-ink px-7 py-3.5 text-[12px] font-bold uppercase tracking-[0.18em] text-paper transition-colors hover:bg-accent sm:px-8 sm:py-4 sm:text-[13px] sm:tracking-[0.22em]"
+              >
+                {copy.ctaPrimary}
+              </TrackedLink>
+            </MagneticElement>
+            <Link
+              href="/signature"
+              className="-my-2.5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-ink/60 underline-offset-4 transition-colors hover:text-ink hover:underline sm:text-[13px]"
+            >
+              {copy.ctaSecondary}
+            </Link>
+          </div>
+        </MotionBlock>
+      </section>
+
+      <Portraits items={portraits} title={copy.portraitsTitle} alsoLabel={copy.portraitsAlso} reduceMotion={reduceMotion} />
 
       <section className="mx-auto max-w-7xl px-4 md:px-8" aria-labelledby="portes-titre">
         <MotionBlock reduceMotion={reduceMotion} className="mb-10 max-w-3xl space-y-4">

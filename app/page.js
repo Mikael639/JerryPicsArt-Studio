@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import HomePageExperience from "../components/home/HomePageExperience";
 import { loadUniversCovers } from "../lib/loadUnivers";
+import { getPortraits } from "../data/portraits";
 import { defaultPortfolioCategory } from "../lib/categories";
 import { getPhotoObjectPosition } from "../lib/photoPresentation";
 import { getPublicPhotos } from "../lib/photoRepository";
@@ -263,6 +264,7 @@ export default async function HomePage() {
         supportingPhotos={supportingPhotos}
         doorPhotos={doorPhotos}
         universCovers={await loadUniversCovers()}
+        portraits={getPortraits()}
         cinematicPool={photos}
         references={references}
         stats={stats}
