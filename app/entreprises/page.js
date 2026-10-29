@@ -1,5 +1,5 @@
 import PageIntro from "../../components/ui/PageIntro";
-import ReferencesBand from "../../components/ui/ReferencesBand";
+import ClientsBand from "../../components/ui/ClientsBand";
 import Universe, { UniverseNav } from "../../components/ui/Universe";
 import Steps from "../../components/ui/Steps";
 import Reveal from "../../components/ui/Reveal";
@@ -9,7 +9,6 @@ import DarkChapter from "../../components/ui/DarkChapter";
 import TrackedLink from "../../components/ui/TrackedLink";
 import { loadUniversForPage } from "../../lib/loadUnivers";
 import { getIntroPhotos } from "../../lib/introPhotos";
-import { getReferences } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
 import { PAGES_COPY } from "../../lib/i18n";
 import { getServerLang } from "../../lib/serverLang";
@@ -24,7 +23,7 @@ export async function generateMetadata() {
 }
 
 export default async function EntreprisesPage() {
-  const [references, lang] = await Promise.all([getReferences(), getServerLang()]);
+  const lang = await getServerLang();
   const copy = PAGES_COPY.entreprises[lang] || PAGES_COPY.entreprises.fr;
   const univers = await loadUniversForPage("entreprises");
   const introPhoto = (await getIntroPhotos())["/entreprises"] || univers[0]?.images?.[0] || null;
@@ -39,7 +38,7 @@ export default async function EntreprisesPage() {
         image={introPhoto}
       />
 
-      <ReferencesBand items={references} />
+      <ClientsBand title={copy.clientsTitle} />
 
       <section className="mx-auto grid max-w-7xl gap-5 px-4 md:grid-cols-2 md:px-8">
         <Reveal className="rounded-card border border-line/15 bg-white/60 p-8">
