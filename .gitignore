@@ -55,3 +55,6 @@ tmp-import-test.jpg
 
 # outils locaux de l assistant (aperçu, réglages)
 /.claude/
+
+# photos redimensionnées par scripts/import-univers.mjs
+/.cache/

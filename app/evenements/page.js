@@ -1,14 +1,13 @@
 import PageIntro from "../../components/ui/PageIntro";
-import Series from "../../components/ui/Series";
+import Universe, { UniverseNav } from "../../components/ui/Universe";
 import OfferCards from "../../components/ui/OfferCards";
 import Faq from "../../components/ui/Faq";
 import ContactBlock from "../../components/ui/ContactBlock";
 import DarkChapter from "../../components/ui/DarkChapter";
 import Reveal from "../../components/ui/Reveal";
-import { findSeriesBySlugs, pickSeries } from "../../data/series";
+import { getUniversForPage } from "../../data/univers";
 import { showPlaceholders } from "../../data/placeholders";
 import { getIntroPhotos } from "../../lib/introPhotos";
-import { loadSeries } from "../../lib/loadSeries";
 import { buildPageMetadata } from "../../lib/seo";
 import { PAGES_COPY } from "../../lib/i18n";
 import { getServerLang } from "../../lib/serverLang";
@@ -23,13 +22,10 @@ export async function generateMetadata() {
 }
 
 export default async function EvenementsPage() {
-  const [all, lang] = await Promise.all([loadSeries(), getServerLang()]);
+  const lang = await getServerLang();
   const copy = PAGES_COPY.evenements[lang] || PAGES_COPY.evenements.fr;
-  const proof = findSeriesBySlugs(all, ["amiri", "elie-saab-haute-couture", "joya-l-avant-premiere", "les-flammes-2026"]);
-  const proofSlugs = new Set(proof.map((serie) => serie.slug));
-  const others = pickSeries(all, "evenement").filter((serie) => !proofSlugs.has(serie.slug)).slice(0, 3);
-
-  const introPhoto = (await getIntroPhotos())["/evenements"] || proof[0]?.images?.[0] || others[0]?.images?.[0] || null;
+  const univers = getUniversForPage("evenements");
+  const introPhoto = (await getIntroPhotos())["/evenements"] || univers[0]?.images?.[0] || null;
 
   return (
     <div className="page-shell space-y-16 md:space-y-24">
@@ -55,13 +51,13 @@ export default async function EvenementsPage() {
         </Reveal>
       </section>
 
-      <div className="space-y-20 md:space-y-28">
-        {proof.map((serie, index) => (
-          <Series key={serie.slug} serie={serie} priority={index === 0} />
-        ))}
-        {others.map((serie) => (
-          <Series key={serie.slug} serie={serie} />
-        ))}
+      <div className="space-y-12 md:space-y-16">
+        <UniverseNav items={univers} />
+        <div className="space-y-20 md:space-y-28">
+          {univers.map((item, index) => (
+            <Universe key={item.slug} univers={item} priority={index === 0} />
+          ))}
+        </div>
       </div>
 
       <DarkChapter>

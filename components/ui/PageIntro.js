@@ -40,7 +40,8 @@ export default function PageIntro({ eyebrow, title, lead, bridge, cta, secondary
         </Reveal>
 
         {image ? (
-          <Reveal delay={0.15} className="mx-auto w-full max-w-xs sm:max-w-sm lg:max-w-none">
+          // Photo affichée sans glissement ni zoom : hors accueil, aucune animation d'image.
+          <div className="mx-auto w-full max-w-xs sm:max-w-sm lg:max-w-none">
             <div className="relative aspect-[4/5] overflow-hidden rounded-card bg-neutral-900 shadow-[0_24px_80px_rgba(12,10,8,0.14)]">
               <Image
                 src={image.src}
@@ -53,7 +54,7 @@ export default function PageIntro({ eyebrow, title, lead, bridge, cta, secondary
                 quality={85}
               />
             </div>
-          </Reveal>
+          </div>
         ) : null}
       </div>
     </section>

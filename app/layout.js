@@ -132,7 +132,7 @@ export default async function RootLayout({ children }) {
         <LanguageProvider initialLang={lang}>
           {!isAdmin ? <IntroSplash /> : null}
           <SmoothScroll>
-            <div className="relative min-h-screen overflow-x-hidden">
+            <div className="relative min-h-screen overflow-x-clip">
               <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_70%_30%,rgba(188,125,79,0.18),transparent_42%)]" />
               <NoiseOverlay />
               <CustomCursor />

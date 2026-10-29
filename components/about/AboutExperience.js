@@ -109,7 +109,7 @@ export default function AboutExperience({ aboutCopy = defaultAboutCopy, stats = 
             </div>
           </motion.div>
 
-          <motion.div className="relative" {...getRevealProps(reduceMotion, 0.1)}>
+          <div className="relative">
             <PortraitPanel
               photo={portrait}
               priority
@@ -123,13 +123,13 @@ export default function AboutExperience({ aboutCopy = defaultAboutCopy, stats = 
                 {convictionText}
               </p>
             </div>
-          </motion.div>
+          </div>
         </section>
       </div>
 
       <div className="mx-auto max-w-7xl px-4 md:px-8 space-y-20 md:space-y-32">
         <section className="grid gap-10 border-y border-line/12 py-12 md:py-16 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
-          <motion.div className="lg:sticky lg:top-28" {...getRevealProps(reduceMotion)}>
+          <div className="lg:sticky lg:top-28">
             <PortraitPanel
               photo={profile}
               priority
@@ -137,7 +137,7 @@ export default function AboutExperience({ aboutCopy = defaultAboutCopy, stats = 
               imageClassName="object-[55%_38%]"
               sizes="(max-width: 1024px) 100vw, 38vw"
             />
-          </motion.div>
+          </div>
 
           <motion.div
             className="self-center lg:pl-8"

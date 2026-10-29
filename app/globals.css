@@ -186,6 +186,24 @@ html.page-leaving footer {
   .hero-fade-in { animation: none; }
 }
 
+/* Grilles de photos (hors accueil) : seul effet autorisé, un fondu de 200 ms à l'arrivée de chaque photo.
+   Sans JavaScript ou avec « réduire les animations », la photo s'affiche directement. */
+.photo-fade {
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+
+.photo-fade[data-loaded] {
+  opacity: 1;
+}
+
+@media (scripting: none), (prefers-reduced-motion: reduce) {
+  .photo-fade {
+    opacity: 1;
+    transition: none;
+  }
+}
+
 /* Viseur de la bande « Ils sont passés devant mon objectif » : le cadre glisse de nom en nom, puis un bref flash */
 .viewfinder-frame {
   will-change: transform;

@@ -21,6 +21,7 @@ import Testimonials from "../ui/Testimonials";
 import ContactBlock from "../ui/ContactBlock";
 import TrackedLink from "../ui/TrackedLink";
 import { HOME_PAGE_COPY } from "../../lib/i18n";
+import { localize } from "../../data/univers";
 import { useLanguage } from "../LanguageProvider";
 
 if (typeof window !== "undefined") {
@@ -46,6 +47,7 @@ export default function HomePageExperience({
   heroPhoto,
   supportingPhotos,
   doorPhotos = {},
+  universCovers = [],
   cinematicPool = [],
   references,
   stats,
@@ -498,6 +500,43 @@ export default function HomePageExperience({
           ))}
         </div>
       </section>
+
+      {universCovers.length ? (
+        <section className="mx-auto max-w-7xl px-4 md:px-8" aria-labelledby="univers-titre">
+          <MotionBlock reduceMotion={reduceMotion} className="mb-10 max-w-3xl space-y-4">
+            <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-ink/45">{copy.universEyebrow}</p>
+            <h2 id="univers-titre" className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-6xl">
+              {copy.universTitle}
+            </h2>
+          </MotionBlock>
+          {/* Une couverture par univers, chacune mène à l'univers sur sa page. */}
+          <ul className="grid grid-cols-2 gap-3 md:grid-cols-5 md:gap-4">
+            {universCovers.map((item, index) => (
+              <li key={item.href}>
+                <MotionBlock reduceMotion={reduceMotion} delay={(index % 5) * 0.05}>
+                  <Link
+                    href={item.href}
+                    className="group relative block aspect-[4/5] overflow-hidden rounded-[0.8rem] bg-ink text-paper"
+                  >
+                    <Image
+                      src={item.cover.src}
+                      alt={item.cover.alt}
+                      fill
+                      sizes="(max-width: 768px) 50vw, 20vw"
+                      className="object-cover transition duration-[1.4s] ease-out group-hover:scale-[1.05]"
+                      quality={85}
+                    />
+                    <span className="absolute inset-0 bg-[linear-gradient(180deg,rgba(12,10,8,0)_45%,rgba(12,10,8,0.78))]" />
+                    <span className="absolute inset-x-0 bottom-0 p-4 font-serif text-lg leading-tight md:text-xl">
+                      {localize(item.titre, lang)}
+                    </span>
+                  </Link>
+                </MotionBlock>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <section
         data-cursor-surface="dark"
