@@ -411,10 +411,24 @@ export function getUniversList() {
 
 // Applique les modifications faites depuis l'administration (textes, ordre, photos masquées,
 // couverture, textes alternatifs) à un univers tel que renvoyé par getUniversList/withImages.
+function toUniversImage(item) {
+  return {
+    id: item.id,
+    src: item.src,
+    alt: item.alt || "",
+    caption: item.caption || "",
+    width: item.width || undefined,
+    height: item.height || undefined,
+    title: "",
+    added: true,
+  };
+}
+
 export function applyUniversOverride(univers, override) {
   if (!override) return univers;
 
-  let images = univers.images;
+  // Photos ajoutées depuis l'administration : à la suite de celles importées du Drive.
+  let images = override.added?.length ? [...univers.images, ...override.added.map(toUniversImage)] : univers.images;
   if (override.hidden?.length) {
     const hidden = new Set(override.hidden);
     images = images.filter((image) => !hidden.has(image.id));

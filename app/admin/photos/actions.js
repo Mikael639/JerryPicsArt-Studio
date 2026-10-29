@@ -21,7 +21,10 @@ import {
 } from "../../../lib/googleDrive";
 import { getAdminContent } from "../../../lib/adminContent";
 import { updateSiteContent } from "../../../lib/siteContent";
-import { updateUniversOverride } from "../../../lib/universContent";
+import { getUniversOverrides, updateUniversOverride } from "../../../lib/universContent";
+import { getUniversList } from "../../../data/univers";
+import { deleteR2Object, isR2Configured, uploadR2Object } from "../../../lib/r2Storage";
+import crypto from "node:crypto";
 import { deleteContactMessage, listContactMessages, updateContactMessageStatus } from "../../../lib/contactStore";
 import {
   createAdminPhotos,
@@ -464,6 +467,115 @@ export async function updateUniversAction(slug, patch) {
     return createActionResult({ ok: true, message: "Univers enregistré.", data: content.universList });
   } catch (error) {
     return createActionResult({ ok: false, message: error.message || "Impossible d'enregistrer cet univers." });
+  }
+}
+
+const UNIVERS_MAX_SIDE = 2400;
+
+// Ajout de photos à un univers par envoi direct : redimensionnement à 2 400 px, envoi sur R2, enregistrement.
+// formData : slug, files (sélection multiple).
+export async function addUniversPhotosAction(formData) {
+  const cookieStore = await getAuthorizedCookieStore();
+  if (!cookieStore) return unauthorizedResult();
+
+  if (!isR2Configured()) {
+    return createActionResult({ ok: false, message: "Le stockage R2 n'est pas encore configuré." });
+  }
+
+  const slug = toStringValue(formData.get("slug"));
+  const univers = getUniversList().find((item) => item.slug === slug);
+  if (!univers) return createActionResult({ ok: false, message: "Univers inconnu." });
+
+  const files = formData.getAll("files").filter((value) => value && typeof value !== "string");
+  if (files.length === 0) return createActionResult({ ok: false, message: "Veuillez sélectionner au moins une image." });
+  if (files.length > MAX_BULK_UPLOAD_COUNT) {
+    return createActionResult({ ok: false, message: `Maximum ${MAX_BULK_UPLOAD_COUNT} photos par envoi.` });
+  }
+  if (files.some((file) => !file.type?.startsWith("image/"))) {
+    return createActionResult({ ok: false, message: "Seuls les fichiers image sont acceptés." });
+  }
+  if (files.some((file) => file.size > MAX_UPLOAD_FILE_SIZE_BYTES)) {
+    return createActionResult({ ok: false, message: "Un fichier dépasse la limite de 15 Mo." });
+  }
+
+  const added = [];
+  const failed = [];
+
+  for (const file of files) {
+    try {
+      const output = await sharp(Buffer.from(await file.arrayBuffer()))
+        .rotate()
+        .resize(UNIVERS_MAX_SIDE, UNIVERS_MAX_SIDE, { fit: "inside", withoutEnlargement: true })
+        .jpeg({ quality: 82, mozjpeg: true })
+        .toBuffer({ resolveWithObject: true });
+
+      const uid = crypto.randomUUID();
+      const storagePath = `univers/${slug}/${uid}.jpg`;
+      const { publicUrl } = await uploadR2Object({ storagePath, buffer: output.data, contentType: "image/jpeg" });
+      added.push({
+        id: `up-${uid}`,
+        src: publicUrl,
+        storagePath,
+        width: output.info.width,
+        height: output.info.height,
+        alt: `Photographie de l'univers ${univers.titre.fr}`,
+      });
+    } catch {
+      failed.push(file.name || "photo");
+    }
+  }
+
+  if (added.length === 0) {
+    return createActionResult({ ok: false, message: `Impossible de traiter : ${failed.join(", ")}.` });
+  }
+
+  try {
+    const overrides = await getUniversOverrides();
+    await updateUniversOverride(slug, { added: [...(overrides[slug]?.added || []), ...added] });
+    revalidateTag("site-settings");
+    revalidatePath("/", "layout");
+    revalidateAdminViews();
+    const content = await getAdminContent();
+    return createActionResult({
+      ok: true,
+      message: failed.length
+        ? `${added.length} photo(s) ajoutée(s), ${failed.length} ignorée(s) : ${failed.join(", ")}. Pensez à corriger le texte alternatif.`
+        : `${added.length} photo(s) ajoutée(s). Pensez à corriger leur texte alternatif.`,
+      data: content.universList,
+    });
+  } catch (error) {
+    return createActionResult({ ok: false, message: error.message || "Impossible d'enregistrer ces photos." });
+  }
+}
+
+// Retire définitivement une photo ajoutée depuis l'administration (les photos importées du Drive se masquent seulement).
+export async function removeUniversPhotoAction(slug, photoId) {
+  const cookieStore = await getAuthorizedCookieStore();
+  if (!cookieStore) return unauthorizedResult();
+
+  try {
+    const overrides = await getUniversOverrides();
+    const current = overrides[slug];
+    const target = current?.added?.find((item) => item.id === photoId);
+    if (!target) return createActionResult({ ok: false, message: "Photo introuvable." });
+
+    const alt = Object.fromEntries(Object.entries(current.alt || {}).filter(([id]) => id !== photoId));
+    await updateUniversOverride(slug, {
+      added: current.added.filter((item) => item.id !== photoId),
+      hidden: (current.hidden || []).filter((id) => id !== photoId),
+      order: (current.order || []).filter((id) => id !== photoId),
+      cover: current.cover === photoId ? "" : current.cover || "",
+      alt,
+    });
+    if (target.storagePath) await deleteR2Object(target.storagePath).catch(() => {});
+
+    revalidateTag("site-settings");
+    revalidatePath("/", "layout");
+    revalidateAdminViews();
+    const content = await getAdminContent();
+    return createActionResult({ ok: true, message: "Photo supprimée.", data: content.universList });
+  } catch (error) {
+    return createActionResult({ ok: false, message: error.message || "Impossible de supprimer cette photo." });
   }
 }
 

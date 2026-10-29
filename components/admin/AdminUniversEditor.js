@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { updateUniversAction } from "../../app/admin/photos/actions";
+import { addUniversPhotosAction, removeUniversPhotoAction, updateUniversAction } from "../../app/admin/photos/actions";
 
 const PAGE_LABELS = {
   signature: "Signature",
@@ -22,6 +22,7 @@ function UniversCard({ univers, onSaved, onStatus, onError }) {
   const [cover, setCover] = useState(univers.cover);
   const [isSaving, setIsSaving] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const visibleCount = images.filter((image) => !image.hidden).length;
 
@@ -41,6 +42,48 @@ function UniversCard({ univers, onSaved, onStatus, onError }) {
 
   function updateAlt(id, value) {
     setImages((current) => current.map((image) => (image.id === id ? { ...image, alt: value } : image)));
+  }
+
+  // Envoi direct de nouvelles photos : elles s'ajoutent à la suite, sans toucher aux modifications en cours.
+  async function upload(event) {
+    const files = Array.from(event.target.files || []);
+    event.target.value = "";
+    if (!files.length) return;
+
+    setIsUploading(true);
+    onError("");
+    onStatus("");
+
+    const formData = new FormData();
+    formData.append("slug", univers.slug);
+    files.forEach((file) => formData.append("files", file));
+    const result = await addUniversPhotosAction(formData);
+    setIsUploading(false);
+
+    if (!result.ok) {
+      onError(result.message || "Impossible d'ajouter les photos.");
+      return;
+    }
+
+    onStatus(result.message || "Photos ajoutées.");
+    const updated = Array.isArray(result.data) ? result.data.find((item) => item.slug === univers.slug) : null;
+    if (updated) {
+      setImages((current) => [...current, ...updated.images.filter((image) => !current.some((item) => item.id === image.id))]);
+      onSaved(updated, { silent: true });
+    }
+  }
+
+  async function removeAdded(id) {
+    if (!window.confirm("Supprimer définitivement cette photo ?")) return;
+    onError("");
+    const result = await removeUniversPhotoAction(univers.slug, id);
+    if (!result.ok) {
+      onError(result.message || "Impossible de supprimer la photo.");
+      return;
+    }
+    setImages((current) => current.filter((image) => image.id !== id));
+    if (cover === id) setCover(images.find((image) => image.id !== id && !image.hidden)?.id || "");
+    onStatus(result.message || "Photo supprimée.");
   }
 
   async function save() {
@@ -177,13 +220,33 @@ function UniversCard({ univers, onSaved, onStatus, onError }) {
                   >
                     Couverture
                   </button>
+                  {image.added ? (
+                    <button
+                      type="button"
+                      onClick={() => removeAdded(image.id)}
+                      className="rounded-full border border-red-200 px-2.5 py-1 text-[11px] text-red-700 hover:bg-red-50"
+                    >
+                      Supprimer
+                    </button>
+                  ) : null}
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="flex justify-end border-t border-line/10 pt-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line/10 pt-4">
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-ink px-5 py-2.5 text-xs font-bold uppercase tracking-[0.14em] text-ink transition hover:bg-ink hover:text-paper">
+            {isUploading ? "Envoi en cours..." : "Ajouter des photos"}
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              disabled={isUploading}
+              onChange={upload}
+              className="sr-only"
+            />
+          </label>
           <button
             type="button"
             onClick={save}
@@ -228,7 +291,8 @@ export default function AdminUniversEditor({ initialUniversList = [], onStatus, 
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink/65">
           Les univers affichés sur Signature, Événements et Entreprises & lieux. Réordonnez les photos, masquez-en
           une sans la supprimer, choisissez la couverture et corrigez un texte alternatif. Pour ajouter de nouvelles
-          photos, utilisez l&rsquo;import Drive (lot import-univers) : elles apparaîtront ici ensuite.
+          photos, utilisez « Ajouter des photos » dans l&rsquo;univers voulu (sélection multiple, redimensionnement automatique) :
+          pensez ensuite à corriger leur texte alternatif.
         </p>
       </div>
 
