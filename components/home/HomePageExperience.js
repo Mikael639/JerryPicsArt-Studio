@@ -14,7 +14,7 @@ import {
   PartnersSection,
   StatsSection,
 } from "./homeShared";
-import Portraits from "./Portraits";
+import ReferencesBand from "../ui/ReferencesBand";
 import ArticleEnd from "../ui/ArticleEnd";
 import Steps from "../ui/Steps";
 import Testimonials from "../ui/Testimonials";
@@ -46,9 +46,9 @@ function getHeroPriority(photo) {
 export default function HomePageExperience({
   heroPhoto,
   doorPhotos = {},
-  portraits = [],
   universCovers = [],
   cinematicPool = [],
+  references = [],
   stats,
   testimonials,
   siteText = {},
@@ -400,7 +400,7 @@ export default function HomePageExperience({
         </MotionBlock>
       </section>
 
-      <Portraits items={portraits} title={copy.portraitsTitle} alsoLabel={copy.portraitsAlso} reduceMotion={reduceMotion} />
+      <ReferencesBand items={references} />
 
       <section className="mx-auto max-w-7xl px-4 md:px-8" aria-labelledby="portes-titre">
         <MotionBlock reduceMotion={reduceMotion} className="mb-10 max-w-3xl space-y-4">
