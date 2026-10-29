@@ -10,9 +10,14 @@ import Image from "next/image";
 // Hauteur de chaque logo livré avec le site, réglée pour équilibrer leur poids visuel (certains sont très larges).
 const LOGO_HEIGHT = {
   Printemps: "h-4 md:h-5",
+  Decathlon: "h-4 md:h-5",
   "Rolling Stone Africa": "h-6 md:h-7",
+  "Kering Eyewear": "h-7 md:h-8",
   "Galeries Lafayette": "h-8 md:h-10",
   "Sofitel Le Scribe": "h-8 md:h-9",
+  "Espace Grand Paris": "h-8 md:h-9",
+  "Valéo": "h-8 md:h-9",
+  Valeo: "h-8 md:h-9",
   "Taptap Send": "h-10 md:h-12",
   "Les Flammes": "h-9 md:h-11",
   NWE: "h-10 md:h-12",
