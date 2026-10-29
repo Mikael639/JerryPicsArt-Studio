@@ -40,10 +40,17 @@ export default function CustomSelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [close]);
 
+  // Ferme la liste si la page défile vraiment (son ancre bouge à l'écran). Un simple événement
+  // "scroll" ne suffit pas : GSAP (ScrollTrigger) et le défilement doux en déclenchent parfois sans
+  // que la position ait réellement changé, ce qui refermait la liste juste après son ouverture.
   useEffect(() => {
     if (!isOpen) return;
-    window.addEventListener("scroll", close, { passive: true, capture: true });
-    return () => window.removeEventListener("scroll", close, { capture: true });
+    const startY = window.scrollY;
+    function handleScroll() {
+      if (Math.abs(window.scrollY - startY) > 4) close();
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true, capture: true });
+    return () => window.removeEventListener("scroll", handleScroll, { capture: true });
   }, [isOpen, close]);
 
   const handleSelect = (optionValue) => {
