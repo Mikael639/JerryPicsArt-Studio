@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import HomePageExperience from "../components/home/HomePageExperience";
+import { getUniversCovers } from "../data/univers";
 import { defaultPortfolioCategory } from "../lib/categories";
 import { getPhotoObjectPosition } from "../lib/photoPresentation";
 import { getPublicPhotos } from "../lib/photoRepository";
@@ -261,6 +262,7 @@ export default async function HomePage() {
         heroPhoto={heroPhoto}
         supportingPhotos={supportingPhotos}
         doorPhotos={doorPhotos}
+        universCovers={getUniversCovers()}
         cinematicPool={photos}
         references={references}
         stats={stats}

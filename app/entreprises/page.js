@@ -1,15 +1,14 @@
 import PageIntro from "../../components/ui/PageIntro";
 import ReferencesBand from "../../components/ui/ReferencesBand";
-import Series from "../../components/ui/Series";
+import Universe, { UniverseNav } from "../../components/ui/Universe";
 import Steps from "../../components/ui/Steps";
 import Reveal from "../../components/ui/Reveal";
 import OfferCards from "../../components/ui/OfferCards";
 import ContactBlock from "../../components/ui/ContactBlock";
 import DarkChapter from "../../components/ui/DarkChapter";
 import TrackedLink from "../../components/ui/TrackedLink";
-import { pickSeries } from "../../data/series";
+import { getUniversForPage } from "../../data/univers";
 import { getIntroPhotos } from "../../lib/introPhotos";
-import { loadSeries } from "../../lib/loadSeries";
 import { getReferences } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
 import { PAGES_COPY } from "../../lib/i18n";
@@ -25,10 +24,10 @@ export async function generateMetadata() {
 }
 
 export default async function EntreprisesPage() {
-  const [allSeries, references, lang] = await Promise.all([loadSeries(), getReferences(), getServerLang()]);
+  const [references, lang] = await Promise.all([getReferences(), getServerLang()]);
   const copy = PAGES_COPY.entreprises[lang] || PAGES_COPY.entreprises.fr;
-  const studio = pickSeries(allSeries, "entreprise", 1);
-  const introPhoto = (await getIntroPhotos())["/entreprises"] || studio[0]?.images?.[0] || null;
+  const univers = getUniversForPage("entreprises");
+  const introPhoto = (await getIntroPhotos())["/entreprises"] || univers[0]?.images?.[0] || null;
 
   return (
     <div className="page-shell space-y-16 md:space-y-24">
@@ -82,13 +81,17 @@ export default async function EntreprisesPage() {
           </ul>
         </section>
 
-        <div className="space-y-12">
-          <section className="mx-auto max-w-7xl space-y-3 px-4 md:px-8">
-            <Reveal>
-              <h2 className="font-serif text-4xl leading-[0.96] tracking-[-0.04em] md:text-5xl">
-                {copy.brandTitle}
-              </h2>
-              <p className="mt-4 text-base text-ink/70 md:text-lg">
+        <div className="space-y-12 md:space-y-16">
+          <UniverseNav items={univers} />
+          <div className="space-y-20 md:space-y-28">
+            {univers.map((item) => (
+              <Universe key={item.slug} univers={item} />
+            ))}
+          </div>
+          <section className="mx-auto max-w-7xl px-4 md:px-8">
+            <Reveal className="rounded-card border border-line/15 bg-white/50 p-6 md:p-8">
+              <h2 className="font-serif text-2xl tracking-tight md:text-3xl">{copy.brandTitle}</h2>
+              <p className="mt-3 text-base text-ink/70 md:text-lg">
                 {copy.brandTextPrefix}{" "}
                 <a href="/contact?type=contenu" className="underline underline-offset-4 hover:text-ink">
                   {copy.brandLinkLabel}
@@ -97,9 +100,6 @@ export default async function EntreprisesPage() {
               </p>
             </Reveal>
           </section>
-          {studio.map((serie) => (
-            <Series key={serie.slug} serie={serie} />
-          ))}
         </div>
 
         <section className="mx-auto max-w-7xl px-4 md:px-8">

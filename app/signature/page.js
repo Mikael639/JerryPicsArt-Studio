@@ -1,10 +1,9 @@
 import PageIntro from "../../components/ui/PageIntro";
 import ReferencesBand from "../../components/ui/ReferencesBand";
-import Series from "../../components/ui/Series";
+import Universe, { UniverseNav } from "../../components/ui/Universe";
 import ContactBlock from "../../components/ui/ContactBlock";
 import DarkChapter from "../../components/ui/DarkChapter";
-import { findSeriesBySlugs, pickSeries } from "../../data/series";
-import { loadSeries } from "../../lib/loadSeries";
+import { getUniversForPage } from "../../data/univers";
 import { getIntroPhotos } from "../../lib/introPhotos";
 import { getReferences } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
@@ -21,14 +20,10 @@ export async function generateMetadata() {
 }
 
 export default async function SignaturePage() {
-  const [all, references, lang] = await Promise.all([loadSeries(), getReferences(), getServerLang()]);
+  const [references, lang] = await Promise.all([getReferences(), getServerLang()]);
   const copy = PAGES_COPY.signature[lang] || PAGES_COPY.signature.fr;
-  // Amiri est un défilé : il figure aussi ici, même si ses photos sont classées en événements.
-  const series = [...pickSeries(all, "signature"), ...findSeriesBySlugs(all, ["amiri"])]
-    .filter((serie, index, list) => list.findIndex((other) => other.slug === serie.slug) === index)
-    .sort((a, b) => Number(b.priority) - Number(a.priority) || b.date - a.date || b.images.length - a.images.length)
-    .slice(0, 10);
-  const introPhoto = (await getIntroPhotos())["/signature"] || series[0]?.images?.[0] || null;
+  const univers = getUniversForPage("signature");
+  const introPhoto = (await getIntroPhotos())["/signature"] || univers[0]?.images?.[0] || null;
 
   return (
     <div className="page-shell space-y-16 md:space-y-24">
@@ -42,28 +37,34 @@ export default async function SignaturePage() {
 
       <ReferencesBand items={references} />
 
-      <div className="space-y-20 md:space-y-28">
-        {series.slice(0, 5).map((serie, index) => (
-          <Series key={serie.slug} serie={serie} withBridge priority={index === 0} />
-        ))}
-      </div>
-
-      <DarkChapter>
-        <div className="space-y-20 md:space-y-28">
-          {series.slice(5).map((serie) => (
-            <Series key={serie.slug} serie={serie} withBridge />
+      {/* La barre d'ancres et tous les univers partagent ce bloc : sur téléphone, la barre reste collée
+          jusqu'au dernier univers, y compris dans la partie sombre. */}
+      <div>
+        <UniverseNav items={univers} />
+        <div className="mt-12 space-y-20 md:mt-16 md:space-y-28">
+          {univers.slice(0, 3).map((item, index) => (
+            <Universe key={item.slug} univers={item} priority={index === 0} />
           ))}
         </div>
 
-        <ContactBlock
-          title={copy.contactTitle}
-          text={copy.contactText}
-          label={copy.contactLabel}
-          href="/evenements"
-          event="bridge_cta_signature_final"
-          secondary={{ href: "/mariage", label: copy.contactSecondary }}
-        />
-      </DarkChapter>
+        {/* Passage en mode sombre au milieu de la page : les derniers univers et le contact. */}
+        <DarkChapter className="mt-16 md:mt-24">
+          <div className="space-y-20 md:space-y-28">
+            {univers.slice(3).map((item) => (
+              <Universe key={item.slug} univers={item} />
+            ))}
+          </div>
+
+          <ContactBlock
+            title={copy.contactTitle}
+            text={copy.contactText}
+            label={copy.contactLabel}
+            href="/evenements"
+            event="bridge_cta_signature_final"
+            secondary={{ href: "/mariage", label: copy.contactSecondary }}
+          />
+        </DarkChapter>
+      </div>
     </div>
   );
 }
