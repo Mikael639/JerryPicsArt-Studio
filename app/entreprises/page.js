@@ -1,6 +1,8 @@
 import PageIntro from "../../components/ui/PageIntro";
-import ReferencesBand from "../../components/ui/ReferencesBand";
+import ClientsBand from "../../components/ui/ClientsBand";
 import Universe, { UniverseNav } from "../../components/ui/Universe";
+import PullQuote from "../../components/ui/PullQuote";
+import ArticleEnd from "../../components/ui/ArticleEnd";
 import Steps from "../../components/ui/Steps";
 import Reveal from "../../components/ui/Reveal";
 import OfferCards from "../../components/ui/OfferCards";
@@ -9,22 +11,25 @@ import DarkChapter from "../../components/ui/DarkChapter";
 import TrackedLink from "../../components/ui/TrackedLink";
 import { loadUniversForPage } from "../../lib/loadUnivers";
 import { getIntroPhotos } from "../../lib/introPhotos";
-import { getReferences } from "../../lib/siteContent";
+import { getClients } from "../../lib/siteContent";
 import { buildPageMetadata } from "../../lib/seo";
-import { PAGES_COPY } from "../../lib/i18n";
+import { METADATA_COPY, PAGES_COPY } from "../../lib/i18n";
 import { getServerLang } from "../../lib/serverLang";
 
 export async function generateMetadata() {
+  const lang = await getServerLang();
+  const copy = METADATA_COPY.entreprises[lang] || METADATA_COPY.entreprises.fr;
+
   return buildPageMetadata({
-    title: "Photographe pour événements d'entreprise et lieux à Paris",
-    description:
-      "Photographe pour hôtels, lieux de réception et entreprises à Paris : contrat, droits d'usage, facture HT, tarif partenaire.",
+    title: copy.title,
+    description: copy.description,
     path: "/entreprises",
+    lang,
   });
 }
 
 export default async function EntreprisesPage() {
-  const [references, lang] = await Promise.all([getReferences(), getServerLang()]);
+  const [lang, clients] = await Promise.all([getServerLang(), getClients()]);
   const copy = PAGES_COPY.entreprises[lang] || PAGES_COPY.entreprises.fr;
   const univers = await loadUniversForPage("entreprises");
   const introPhoto = (await getIntroPhotos())["/entreprises"] || univers[0]?.images?.[0] || null;
@@ -39,7 +44,7 @@ export default async function EntreprisesPage() {
         image={introPhoto}
       />
 
-      <ReferencesBand items={references} />
+      <ClientsBand title={copy.clientsTitle} items={clients} />
 
       <section className="mx-auto grid max-w-7xl gap-5 px-4 md:grid-cols-2 md:px-8">
         <Reveal className="rounded-card border border-line/15 bg-white/60 p-8">
@@ -65,8 +70,9 @@ export default async function EntreprisesPage() {
         <UniverseNav items={univers} />
         <div className="mt-12 space-y-20 md:mt-16 md:space-y-28">
           {univers.slice(0, 1).map((item, index) => (
-            <Universe key={item.slug} univers={item} priority={index === 0} />
+            <Universe key={item.slug} univers={item} number={index + 1} priority={index === 0} />
           ))}
+          <PullQuote text={copy.quote} />
         </div>
 
         {/* Passage en mode sombre plus tard sur cette page, plus courte : tarifs, garanties,
@@ -95,8 +101,8 @@ export default async function EntreprisesPage() {
 
           <div className="space-y-12 md:space-y-16">
             <div className="space-y-20 md:space-y-28">
-              {univers.slice(1).map((item) => (
-                <Universe key={item.slug} univers={item} />
+              {univers.slice(1).map((item, index) => (
+                <Universe key={item.slug} univers={item} number={index + 2} />
               ))}
             </div>
             <section className="mx-auto max-w-7xl px-4 md:px-8">
@@ -142,6 +148,7 @@ export default async function EntreprisesPage() {
             </Reveal>
           </section>
 
+          <ArticleEnd />
           <ContactBlock
             title={copy.contactTitle}
             text={copy.contactText}

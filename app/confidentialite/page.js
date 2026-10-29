@@ -1,14 +1,18 @@
 import LegalPage from "../../components/ui/LegalPage";
 import { siteConfig } from "../../lib/siteConfig";
 import { buildPageMetadata } from "../../lib/seo";
-import { PAGES_COPY } from "../../lib/i18n";
+import { METADATA_COPY, PAGES_COPY } from "../../lib/i18n";
 import { getServerLang } from "../../lib/serverLang";
 
 export async function generateMetadata() {
+  const lang = await getServerLang();
+  const copy = METADATA_COPY.privacy[lang] || METADATA_COPY.privacy.fr;
+
   return buildPageMetadata({
-    title: "Politique de confidentialité | JerryPicsArt",
-    description: "Comment JerryPicsArt utilise les données recueillies par le formulaire de contact.",
+    title: copy.title,
+    description: copy.description,
     path: "/confidentialite",
+    lang,
   });
 }
 

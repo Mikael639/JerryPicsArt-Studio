@@ -83,13 +83,17 @@ export function StatsSection({ reduceMotion, items = defaultStats }) {
 // Logos blancs sur fond transparent, déposés dans public/images/partners/.
 // `size` règle la hauteur (classes Tailwind) pour équilibrer les logos entre eux.
 export const partners = [
+  { name: "Kering Eyewear", logo: "/images/partners/kering-eyewear.png", size: "h-14 md:h-16", width: 689, height: 299 },
+  { name: "Espace Grand Paris", logo: "/images/partners/espace-grand-paris.png", size: "h-14 md:h-16", width: 247, height: 172 },
   { name: "Taptap Send", logo: "/images/partners/taptap-send.png", size: "h-20 md:h-24", width: 191, height: 169 },
   { name: "Sofitel Le Scribe", logo: "/images/partners/le-scribe.png", size: "h-16 md:h-20", width: 332, height: 124 },
-  { name: "Rolling Stone Africa", logo: "/images/partners/rolling-stone-africa.png", size: "h-12 md:h-14", width: 900, height: 179 },
-  { name: "Les Flammes", logo: "/images/partners/les-flammes.png", size: "h-16 md:h-20", width: 486, height: 220 },
-  { name: "NWE", logo: "/images/partners/nwe.png", size: "h-20 md:h-24", width: 524, height: 545 },
   { name: "Galeries Lafayette", logo: "/images/partners/galeries-lafayette.png", size: "h-16 md:h-20", width: 900, height: 472 },
   { name: "Printemps", logo: "/images/partners/printemps.png", size: "h-10 md:h-11", width: 342, height: 49 },
+  { name: "Decathlon", logo: "/images/partners/decathlon.png", size: "h-10 md:h-12", width: 1011, height: 152 },
+  { name: "Les Flammes", logo: "/images/partners/les-flammes.png", size: "h-16 md:h-20", width: 486, height: 220 },
+  { name: "Valeo", logo: "/images/partners/valeo.png", size: "h-14 md:h-16", width: 950, height: 412 },
+  { name: "Rolling Stone Africa", logo: "/images/partners/rolling-stone-africa.png", size: "h-12 md:h-14", width: 900, height: 179 },
+  { name: "NWE", logo: "/images/partners/nwe.png", size: "h-20 md:h-24", width: 524, height: 545 },
 ];
 
 // Au survol, le défilement ralentit sans jamais s'arrêter ; hors survol il reprend son allure.

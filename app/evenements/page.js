@@ -1,23 +1,31 @@
 import PageIntro from "../../components/ui/PageIntro";
+import { Fragment } from "react";
 import Universe, { UniverseNav } from "../../components/ui/Universe";
+import PullQuote from "../../components/ui/PullQuote";
+import DoublePage from "../../components/ui/DoublePage";
+import ArticleEnd from "../../components/ui/ArticleEnd";
 import OfferCards from "../../components/ui/OfferCards";
 import Faq from "../../components/ui/Faq";
 import ContactBlock from "../../components/ui/ContactBlock";
 import DarkChapter from "../../components/ui/DarkChapter";
 import Reveal from "../../components/ui/Reveal";
 import { loadUniversForPage } from "../../lib/loadUnivers";
+import { getUniversPhoto } from "../../data/univers";
 import { showPlaceholders } from "../../data/placeholders";
 import { getIntroPhotos } from "../../lib/introPhotos";
 import { buildPageMetadata } from "../../lib/seo";
-import { PAGES_COPY } from "../../lib/i18n";
+import { METADATA_COPY, PAGES_COPY } from "../../lib/i18n";
 import { getServerLang } from "../../lib/serverLang";
 
 export async function generateMetadata() {
+  const lang = await getServerLang();
+  const copy = METADATA_COPY.evenements[lang] || METADATA_COPY.evenements.fr;
+
   return buildPageMetadata({
-    title: "Photographe événementiel à Paris : soirées, lancements, galas",
-    description:
-      "Photographe pour vos soirées, lancements et galas à Paris. Sélection express le soir même en option. Devis sous 48 h.",
+    title: copy.title,
+    description: copy.description,
     path: "/evenements",
+    lang,
   });
 }
 
@@ -25,6 +33,8 @@ export default async function EvenementsPage() {
   const lang = await getServerLang();
   const copy = PAGES_COPY.evenements[lang] || PAGES_COPY.evenements.fr;
   const univers = await loadUniversForPage("evenements");
+  // Double page : le yacht à Monaco, retiré de son univers pour ne pas apparaître deux fois.
+  const doublePage = getUniversPhoto("1pjp5Mqgr6kOHl1Kof7MgaFtAho7qsfY9");
   const introPhoto = (await getIntroPhotos())["/evenements"] || univers[0]?.images?.[0] || null;
 
   return (
@@ -57,15 +67,24 @@ export default async function EvenementsPage() {
         <UniverseNav items={univers} />
         <div className="mt-12 space-y-20 md:mt-16 md:space-y-28">
           {univers.slice(0, 2).map((item, index) => (
-            <Universe key={item.slug} univers={item} priority={index === 0} />
+            <Fragment key={item.slug}>
+              <Universe
+                univers={item}
+                number={index + 1}
+                priority={index === 0}
+                excludeIds={item.slug === "monaco-culture" && doublePage ? [doublePage.id] : []}
+              />
+              {index === 0 ? <DoublePage photo={doublePage} /> : null}
+            </Fragment>
           ))}
         </div>
 
         {/* Passage en mode sombre au milieu de la page : le dernier univers, l'offre et le contact. */}
         <DarkChapter className="mt-16 md:mt-24">
           <div className="space-y-20 md:space-y-28">
-            {univers.slice(2).map((item) => (
-              <Universe key={item.slug} univers={item} />
+            <PullQuote text={copy.quote} />
+            {univers.slice(2).map((item, index) => (
+              <Universe key={item.slug} univers={item} number={index + 3} />
             ))}
           </div>
 
@@ -92,6 +111,7 @@ export default async function EvenementsPage() {
 
           <Faq items={copy.faq} title={copy.faqTitle} />
 
+          <ArticleEnd />
           <ContactBlock
             title={copy.contactTitle}
             text={copy.contactText}

@@ -274,6 +274,9 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
                   >
                     {String(currentNum).padStart(2, "0")}
                   </div>
+                  {activePhoto.caption ? (
+                    <p className="min-w-0 font-serif text-sm italic leading-snug text-white/80 md:text-base">{activePhoto.caption}</p>
+                  ) : null}
                 </div>
 
                 <div className="flex items-center gap-3 flex-shrink-0">

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { Fragment } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import MagneticElement from "../MagneticElement";
 import { defaultAboutCopy } from "../../lib/siteSettings";
@@ -9,6 +10,8 @@ import { stats as defaultStats } from "../../data/stats";
 import { siteConfig } from "../../lib/siteConfig";
 import { PAGES_COPY, translateStat } from "../../lib/i18n";
 import { useLanguage } from "../LanguageProvider";
+import PullQuote from "../ui/PullQuote";
+import ArticleEnd from "../ui/ArticleEnd";
 
 function getRevealProps(reduceMotion, delay = 0, amount = 0.22) {
   if (reduceMotion) {
@@ -149,7 +152,10 @@ export default function AboutExperience({ aboutCopy = defaultAboutCopy, stats = 
             </h2>
             <div className="mt-8 max-w-2xl space-y-6 text-base leading-relaxed text-ink/68 md:text-lg">
               {storyParagraphs.map((paragraph, idx) => (
-                <p key={idx}>{paragraph}</p>
+                <Fragment key={idx}>
+                  <p>{paragraph}</p>
+                  {idx === 0 ? <PullQuote inline text={pageCopy.quote} /> : null}
+                </Fragment>
               ))}
             </div>
           </motion.div>
@@ -195,6 +201,8 @@ export default function AboutExperience({ aboutCopy = defaultAboutCopy, stats = 
             </dl>
           ) : null}
         </section>
+
+        <ArticleEnd />
 
         <section data-theme-section="dark" className="overflow-hidden rounded-feature border border-line/12 bg-[linear-gradient(135deg,rgba(18,15,12,0.98),rgba(29,33,41,0.96))] p-8 text-paper shadow-[0_32px_96px_rgba(12,10,8,0.18)] md:p-12 lg:p-16">
           <motion.div className="grid gap-12 lg:grid-cols-[1.08fr_0.92fr] lg:items-center" {...getRevealProps(reduceMotion)}>

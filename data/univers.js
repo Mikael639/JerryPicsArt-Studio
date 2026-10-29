@@ -238,7 +238,7 @@ const UNIVERS = [
     slug: "marques-cannes",
     court: { fr: "Marques & Cannes", en: "Brands & Cannes" },
     titre: { fr: "Marques, équipes & Cannes", en: "Brands, teams & Cannes" },
-    credits: "Festival de Cannes · Decathlon · Valéo · EGP · MLK Business",
+    credits: "Festival de Cannes · Decathlon · Valéo · Espace Grand Paris · MLK Business",
     contexte: {
       fr: "Contenus de marque, portraits d’équipe et présence au Festival de Cannes.",
       en: "Brand content, team portraits and the Cannes Film Festival.",
@@ -248,15 +248,127 @@ const UNIVERS = [
       ["1y1bwHk4EnQKF-x_CA-3YHP39ytHJrArI", "Plage privée et parasols sur la Croisette, Festival de Cannes"],
       ["1WjybF4T9ByHi38z_CUuvuENF-upmJP_b", "Yachts et ponton dans la baie de Cannes pendant le Festival"],
       ["1JbYB0x08cKvMYrK0MvBiZ5ArToK1bBei", "La Croisette et ses palmiers pendant le Festival de Cannes"],
-      ["1WKNlmllTG6-7uCZaK7pIG_zVNO5H9w15", "Portrait d'équipe en noir, shooting commercial EGP"],
-      ["1tVsKf25eqW5L6Ob9_pGY7byW5ExzDdJD", "Portrait professionnel bras croisés, shooting commercial EGP"],
-      ["1uxiIzM9z_XnzpUSWN2wdwQNsRKjDbBz2", "Salle de convention éclairée, événement Decathlon organisé par EGP"],
+      ["1WKNlmllTG6-7uCZaK7pIG_zVNO5H9w15", "Portrait d'équipe en noir, shooting commercial Espace Grand Paris"],
+      ["1tVsKf25eqW5L6Ob9_pGY7byW5ExzDdJD", "Portrait professionnel bras croisés, shooting commercial Espace Grand Paris"],
+      ["1uxiIzM9z_XnzpUSWN2wdwQNsRKjDbBz2", "Salle de convention éclairée, événement Decathlon organisé par Espace Grand Paris"],
       ["1uHouCUT7cnWV47hbGnmFppGLb0NWdNBa", "Photo d'équipe en chemises blanches dans un parc, Atelier A Concept"],
       ["1kgoXaiybOld-sfCp4lNmi5TSiT865T0I", "Stand d'exposant au salon MLK Business, mai 2026"],
-      ["1S6d9rZAOtc-27J3FpmsnQEM32GrJ7GRe", "Intervenant sur scène lors d'une conférence Valéo, événement EGP"],
+      ["1S6d9rZAOtc-27J3FpmsnQEM32GrJ7GRe", "Intervenant sur scène lors d'une conférence Valéo, événement Espace Grand Paris"],
     ],
   },
 ];
+
+// Légendes courtes (version abrégée des textes alternatifs), uniquement quand la photo nomme une personne, une maison
+// ou un lieu. Même ordre que les photos de chaque univers ; une chaîne vide = pas de légende.
+const LEGENDES = {
+  "defiles": [
+    "Semaine de la Haute Couture, Paris",
+    "Défilé Georges Chakra, Haute Couture",
+    "Défilé Imane Ayissi, Haute Couture",
+    "Paris Fashion Week, mars 2026",
+    "Paris Fashion Week, mars 2026",
+    "Paris Fashion Week, mars 2026",
+    "",
+    "Défilé D in Paris",
+    "Défilé KidSuper, Paris",
+    "Semaine de la Haute Couture, Paris",
+    "Paris Fashion Week",
+    "Défilé Amiri, Paris",
+    "Semaine de la Haute Couture, Paris",
+    "Défilé D in Paris",
+  ],
+  "personnalites": [
+    "Denzel Ward, défilé Amiri",
+    "Soirée Amiri, Paris",
+    "Michael Rainey Jr, Paris Fashion Week",
+    "Défilé KidSuper, Paris",
+    "Jerami Grant, défilé KidSuper",
+    "Davido, Paris Fashion Week",
+    "Djany, Les Flammes 2026",
+    "Paris Fashion Week, octobre 2025",
+    "Défilé Georges Chakra, Paris",
+    "Kristy Sarah, Paris Fashion Week",
+    "Défilé Casablanca, Paris",
+    "Défilé Elie Saab, Haute Couture",
+    "Défilé Amiri, Paris",
+  ],
+  "editorial": [
+    "",
+    "",
+    "Magnum Online, Côte d'Azur",
+    "Magnum Online, Côte d'Azur",
+    "",
+    "Série Origines",
+    "Série Little Africa, Paris",
+    "",
+    "",
+    "",
+    "Magnum Online, Côte d'Azur",
+    "Magnum Online, Côte d'Azur",
+    "",
+  ],
+  "campagnes": [
+    "Africa Now × Galeries Lafayette, avec Olivia Yacé",
+    "Africa Now × Galeries Lafayette, avec Olivia Yacé",
+    "Africa Now × Galeries Lafayette, avec Olivia Yacé",
+    "Diaka Camara pour le Printemps",
+    "Diaka Camara pour le Printemps",
+    "Diaka Camara pour le Printemps",
+    "",
+    "",
+    "",
+    "",
+  ],
+  "sport": [
+    "Grand Prix de Monaco",
+    "Grand Prix de Monaco",
+    "Grand Prix de Monaco",
+    "Denzel Ward, défilé Amiri",
+    "Jubilé Robert Pirès",
+    "Jubilé Robert Pirès",
+    "Jubilé Robert Pirès",
+    "Jubilé Robert Pirès",
+  ],
+  "monaco-culture": [
+    "Expérience Orun, Grand Prix de Monaco",
+    "Beluga × Monaco",
+    "Manifeste 2026",
+    "Soirée Amiri, Paris",
+    "La Conversation, Paris 2026",
+  ],
+  "diners": [
+    "Gala Mboa Paris 2025",
+    "The Builders' Tables",
+    "The Builders' Tables",
+    "The Builders' Tables",
+    "The Builders' Tables",
+    "Private Fashion Dinner, Mboa Paris",
+    "Private Fashion Dinner, Mboa Paris",
+    "Pink Table, Taptap Send",
+    "Beyond The Glow, Nubiance × Sheek",
+    "Beyond The Glow, Nubiance × Sheek",
+    "Beyond The Glow, Nubiance × Sheek",
+    "Beyond The Glow, Nubiance × Sheek",
+    "Private Fashion Dinner, Mboa Paris",
+    "Beyond The Glow, Nubiance × Sheek",
+    "Private Fashion Dinner, Mboa Paris",
+    "Beyond The Glow, Nubiance × Sheek",
+  ],
+  "scenes": [
+    "Fally Ipupa, Stade de France",
+    "Djany, Les Flammes 2026",
+    "Les Flammes 2025",
+    "Avant-première Rumba Royale",
+    "Avant-première Rumba Royale",
+    "Soirée D in Paris",
+    "Avant-première Joya",
+    "Avant-première Joya",
+    "Les Flammes 2025",
+    "Fally Ipupa, Stade de France",
+    "Fally Ipupa, Stade de France",
+    "Les Flammes 2025",
+  ],
+};
 
 export const PAGE_PATHS = { signature: "/signature", evenements: "/evenements", entreprises: "/entreprises" };
 
@@ -270,7 +382,15 @@ function withImages(univers) {
   const images = univers.photos
     .map(([driveId, alt]) => ({ driveId, alt, ...UNIVERS_PHOTOS[driveId] }))
     .filter((photo) => photo.src)
-    .map(({ driveId, alt, src, width, height }) => ({ id: driveId, src, alt, width, height, title: titre }));
+    .map(({ driveId, alt, src, width, height }, index) => ({
+      id: driveId,
+      src,
+      alt,
+      caption: LEGENDES[univers.slug]?.[index] || "",
+      width,
+      height,
+      title: titre,
+    }));
 
   return {
     page: univers.page,
@@ -291,10 +411,24 @@ export function getUniversList() {
 
 // Applique les modifications faites depuis l'administration (textes, ordre, photos masquées,
 // couverture, textes alternatifs) à un univers tel que renvoyé par getUniversList/withImages.
+function toUniversImage(item) {
+  return {
+    id: item.id,
+    src: item.src,
+    alt: item.alt || "",
+    caption: item.caption || "",
+    width: item.width || undefined,
+    height: item.height || undefined,
+    title: "",
+    added: true,
+  };
+}
+
 export function applyUniversOverride(univers, override) {
   if (!override) return univers;
 
-  let images = univers.images;
+  // Photos ajoutées depuis l'administration : à la suite de celles importées du Drive.
+  let images = override.added?.length ? [...univers.images, ...override.added.map(toUniversImage)] : univers.images;
   if (override.hidden?.length) {
     const hidden = new Set(override.hidden);
     images = images.filter((image) => !hidden.has(image.id));
@@ -343,4 +477,13 @@ export function getUniversCovers() {
       titre: univers.titre,
       cover: univers.couverture,
     }));
+}
+
+// Une photo des univers retrouvée par son identifiant Drive (double page, portraits...).
+export function getUniversPhoto(driveId) {
+  for (const univers of getUniversList()) {
+    const photo = univers.images.find((image) => image.id === driveId);
+    if (photo) return photo;
+  }
+  return null;
 }

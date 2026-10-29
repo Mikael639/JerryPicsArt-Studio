@@ -8,7 +8,8 @@ export default function CountUp({ value, suffix = "", duration = 1.8, delay = 0 
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, amount: 0.6 });
   const reduceMotion = useReducedMotion();
-  const [display, setDisplay] = useState(reduceMotion ? value : 0);
+  // Le HTML du serveur contient déjà la vraie valeur : jamais de « 0+ » avant l'animation ni sans JavaScript.
+  const [display, setDisplay] = useState(value);
 
   useEffect(() => {
     if (!inView || reduceMotion) return undefined;
