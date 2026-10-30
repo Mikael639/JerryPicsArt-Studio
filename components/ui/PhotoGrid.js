@@ -59,7 +59,7 @@ function FadeImage({ photo, priority, sizes, className = "", style }) {
   );
 }
 
-function GridPhoto({ photo, index, onOpen, priority, openLabel, alone = false }) {
+function GridPhoto({ photo, index, onOpen, priority, openLabel, alone = false, row = false }) {
   // Sur téléphone (2 colonnes), une photo horizontale occupe toute la largeur, une verticale une colonne.
   const isLandscape = isLandscapePhoto(photo);
 
@@ -67,7 +67,8 @@ function GridPhoto({ photo, index, onOpen, priority, openLabel, alone = false })
     <RevealOnView
       as="figure"
       delay={(index % 3) * 0.08}
-      className={`break-inside-avoid sm:mb-4 ${isLandscape || alone ? "col-span-2 sm:col-span-1" : ""}`}
+      className={`break-inside-avoid sm:mb-4 ${row ? "lg:mb-0 lg:min-w-0" : ""} ${isLandscape || alone ? "col-span-2 sm:col-span-1" : ""}`}
+      style={row ? { flexGrow: (photo.width || FALLBACK_WIDTH) / (photo.height || FALLBACK_HEIGHT), flexBasis: 0 } : undefined}
     >
       <button
         type="button"
@@ -110,10 +111,15 @@ export function PhotoTiles({ items, onOpen, priority = false }) {
       4: "sm:columns-2 lg:columns-4",
     }[items.length] || "sm:columns-2 lg:columns-3";
 
+  // Sur grand écran, 2 à 4 photos forment une seule rangée à hauteur égale : chaque photo prend une largeur
+  // proportionnelle à son format (rien n'est recadré), au lieu de colonnes aux hauteurs inégales.
+  const row = items.length >= 2 && items.length <= 4;
+
   return (
-    <div className={`mx-auto grid grid-cols-2 gap-1.5 sm:-mb-4 sm:block sm:gap-4 ${layout}`}>
+    <div className={`mx-auto grid grid-cols-2 gap-1.5 sm:-mb-4 sm:block sm:gap-4 ${row ? "lg:mb-0 lg:flex" : ""} ${layout}`}>
       {items.map(({ photo, index }, position) => (
         <GridPhoto
+          row={row}
           key={photo.id || photo.src}
           photo={photo}
           index={index}
