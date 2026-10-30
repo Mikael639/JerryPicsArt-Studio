@@ -21,7 +21,7 @@ export default function PageIntro({ eyebrow, title, lead, bridge, cta, secondary
                 <TrackedLink
                   href={cta.href}
                   event={cta.event}
-                  className="inline-block rounded-full bg-ink px-8 py-4 text-[13px] font-bold uppercase tracking-[0.2em] text-paper transition-colors hover:bg-accent"
+                  className="inline-block whitespace-nowrap rounded-full bg-ink px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.12em] text-paper transition-colors hover:bg-accent min-[400px]:px-7 min-[400px]:text-[12px] min-[400px]:tracking-[0.16em] md:px-8 md:py-4 md:text-[13px] md:tracking-[0.2em]"
                 >
                   {cta.label}
                 </TrackedLink>

@@ -47,13 +47,28 @@ export default async function EvenementsPage() {
 
       <ClientsBand title={copy.clientsTitle} items={clients} />
 
+      <ContactBlock
+        title={copy.contactTitle}
+        text={copy.contactText}
+        label={copy.contactLabel}
+        href="/contact?type=evenement"
+        event="devis_evenement_final"
+        tone="light"
+      />
+
       <section className="mx-auto max-w-7xl px-4 md:px-8">
         <Reveal className="space-y-6">
           <h2 className="font-serif text-3xl tracking-tight md:text-4xl">{copy.coveredTitle}</h2>
-          <ul className="flex flex-wrap gap-3">
-            {copy.covered.map((item) => (
-              <li key={item} className="rounded-full border border-line/20 bg-white/60 px-5 py-2.5 text-[13px] font-semibold uppercase tracking-[0.14em] text-ink/75">
-                {item}
+          {/* Grille rangée : 2 colonnes sur téléphone (le dernier élément, seul, prend toute la largeur),
+              3 puis 2 cartes sur tablette, les 5 en ligne seulement sur grand écran. */}
+          <ul className="grid grid-cols-2 gap-3 md:grid-cols-6 md:gap-4 xl:grid-cols-5">
+            {copy.covered.map((item, index) => (
+              <li
+                key={item}
+                className="flex min-h-24 flex-col justify-between gap-4 rounded-inset border border-line/20 bg-white/60 p-4 last:odd:col-span-2 md:col-span-2 md:min-h-32 md:p-5 md:nth-[n+4]:col-span-3 md:last:odd:col-span-3 xl:col-span-1 xl:nth-[n+4]:col-span-1 xl:last:odd:col-span-1"
+              >
+                <span className="text-[11px] font-bold tracking-[0.24em] text-accent">{String(index + 1).padStart(2, "0")}</span>
+                <span className="font-serif text-xl leading-tight md:text-2xl">{item}</span>
               </li>
             ))}
           </ul>
@@ -103,13 +118,6 @@ export default async function EvenementsPage() {
           <Faq items={copy.faq} title={copy.faqTitle} />
 
           <ArticleEnd />
-          <ContactBlock
-            title={copy.contactTitle}
-            text={copy.contactText}
-            label={copy.contactLabel}
-            href="/contact?type=evenement"
-            event="devis_evenement_final"
-          />
         </DarkChapter>
       </div>
     </div>
