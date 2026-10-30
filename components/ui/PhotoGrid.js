@@ -59,7 +59,7 @@ function FadeImage({ photo, priority, sizes, className = "", style }) {
   );
 }
 
-function GridPhoto({ photo, index, onOpen, priority, openLabel }) {
+function GridPhoto({ photo, index, onOpen, priority, openLabel, alone = false }) {
   // Sur téléphone (2 colonnes), une photo horizontale occupe toute la largeur, une verticale une colonne.
   const isLandscape = isLandscapePhoto(photo);
 
@@ -67,7 +67,7 @@ function GridPhoto({ photo, index, onOpen, priority, openLabel }) {
     <RevealOnView
       as="figure"
       delay={(index % 3) * 0.08}
-      className={`break-inside-avoid sm:mb-4 ${isLandscape ? "col-span-2 sm:col-span-1" : ""}`}
+      className={`break-inside-avoid sm:mb-4 ${isLandscape || alone ? "col-span-2 sm:col-span-1" : ""}`}
     >
       <button
         type="button"
@@ -100,10 +100,18 @@ export function PhotoTiles({ items, onOpen, priority = false }) {
 
   // Sur ordinateur, autant de colonnes que nécessaire (jamais de colonne vide) : 4 photos s'étalent sur 4 colonnes
   // plutôt que 2 colonnes pleines et une vide ; à partir de 5 photos, 3 colonnes.
-  const desktopColumns = { 1: "lg:columns-1", 2: "lg:columns-2", 3: "lg:columns-3", 4: "lg:columns-4" }[items.length] || "lg:columns-3";
+  // Une ou deux photos seules ne s'étirent pas sur toute la largeur (elles feraient plus d'un écran de haut) :
+  // elles restent d'une taille raisonnable et centrées.
+  const layout =
+    {
+      1: "max-w-[78%] sm:columns-1 sm:max-w-sm lg:columns-1",
+      2: "sm:columns-2 lg:columns-2 lg:max-w-3xl",
+      3: "sm:columns-2 lg:columns-3",
+      4: "sm:columns-2 lg:columns-4",
+    }[items.length] || "sm:columns-2 lg:columns-3";
 
   return (
-    <div className={`grid grid-cols-2 gap-1.5 sm:-mb-4 sm:block sm:columns-2 sm:gap-4 ${desktopColumns}`}>
+    <div className={`mx-auto grid grid-cols-2 gap-1.5 sm:-mb-4 sm:block sm:gap-4 ${layout}`}>
       {items.map(({ photo, index }, position) => (
         <GridPhoto
           key={photo.id || photo.src}
@@ -112,6 +120,7 @@ export function PhotoTiles({ items, onOpen, priority = false }) {
           onOpen={onOpen}
           priority={priority && position < 2}
           openLabel={copy.openPhoto(photo.alt)}
+          alone={items.length === 1}
         />
       ))}
     </div>
