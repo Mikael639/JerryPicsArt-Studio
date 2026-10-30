@@ -245,7 +245,7 @@ export default function Navbar({ previews = {} }) {
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             className="fixed inset-0 z-40 overflow-y-auto bg-paper pt-[calc(73px+env(safe-area-inset-top))] xl:hidden"
           >
-            <div className="mx-auto flex min-h-full max-w-xl flex-col gap-4 px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4 md:px-8">
+            <div className="mx-auto flex min-h-full max-w-xl flex-col gap-[clamp(0.75rem,2svh,1.25rem)] px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4 md:px-8">
               {mobilePreview ? (
                 <div className="relative aspect-[4/3] max-h-[27svh] w-full shrink-0 overflow-hidden rounded-card bg-neutral-900 shadow-[0_24px_64px_rgba(12,10,8,0.14)] md:max-h-[34svh]">
                   <AnimatePresence initial={false}>
@@ -272,7 +272,7 @@ export default function Navbar({ previews = {} }) {
                   <Link
                     href={mobileSelected}
                     onClick={() => setIsOpen(false)}
-                    className="absolute inset-x-5 bottom-4 flex items-center justify-between font-serif text-2xl text-paper"
+                    className="absolute inset-x-5 bottom-4 flex items-center justify-between font-serif text-xl text-paper md:text-3xl"
                   >
                     <span>{mainLinks.find((link) => link.href === mobileSelected)?.label}</span>
                     <span aria-hidden="true" className="text-base">
@@ -316,7 +316,7 @@ export default function Navbar({ previews = {} }) {
                         href={link.href}
                         onClick={() => setIsOpen(false)}
                         onFocus={() => setMobileHref(link.href)}
-                        className={`flex items-baseline gap-4 py-2 font-serif text-[1.85rem] leading-tight tracking-[-0.02em] transition-colors ${
+                        className={`flex items-baseline gap-4 py-[clamp(0.25rem,1.2svh,0.5rem)] font-serif md:py-3 text-[clamp(1.5rem,4.2svh,2rem)] leading-tight md:text-4xl tracking-[-0.02em] transition-colors ${
                           isActive ? "text-accent" : "text-ink"
                         }`}
                       >
@@ -349,7 +349,7 @@ export default function Navbar({ previews = {} }) {
                 <Link
                   href="/contact"
                   onClick={() => setIsOpen(false)}
-                  className="flex w-full items-center justify-center rounded-full bg-accent px-6 py-4 text-[12px] font-bold uppercase tracking-[0.18em] text-paper transition-colors hover:bg-ink"
+                  className="flex w-full items-center justify-center rounded-full bg-accent px-6 py-[clamp(0.75rem,1.9svh,1rem)] text-[12px] font-bold uppercase tracking-[0.18em] text-paper transition-colors hover:bg-ink"
                 >
                   {copy.projectLabel}
                 </Link>
