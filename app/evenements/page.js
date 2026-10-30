@@ -47,6 +47,14 @@ export default async function EvenementsPage() {
 
       <ClientsBand title={copy.clientsTitle} items={clients} />
 
+      <ContactBlock
+        title={copy.contactTitle}
+        text={copy.contactText}
+        label={copy.contactLabel}
+        href="/contact?type=evenement"
+        event="devis_evenement_final"
+      />
+
       <section className="mx-auto max-w-7xl px-4 md:px-8">
         <Reveal className="space-y-6">
           <h2 className="font-serif text-3xl tracking-tight md:text-4xl">{copy.coveredTitle}</h2>
@@ -103,13 +111,6 @@ export default async function EvenementsPage() {
           <Faq items={copy.faq} title={copy.faqTitle} />
 
           <ArticleEnd />
-          <ContactBlock
-            title={copy.contactTitle}
-            text={copy.contactText}
-            label={copy.contactLabel}
-            href="/contact?type=evenement"
-            event="devis_evenement_final"
-          />
         </DarkChapter>
       </div>
     </div>

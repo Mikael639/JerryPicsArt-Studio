@@ -98,7 +98,7 @@ export const partners = [
 ];
 
 // Au survol, le défilement ralentit sans jamais s'arrêter ; hors survol il reprend son allure.
-function useMarqueeSlowdown(trackRef, containerRef, slowRate = 0.3) {
+export function useMarqueeSlowdown(trackRef, containerRef, slowRate = 0.3) {
   useEffect(() => {
     const track = trackRef.current;
     const container = containerRef.current;
