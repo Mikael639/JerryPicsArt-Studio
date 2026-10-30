@@ -42,6 +42,52 @@ function getHeroPriority(photo) {
   );
 }
 
+// Rapport largeur/hauteur des photos du diaporama déjà chargées (pour ne pas les recadrer au changement de diapositive).
+const heroRatios = new Map();
+// En dessous de ce rapport, la photo est trop « verticale » pour un écran large : recadrée en plein écran,
+// on n'en verrait que le milieu (un visage coupé à la bouche). Sur ordinateur, on la montre alors en entier.
+const PORTRAIT_RATIO = 1.3;
+
+function HeroImage({ photo, alt, priority = false, position, mobilePosition }) {
+  const [ratio, setRatio] = useState(() => heroRatios.get(photo.src) || 0);
+  const portrait = ratio > 0 && ratio < PORTRAIT_RATIO;
+
+  return (
+    <>
+      {/* Fond : la même photo, minuscule et agrandie (donc floue), qui remplit les côtés (ordinateur seulement). */}
+      {portrait ? (
+        <Image
+          src={photo.src}
+          alt=""
+          fill
+          sizes="6vw"
+          quality={75}
+          aria-hidden="true"
+          className="hidden scale-110 object-cover opacity-70 md:block"
+        />
+      ) : null}
+      <Image
+        src={photo.src}
+        alt={alt}
+        fill
+        priority={priority}
+        sizes="100vw"
+        data-portrait={portrait ? "" : undefined}
+        aria-hidden={alt ? undefined : "true"}
+        onLoad={(event) => {
+          const { naturalWidth, naturalHeight } = event.currentTarget;
+          if (!naturalWidth || !naturalHeight) return;
+          const next = naturalWidth / naturalHeight;
+          heroRatios.set(photo.src, next);
+          setRatio(next);
+        }}
+        className="hero-main-image object-cover sharpen-img"
+        style={{ "--hero-position": position, "--hero-mobile-position": mobilePosition }}
+      />
+    </>
+  );
+}
+
 export default function HomePageExperience({
   heroPhoto,
   doorPhotos = {},
@@ -212,32 +258,21 @@ export default function HomePageExperience({
             <>
               {outgoingHeroPhoto ? (
                 <div key={`out-${outgoingHeroPhoto.id}`} className="absolute inset-0">
-                  <Image
-                    src={outgoingHeroPhoto.src}
+                  <HeroImage
+                    photo={outgoingHeroPhoto}
                     alt=""
-                    fill
-                    sizes="100vw"
-                    aria-hidden="true"
-                    className="hero-main-image object-cover sharpen-img"
-                    style={{
-                      "--hero-position": outgoingHeroPhoto.objectPosition || DEFAULT_HERO_POSITION,
-                      "--hero-mobile-position": outgoingHeroPhoto.mobileObjectPosition || DEFAULT_MOBILE_HERO_POSITION,
-                    }}
+                    position={outgoingHeroPhoto.objectPosition || DEFAULT_HERO_POSITION}
+                    mobilePosition={outgoingHeroPhoto.mobileObjectPosition || DEFAULT_MOBILE_HERO_POSITION}
                   />
                 </div>
               ) : null}
             <div key={activeHeroPhoto.id} className="hero-fade-in absolute inset-0 hero-image-container">
-              <Image
-                src={activeHeroPhoto.src}
+              <HeroImage
+                photo={activeHeroPhoto}
                 alt={activeHeroPhoto.alt}
-                fill
                 priority
-                sizes="100vw"
-                className="hero-main-image object-cover sharpen-img"
-                style={{
-                  "--hero-position": activeHeroPosition,
-                  "--hero-mobile-position": activeMobileHeroPosition,
-                }}
+                position={activeHeroPosition}
+                mobilePosition={activeMobileHeroPosition}
               />
             </div>
             </>
@@ -258,17 +293,12 @@ export default function HomePageExperience({
                   animate={isHeroPaused ? { scale: 1 } : { scale: 1.08 }}
                   transition={{ duration: HERO_SLIDE_DURATION_MS / 1000, ease: "linear" }}
                 >
-                  <Image
-                    src={activeHeroPhoto.src}
+                  <HeroImage
+                    photo={activeHeroPhoto}
                     alt={activeHeroPhoto.alt}
-                    fill
                     priority
-                    sizes="100vw"
-                    className="hero-main-image object-cover sharpen-img"
-                    style={{
-                      "--hero-position": activeHeroPosition,
-                      "--hero-mobile-position": activeMobileHeroPosition,
-                    }}
+                    position={activeHeroPosition}
+                    mobilePosition={activeMobileHeroPosition}
                   />
                 </motion.div>
               </motion.div>
@@ -364,6 +394,13 @@ export default function HomePageExperience({
           @media (max-width: 767px) {
             .hero-main-image {
               object-position: var(--hero-mobile-position);
+            }
+          }
+
+          @media (min-width: 768px) {
+            .hero-main-image[data-portrait] {
+              object-fit: contain;
+              object-position: center;
             }
           }
         `}</style>

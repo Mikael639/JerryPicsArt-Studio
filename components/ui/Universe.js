@@ -14,6 +14,18 @@ function pad(number) {
   return String(number).padStart(2, "0");
 }
 
+// Un lien d'ancre ne fait rien quand l'adresse porte déjà cette ancre (second clic, ou retour en arrière après
+// un défilement) : on fait donc le défilement nous-mêmes, à chaque clic.
+function goToUniverse(event, slug, setActiveSlug) {
+  const target = document.getElementById(slug);
+  if (!target) return;
+  event.preventDefault();
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  target.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" });
+  window.history.replaceState(null, "", `#${slug}`);
+  setActiveSlug(slug);
+}
+
 // Sommaire numéroté des univers de la page, collant sur téléphone (sous l'en-tête). L'univers lu est souligné.
 export function UniverseNav({ items }) {
   const { lang } = useLanguage();
@@ -49,6 +61,7 @@ export function UniverseNav({ items }) {
             <li key={item.slug} className="shrink-0 md:shrink">
               <Link
                 href={`#${item.slug}`}
+                onClick={(event) => goToUniverse(event, item.slug, setActiveSlug)}
                 aria-current={active ? "true" : undefined}
                 className={`flex h-full items-center gap-3 rounded-[0.7rem] border p-1.5 pr-3 transition-colors md:p-2 md:pr-4 ${
                   active ? "border-accent bg-white/60" : "border-line/15 hover:border-ink/35"

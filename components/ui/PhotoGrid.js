@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useState } from "react";
 import Lightbox from "../Lightbox";
+import RevealOnView from "./RevealOnView";
 import { UI_COPY } from "../../lib/i18n";
 import { useLanguage } from "../LanguageProvider";
 
@@ -58,12 +59,16 @@ function FadeImage({ photo, priority, sizes, className = "", style }) {
   );
 }
 
-function GridPhoto({ photo, index, onOpen, priority, openLabel }) {
+function GridPhoto({ photo, index, onOpen, priority, openLabel, alone = false }) {
   // Sur téléphone (2 colonnes), une photo horizontale occupe toute la largeur, une verticale une colonne.
   const isLandscape = isLandscapePhoto(photo);
 
   return (
-    <figure className={`break-inside-avoid sm:mb-4 ${isLandscape ? "col-span-2 sm:col-span-1" : ""}`}>
+    <RevealOnView
+      as="figure"
+      delay={(index % 3) * 0.08}
+      className={`break-inside-avoid sm:mb-4 ${isLandscape || alone ? "col-span-2 sm:col-span-1" : ""}`}
+    >
       <button
         type="button"
         onClick={() => onOpen(index)}
@@ -84,7 +89,7 @@ function GridPhoto({ photo, index, onOpen, priority, openLabel }) {
         <span className="pointer-events-none absolute inset-0 bg-ink/0 transition-colors duration-300 group-hover:bg-ink/10" />
       </button>
       {/* Les légendes ne sont plus sous les photos : elles s'affichent dans la visionneuse (clic sur la photo). */}
-    </figure>
+    </RevealOnView>
   );
 }
 
@@ -93,8 +98,20 @@ export function PhotoTiles({ items, onOpen, priority = false }) {
   const { lang } = useLanguage();
   const copy = UI_COPY[lang]?.series || UI_COPY.fr.series;
 
+  // Sur ordinateur, autant de colonnes que nécessaire (jamais de colonne vide) : 4 photos s'étalent sur 4 colonnes
+  // plutôt que 2 colonnes pleines et une vide ; à partir de 5 photos, 3 colonnes.
+  // Une ou deux photos seules ne s'étirent pas sur toute la largeur (elles feraient plus d'un écran de haut) :
+  // elles restent d'une taille raisonnable et centrées.
+  const layout =
+    {
+      1: "max-w-[78%] sm:columns-1 sm:max-w-sm lg:columns-1",
+      2: "sm:columns-2 lg:columns-2 lg:max-w-3xl",
+      3: "sm:columns-2 lg:columns-3",
+      4: "sm:columns-2 lg:columns-4",
+    }[items.length] || "sm:columns-2 lg:columns-3";
+
   return (
-    <div className="grid grid-cols-2 gap-1.5 sm:-mb-4 sm:block sm:columns-2 sm:gap-4 lg:columns-3">
+    <div className={`mx-auto grid grid-cols-2 gap-1.5 sm:-mb-4 sm:block sm:gap-4 ${layout}`}>
       {items.map(({ photo, index }, position) => (
         <GridPhoto
           key={photo.id || photo.src}
@@ -103,6 +120,7 @@ export function PhotoTiles({ items, onOpen, priority = false }) {
           onOpen={onOpen}
           priority={priority && position < 2}
           openLabel={copy.openPhoto(photo.alt)}
+          alone={items.length === 1}
         />
       ))}
     </div>
@@ -116,7 +134,7 @@ export function FeaturedPhoto({ photo, index, onOpen, priority = false }) {
   const isLandscape = isLandscapePhoto(photo);
 
   return (
-    <figure>
+    <RevealOnView as="figure">
       <button
         type="button"
         onClick={() => onOpen(index)}
@@ -132,7 +150,7 @@ export function FeaturedPhoto({ photo, index, onOpen, priority = false }) {
         />
         <span className="pointer-events-none absolute inset-0 bg-ink/0 transition-colors duration-300 group-hover:bg-ink/10" />
       </button>
-    </figure>
+    </RevealOnView>
   );
 }
 
@@ -143,8 +161,8 @@ export function PhotoPair({ items, onOpen }) {
 
   return (
     <div className="grid grid-cols-2 gap-1.5 sm:gap-4">
-      {items.map(({ photo, index }) => (
-        <figure key={photo.id || photo.src}>
+      {items.map(({ photo, index }, position) => (
+        <RevealOnView as="figure" key={photo.id || photo.src} delay={position * 0.1}>
           <button
             type="button"
             onClick={() => onOpen(index)}
@@ -155,7 +173,7 @@ export function PhotoPair({ items, onOpen }) {
             <FadeImage photo={photo} sizes="(max-width: 767px) 50vw, 620px" className="block h-auto w-full" />
             <span className="pointer-events-none absolute inset-0 bg-ink/0 transition-colors duration-300 group-hover:bg-ink/10" />
           </button>
-        </figure>
+        </RevealOnView>
       ))}
     </div>
   );
