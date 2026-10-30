@@ -99,6 +99,16 @@ export default async function EntreprisesPage() {
             </ul>
           </section>
 
+          {/* « Parlons de votre projet » : remonté juste sous les garanties, en version claire. */}
+          <ContactBlock
+            title={copy.contactTitle}
+            text={copy.contactText}
+            label={copy.contactLabel}
+            href="/contact?type=entreprise"
+            event="appel_15_minutes"
+            tone="light"
+          />
+
           <div className="space-y-12 md:space-y-16">
             <div className="space-y-20 md:space-y-28">
               {univers.slice(1).map((item, index) => (
@@ -149,13 +159,6 @@ export default async function EntreprisesPage() {
           </section>
 
           <ArticleEnd />
-          <ContactBlock
-            title={copy.contactTitle}
-            text={copy.contactText}
-            label={copy.contactLabel}
-            href="/contact?type=entreprise"
-            event="appel_15_minutes"
-          />
         </DarkChapter>
       </div>
     </div>

@@ -7,7 +7,6 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import MagneticElement from "../MagneticElement";
 import { useCalmMotion } from "../../lib/useCalmMotion";
 import {
   MotionBlock,
@@ -18,7 +17,6 @@ import ArticleEnd from "../ui/ArticleEnd";
 import Steps from "../ui/Steps";
 import Testimonials from "../ui/Testimonials";
 import ContactBlock from "../ui/ContactBlock";
-import TrackedLink from "../ui/TrackedLink";
 import { HOME_PAGE_COPY } from "../../lib/i18n";
 import { localize } from "../../data/univers";
 import { useLanguage } from "../LanguageProvider";
@@ -416,15 +414,6 @@ export default function HomePageExperience({
           </h1>
           <p className="max-w-2xl text-base leading-relaxed text-ink/70 md:text-lg">{heroSubtitle}</p>
           <div className="flex flex-wrap items-center gap-x-8 gap-y-4 pt-1">
-            <MagneticElement strength={0.25}>
-              <TrackedLink
-                href="/contact"
-                event="devis_accueil_hero"
-                className="inline-block rounded-full bg-ink px-7 py-3.5 text-[12px] font-bold uppercase tracking-[0.18em] text-paper transition-colors hover:bg-accent sm:px-8 sm:py-4 sm:text-[13px] sm:tracking-[0.22em]"
-              >
-                {copy.ctaPrimary}
-              </TrackedLink>
-            </MagneticElement>
             <Link
               href="/signature"
               className="-my-2.5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-ink/60 underline-offset-4 transition-colors hover:text-ink hover:underline sm:text-[13px]"
@@ -434,6 +423,16 @@ export default function HomePageExperience({
           </div>
         </MotionBlock>
       </section>
+
+      {/* « Parlez-moi de votre projet » : remonté juste sous l'accroche, à la place du bouton « Demander un devis ». */}
+      <ContactBlock
+        title={copy.contactTitle}
+        text={copy.contactText}
+        event="devis_accueil_final"
+        themeSwitch={false}
+        tone="light"
+      />
+
       <section className="mx-auto max-w-7xl px-4 md:px-8" aria-labelledby="portes-titre">
         <MotionBlock reduceMotion={reduceMotion} className="mb-10 max-w-3xl space-y-4">
           <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-ink/45">{copy.doorsEyebrow}</p>
@@ -535,13 +534,6 @@ export default function HomePageExperience({
       <Testimonials items={testimonials} limit={1} tone="dark" title={copy.testimonialsTitle} />
 
       <ArticleEnd />
-
-      <ContactBlock
-        title={copy.contactTitle}
-        text={copy.contactText}
-        event="devis_accueil_final"
-        themeSwitch={false}
-      />
     </div>
   );
 }

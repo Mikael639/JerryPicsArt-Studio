@@ -81,8 +81,9 @@ export default function AboutExperience({ aboutCopy = defaultAboutCopy, stats = 
   return (
     <div data-page="about" className="page-shell mx-auto space-y-20 bg-paper pb-20 text-ink md:space-y-32">
       <div className="bg-paper pt-12">
-        <section className="mx-auto max-w-7xl px-4 md:px-8 grid min-h-[calc(100vh-8rem)] gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-end pb-20">
-          <motion.div className="space-y-8 pb-2" {...getRevealProps(reduceMotion)}>
+        <section className="mx-auto max-w-7xl px-4 md:px-8 grid min-h-[calc(100vh-8rem)] gap-10 lg:grid-cols-[1.08fr_0.92fr] lg:items-end pb-20">
+          {/* La photo passe avant le texte : au-dessus sur téléphone, à gauche sur grand écran. */}
+          <motion.div className="order-2 space-y-8 pb-2" {...getRevealProps(reduceMotion)}>
             <p className="text-[11px] font-medium uppercase tracking-[0.34em] text-ink/50">
               {pageCopy.eyebrowPrefix} {siteConfig.legalName}
             </p>
@@ -112,7 +113,7 @@ export default function AboutExperience({ aboutCopy = defaultAboutCopy, stats = 
             </div>
           </motion.div>
 
-          <div className="relative">
+          <div className="relative order-1">
             <PortraitPanel
               photo={portrait}
               priority
