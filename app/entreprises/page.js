@@ -40,7 +40,6 @@ export default async function EntreprisesPage() {
         eyebrow={copy.eyebrow}
         title={copy.title}
         lead={copy.lead}
-        cta={{ href: "/contact?type=entreprise", label: copy.ctaLabel, event: "appel_15_minutes" }}
         image={introPhoto}
       />
 
@@ -63,6 +62,16 @@ export default async function EntreprisesPage() {
         </Reveal>
         <Steps steps={copy.steps} />
       </section>
+
+      {/* Appel à l'action remonté juste sous « Comment ça se passe » (Brief, Couverture, Livraison, Facture), en version claire. */}
+      <ContactBlock
+        title={copy.contactTitle}
+        text={copy.contactText}
+        label={copy.contactLabel}
+        href="/contact?type=entreprise"
+        event="appel_15_minutes"
+        tone="light"
+      />
 
       {/* La barre d'ancres et tous les univers partagent ce bloc : sur téléphone, la barre reste collée
           jusqu'au dernier univers, y compris dans la partie sombre. */}
@@ -149,13 +158,6 @@ export default async function EntreprisesPage() {
           </section>
 
           <ArticleEnd />
-          <ContactBlock
-            title={copy.contactTitle}
-            text={copy.contactText}
-            label={copy.contactLabel}
-            href="/contact?type=entreprise"
-            event="appel_15_minutes"
-          />
         </DarkChapter>
       </div>
     </div>

@@ -7,7 +7,8 @@ import { FeaturedPhoto, isLandscapePhoto, PhotoPair, PhotoTiles, SeeAllButton, u
 import { localize } from "../../data/univers";
 import { useLanguage } from "../LanguageProvider";
 
-const MAX_PREVIEW_PHOTOS = 6;
+// Photo de couverture + 4 autres photos visibles ; le reste est replié (« Voir les N photos »).
+const MAX_PREVIEW_PHOTOS = 5;
 const PAIR_MIN_PHOTOS = 6;
 
 function pad(number) {

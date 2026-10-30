@@ -41,7 +41,6 @@ export default async function EvenementsPage() {
         title={copy.title}
         lead={copy.lead}
         bridge={copy.bridge}
-        cta={{ href: "/contact?type=evenement", label: copy.ctaLabel, event: "devis_evenement" }}
         image={introPhoto}
       />
 
