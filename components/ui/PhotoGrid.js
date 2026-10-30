@@ -98,8 +98,12 @@ export function PhotoTiles({ items, onOpen, priority = false }) {
   const { lang } = useLanguage();
   const copy = UI_COPY[lang]?.series || UI_COPY.fr.series;
 
+  // Sur ordinateur, autant de colonnes que nécessaire (jamais de colonne vide) : 4 photos s'étalent sur 4 colonnes
+  // plutôt que 2 colonnes pleines et une vide ; à partir de 5 photos, 3 colonnes.
+  const desktopColumns = { 1: "lg:columns-1", 2: "lg:columns-2", 3: "lg:columns-3", 4: "lg:columns-4" }[items.length] || "lg:columns-3";
+
   return (
-    <div className="grid grid-cols-2 gap-1.5 sm:-mb-4 sm:block sm:columns-2 sm:gap-4 lg:columns-3">
+    <div className={`grid grid-cols-2 gap-1.5 sm:-mb-4 sm:block sm:columns-2 sm:gap-4 ${desktopColumns}`}>
       {items.map(({ photo, index }, position) => (
         <GridPhoto
           key={photo.id || photo.src}
