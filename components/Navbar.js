@@ -70,6 +70,14 @@ export default function Navbar({ previews = {} }) {
   const mainLinks = localizedNav.filter((link) => MAIN_LINKS.includes(link.href));
   const houseLinks = localizedNav.filter((link) => !MAIN_LINKS.includes(link.href));
   const preview = previews[hovered] || previews[MAIN_LINKS.find((href) => previews[href])] || null;
+  // Menu mobile : la photo affichée est celle de la page courante, sinon de la première page ; les vignettes la changent.
+  const [mobileHref, setMobileHref] = useState(null);
+  const mobileSelected =
+    (previews[mobileHref] && mobileHref) ||
+    (previews[pathname] && MAIN_LINKS.includes(pathname) && pathname) ||
+    MAIN_LINKS.find((href) => previews[href]) ||
+    MAIN_LINKS[0];
+  const mobilePreview = previews[mobileSelected] || null;
   const [isScrolled, setIsScrolled] = useState(false);
   // Le bouton « Demander un devis » doit rester visible : l'en-tête ne s'estompe plus.
   const shouldDimOnHome = false;
@@ -223,105 +231,166 @@ export default function Navbar({ previews = {} }) {
           </div>
         </nav>
 
-        <AnimatePresence>
-          {isOpen ? (
-            <>
-              <motion.button
-                type="button"
-                aria-label={copy.closeMenu}
-                onClick={() => setIsOpen(false)}
-                className="fixed inset-0 top-[73px] bg-ink/16 xl:hidden"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              />
-              <motion.div
-                id="mobile-navigation"
-                initial={{ opacity: 0, y: -16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                className="border-t border-line/15 bg-paper/95 px-4 py-4 shadow-[0_24px_80px_rgba(12,10,8,0.08)] backdrop-blur-xl xl:hidden"
-              >
-                <div className="mx-auto flex max-h-[calc(100svh-8rem)] max-w-7xl flex-col gap-2 overflow-y-auto">
-                  {/* Sélecteur de langue intégré dans le tiroir mobile pour ne pas surcharger la barre du haut */}
-                  <div className="mb-1 flex items-center justify-between rounded-[1.2rem] border border-line/10 bg-white/55 px-6 py-3">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.24em] text-ink/50">
-                      {copy.langLabel}
-                    </span>
-                    <div role="group" aria-label={copy.langLabel} className="inline-flex items-center gap-3 text-xs font-bold uppercase tracking-[0.18em]">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setLang("fr");
-                          setIsOpen(false);
-                        }}
-                        aria-pressed={lang === "fr"}
-                        className={`rounded-full px-3 py-1 transition-colors ${
-                          lang === "fr" ? "bg-ink text-paper" : "text-ink/55 hover:text-ink"
-                        }`}
-                      >
-                        FR
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setLang("en");
-                          setIsOpen(false);
-                        }}
-                        aria-pressed={lang === "en"}
-                        className={`rounded-full px-3 py-1 transition-colors ${
-                          lang === "en" ? "bg-ink text-paper" : "text-ink/55 hover:text-ink"
-                        }`}
-                      >
-                        EN
-                      </button>
-                    </div>
-                  </div>
+      </motion.header>
 
-                  {localizedNav.map((link) => {
-                    const isActive = pathname === link.href;
-                    return (
-                      <Link
+      {/* Menu mobile et tablette : plein écran, grande photo de la page choisie, titres en serif numérotés. */}
+      <AnimatePresence>
+        {isOpen ? (
+          <motion.div
+            key="mobile-menu"
+            id="mobile-navigation"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed inset-0 z-40 overflow-y-auto bg-paper pt-[calc(73px+env(safe-area-inset-top))] xl:hidden"
+          >
+            <div className="mx-auto flex min-h-full max-w-xl flex-col gap-[clamp(0.75rem,2svh,1.25rem)] px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4 md:px-8">
+              {mobilePreview ? (
+                <div className="relative aspect-[4/3] max-h-[27svh] w-full shrink-0 overflow-hidden rounded-card bg-neutral-900 shadow-[0_24px_64px_rgba(12,10,8,0.14)] md:max-h-[34svh]">
+                  <AnimatePresence initial={false}>
+                    <motion.div
+                      key={mobilePreview.src}
+                      className="absolute inset-0"
+                      initial={{ opacity: 0, scale: 1.05 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                    >
+                      <Image
+                        src={mobilePreview.src}
+                        alt={mobilePreview.alt}
+                        fill
+                        sizes="(max-width: 576px) 100vw, 576px"
+                        className="object-cover"
+                        style={{ objectPosition: mobilePreview.objectPosition }}
+                        quality={75}
+                      />
+                    </motion.div>
+                  </AnimatePresence>
+                  <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(12,10,8,0),rgba(12,10,8,0.45))]" />
+                  <Link
+                    href={mobileSelected}
+                    onClick={() => setIsOpen(false)}
+                    className="absolute inset-x-5 bottom-4 flex items-center justify-between font-serif text-xl text-paper md:text-3xl"
+                  >
+                    <span>{mainLinks.find((link) => link.href === mobileSelected)?.label}</span>
+                    <span aria-hidden="true" className="text-base">
+                      →
+                    </span>
+                  </Link>
+                </div>
+              ) : null}
+
+              {Object.keys(previews).length > 1 ? (
+                <div className="flex items-center gap-3" aria-hidden="true">
+                  {mainLinks.map((link) =>
+                    previews[link.href] ? (
+                      <button
                         key={link.href}
+                        type="button"
+                        tabIndex={-1}
+                        onClick={() => setMobileHref(link.href)}
+                        className={`relative h-11 w-11 overflow-hidden rounded-full border-2 transition-all ${
+                          mobileSelected === link.href ? "border-accent" : "border-transparent opacity-60"
+                        }`}
+                      >
+                        <Image src={previews[link.href].src} alt="" fill sizes="44px" className="object-cover" quality={60} />
+                      </button>
+                    ) : null
+                  )}
+                </div>
+              ) : null}
+
+              <ul className="divide-y divide-line/15 border-y border-line/15">
+                {mainLinks.map((link, index) => {
+                  const isActive = pathname === link.href;
+                  return (
+                    <motion.li
+                      key={link.href}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.08 + index * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                    >
+                      <Link
                         href={link.href}
                         onClick={() => setIsOpen(false)}
-                        className={`flex items-center justify-between rounded-[1.2rem] border px-6 py-3.5 text-lg transition-all duration-300 ${
-                          isActive
-                            ? "border-ink bg-ink text-paper"
-                            : "border-line/10 bg-white/40 text-ink/80 hover:border-ink/20 hover:bg-white hover:text-ink"
+                        onFocus={() => setMobileHref(link.href)}
+                        className={`flex items-baseline gap-4 py-[clamp(0.25rem,1.2svh,0.5rem)] font-serif md:py-3 text-[clamp(1.5rem,4.2svh,2rem)] leading-tight md:text-4xl tracking-[-0.02em] transition-colors ${
+                          isActive ? "text-accent" : "text-ink"
                         }`}
                       >
-                        <span className="font-serif tracking-tight">{link.label}</span>
-                        {isActive && (
-                          <motion.span
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            className="h-1.5 w-1.5 rounded-full bg-paper"
-                          />
-                        )}
+                        <span className="w-7 font-sans text-[11px] font-bold tracking-[0.2em] text-accent">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                        <span>{link.label}</span>
                       </Link>
-                    );
-                  })}
-                  {siteConfig.socialLinks.map((link) => (
-                    <a
-                      key={link.href}
-                      href={link.href}
-                      target="_blank"
-                      rel="noreferrer"
-                      onClick={() => setIsOpen(false)}
-                      className="flex items-center justify-between rounded-[1.2rem] border border-line/10 bg-white/40 px-6 py-3.5 text-lg text-ink/80 transition-all duration-300 hover:border-ink/20 hover:bg-white hover:text-ink"
-                    >
-                      <span className="font-serif tracking-tight">{link.name}</span>
-                      <span className="text-sm font-semibold">{link.handle}</span>
-                    </a>
-                  ))}
+                    </motion.li>
+                  );
+                })}
+              </ul>
+
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                {houseLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setIsOpen(false)}
+                    className={`py-1.5 text-[12px] font-bold uppercase tracking-[0.2em] ${
+                      pathname === link.href ? "text-ink" : "text-ink/60"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+
+              <div className="mt-auto space-y-4 pt-2">
+                <Link
+                  href="/contact"
+                  onClick={() => setIsOpen(false)}
+                  className="flex w-full items-center justify-center rounded-full bg-accent px-6 py-[clamp(0.75rem,1.9svh,1rem)] text-[12px] font-bold uppercase tracking-[0.18em] text-paper transition-colors hover:bg-ink"
+                >
+                  {copy.projectLabel}
+                </Link>
+                <div className="flex flex-wrap items-center justify-between gap-3 text-[12px] font-bold uppercase tracking-[0.18em]">
+                  <div role="group" aria-label={copy.langLabel} className="inline-flex items-center gap-2">
+                    {["fr", "en"].map((code) => (
+                      <button
+                        key={code}
+                        type="button"
+                        onClick={() => {
+                          setLang(code);
+                          setIsOpen(false);
+                        }}
+                        aria-pressed={lang === code}
+                        className={`rounded-full px-3 py-1.5 transition-colors ${
+                          lang === code ? "bg-ink text-paper" : "text-ink/55 hover:text-ink"
+                        }`}
+                      >
+                        {code}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-4">
+                    {siteConfig.socialLinks.map((link) => (
+                      <a
+                        key={link.href}
+                        href={link.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="py-1.5 text-ink/60 transition-colors hover:text-ink"
+                      >
+                        {link.name}
+                      </a>
+                    ))}
+                  </div>
                 </div>
-              </motion.div>
-            </>
-          ) : null}
-        </AnimatePresence>
-      </motion.header>
+              </div>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
       <AnimatePresence>
         {isOpen ? (

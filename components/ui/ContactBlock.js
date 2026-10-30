@@ -24,7 +24,7 @@ export default function ContactBlock({
   const resolvedLabel = label || copy.defaultLabel;
 
   return (
-    <section data-theme-section={themeSwitch ? "dark" : undefined} className="mx-auto max-w-7xl px-4 pt-12 md:px-8 md:pt-20">
+    <section data-theme-section={themeSwitch ? "dark" : undefined} className={`mx-auto max-w-7xl px-4 md:px-8 ${light ? "-mt-4 md:-mt-8 xl:-mt-10" : "pt-12 md:pt-20"}`}>
       <div
         data-cursor-surface={light ? undefined : "dark"}
         className={`theme-default relative overflow-hidden rounded-feature border p-8 md:p-14 ${
