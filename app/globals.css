@@ -198,6 +198,29 @@ html.page-leaving footer {
   opacity: 1;
 }
 
+/* Apparition des photos au défilement : léger fondu et glissement de 18 px (voir components/ui/RevealOnView.js).
+   Uniquement opacity et transform, donc sans coût de mise en page. */
+.reveal-photo {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  transition:
+    opacity 0.7s ease-out var(--reveal-delay, 0s),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0s);
+}
+
+.reveal-photo[data-visible] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (scripting: none), (prefers-reduced-motion: reduce) {
+  .reveal-photo {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
 @media (scripting: none), (prefers-reduced-motion: reduce) {
   .photo-fade {
     opacity: 1;

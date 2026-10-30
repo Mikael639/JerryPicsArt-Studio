@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useState } from "react";
 import Lightbox from "../Lightbox";
+import RevealOnView from "./RevealOnView";
 import { UI_COPY } from "../../lib/i18n";
 import { useLanguage } from "../LanguageProvider";
 
@@ -63,7 +64,11 @@ function GridPhoto({ photo, index, onOpen, priority, openLabel }) {
   const isLandscape = isLandscapePhoto(photo);
 
   return (
-    <figure className={`break-inside-avoid sm:mb-4 ${isLandscape ? "col-span-2 sm:col-span-1" : ""}`}>
+    <RevealOnView
+      as="figure"
+      delay={(index % 3) * 0.08}
+      className={`break-inside-avoid sm:mb-4 ${isLandscape ? "col-span-2 sm:col-span-1" : ""}`}
+    >
       <button
         type="button"
         onClick={() => onOpen(index)}
@@ -84,7 +89,7 @@ function GridPhoto({ photo, index, onOpen, priority, openLabel }) {
         <span className="pointer-events-none absolute inset-0 bg-ink/0 transition-colors duration-300 group-hover:bg-ink/10" />
       </button>
       {/* Les légendes ne sont plus sous les photos : elles s'affichent dans la visionneuse (clic sur la photo). */}
-    </figure>
+    </RevealOnView>
   );
 }
 
@@ -116,7 +121,7 @@ export function FeaturedPhoto({ photo, index, onOpen, priority = false }) {
   const isLandscape = isLandscapePhoto(photo);
 
   return (
-    <figure>
+    <RevealOnView as="figure">
       <button
         type="button"
         onClick={() => onOpen(index)}
@@ -132,7 +137,7 @@ export function FeaturedPhoto({ photo, index, onOpen, priority = false }) {
         />
         <span className="pointer-events-none absolute inset-0 bg-ink/0 transition-colors duration-300 group-hover:bg-ink/10" />
       </button>
-    </figure>
+    </RevealOnView>
   );
 }
 
@@ -143,8 +148,8 @@ export function PhotoPair({ items, onOpen }) {
 
   return (
     <div className="grid grid-cols-2 gap-1.5 sm:gap-4">
-      {items.map(({ photo, index }) => (
-        <figure key={photo.id || photo.src}>
+      {items.map(({ photo, index }, position) => (
+        <RevealOnView as="figure" key={photo.id || photo.src} delay={position * 0.1}>
           <button
             type="button"
             onClick={() => onOpen(index)}
@@ -155,7 +160,7 @@ export function PhotoPair({ items, onOpen }) {
             <FadeImage photo={photo} sizes="(max-width: 767px) 50vw, 620px" className="block h-auto w-full" />
             <span className="pointer-events-none absolute inset-0 bg-ink/0 transition-colors duration-300 group-hover:bg-ink/10" />
           </button>
-        </figure>
+        </RevealOnView>
       ))}
     </div>
   );
