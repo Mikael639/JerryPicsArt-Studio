@@ -90,7 +90,7 @@ export const partners = [
   { name: "Galeries Lafayette", logo: "/images/partners/galeries-lafayette.png", size: "h-16 md:h-20", width: 900, height: 472 },
   { name: "Printemps", logo: "/images/partners/printemps.png", size: "h-10 md:h-11", width: 342, height: 49 },
   { name: "Decathlon", logo: "/images/partners/decathlon.png", size: "h-10 md:h-12", width: 1011, height: 152 },
-  { name: "UNESCO", logo: "/images/partners/unesco.png", size: "h-12 md:h-14", width: 3648, height: 774 },
+  { name: "UNESCO", logo: "/images/partners/unesco.png", size: "h-12 md:h-14", width: 900, height: 191 },
   { name: "Les Flammes", logo: "/images/partners/les-flammes.png", size: "h-16 md:h-20", width: 486, height: 220 },
   { name: "Valeo", logo: "/images/partners/valeo.png", size: "h-14 md:h-16", width: 950, height: 412 },
   { name: "Rolling Stone Africa", logo: "/images/partners/rolling-stone-africa.png", size: "h-12 md:h-14", width: 900, height: 179 },
@@ -176,6 +176,8 @@ export function PartnersSection({ reduceMotion, items = partners }) {
                   alt={index >= items.length ? "" : partner.name}
                   width={partner.width}
                   height={partner.height}
+                  loading="eager"
+                  unoptimized
                   className={`${partner.size} w-auto object-contain`}
                 />
               </li>
