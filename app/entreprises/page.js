@@ -40,7 +40,6 @@ export default async function EntreprisesPage() {
         eyebrow={copy.eyebrow}
         title={copy.title}
         lead={copy.lead}
-        cta={{ href: "/contact?type=entreprise", label: copy.ctaLabel, event: "appel_15_minutes" }}
         image={introPhoto}
       />
 
