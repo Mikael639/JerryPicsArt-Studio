@@ -103,7 +103,7 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
           aria-modal="true"
           aria-label={copy.dialogLabel}
           data-cursor-surface="dark"
-          className="fixed inset-0 z-[100] h-screen w-screen overflow-hidden bg-[#050403] focus:outline-none"
+          className="fixed inset-0 z-[100] h-dvh w-full overflow-hidden bg-[#050403] focus:outline-none"
           onClick={handleClose}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
@@ -120,18 +120,19 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
-                className="absolute top-0 inset-x-0 z-20 flex items-center justify-between px-5 py-4 md:px-10 bg-gradient-to-b from-black/70 to-transparent"
+                className="absolute top-0 inset-x-0 z-20 flex items-center justify-between px-5 pb-4 pt-[max(1rem,env(safe-area-inset-top))] md:px-10 bg-gradient-to-b from-black/70 to-transparent"
               >
-                <span className="text-[11px] font-bold uppercase tracking-[0.4em] text-white/30">
+                {/* Sur téléphone : le nom du site laisse la place au compteur, plus lisible et moins serré. */}
+                <span className="hidden text-[11px] font-bold uppercase tracking-[0.4em] text-white/30 sm:inline">
                   JerryPicsArt
                 </span>
 
                 <div className="flex items-center gap-3">
-                  <span className="font-serif text-[clamp(1rem,2vw,1.4rem)] text-white/20 leading-none">
+                  <span className="font-serif text-lg text-white/70 leading-none sm:text-[clamp(1rem,2vw,1.4rem)] sm:text-white/20">
                     {String(currentNum).padStart(2, "0")}
                   </span>
-                  <span className="h-px w-8 bg-white/20" />
-                  <span className="text-[11px] uppercase tracking-[0.3em] text-white/40">
+                  <span className="h-px w-5 bg-white/30 sm:w-8 sm:bg-white/20" />
+                  <span className="text-[11px] uppercase tracking-[0.3em] text-white/55 sm:text-white/40">
                     {String(totalNum).padStart(2, "0")}
                   </span>
                 </div>
@@ -173,7 +174,7 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute top-[72px] inset-x-0 z-20 h-px w-full bg-white/8"
+                className="absolute top-[calc(72px+env(safe-area-inset-top))] inset-x-0 z-20 h-px w-full bg-white/8"
               >
                 <motion.div
                   className="h-full bg-white/40"
@@ -200,7 +201,7 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
                 animate={{ opacity: 1, scale: isZoomed ? 2 : 1 }}
                 exit={{ opacity: 0, scale: 0.97 }}
                 transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                className="relative h-full w-full px-3 py-20 md:px-8 md:py-24"
+                className="relative h-full w-full px-3 pb-32 pt-20 md:px-8 md:py-24"
                 drag={isZoomed}
                 dragConstraints={constraintsRef}
                 dragElastic={0.1}
@@ -265,7 +266,7 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
                 transition={{ duration: 0.3 }}
-                className="absolute bottom-0 inset-x-0 z-20 flex items-center justify-between gap-6 px-6 py-5 md:px-10"
+                className="absolute bottom-0 inset-x-0 z-20 flex items-center justify-between gap-4 px-5 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:gap-6 md:px-10"
               >
                 <div className="flex items-center gap-4 min-w-0">
                   <div
