@@ -83,6 +83,7 @@ export async function submitContactForm(_previousState, formData) {
     location: getStringValue(formData, "location"),
     budget: getStringValue(formData, "budget"),
     source: getStringValue(formData, "source"),
+    fiveWords: getStringValue(formData, "fiveWords"),
     project: getStringValue(formData, "project"),
     consent: getStringValue(formData, "consent"),
   });
