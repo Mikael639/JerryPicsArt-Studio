@@ -296,6 +296,18 @@ export default function ContactForm({ type = "" }) {
           </div>
 
           <label className="space-y-2 md:col-span-2">
+            <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">{copy.fiveWordsLabel}</span>
+            <input
+              name="fiveWords"
+              maxLength={120}
+              aria-invalid={Boolean(errors.fiveWords)}
+              className={inputClass}
+              placeholder={copy.fiveWordsPlaceholder}
+            />
+            <FieldError message={errors.fiveWords} />
+          </label>
+
+          <label className="space-y-2 md:col-span-2">
             <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">{copy.messageLabel}</span>
             <textarea
               name="project"
