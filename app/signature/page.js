@@ -47,6 +47,9 @@ export default async function SignaturePage() {
         {copy.coverTitles}
       </p>
 
+      {/* « Parlons de votre projet » juste avant les photos, en version claire. */}
+      <ContactBlock text={copy.projectText} event="devis_signature_debut" tone="light" />
+
       {/* La barre d'ancres et tous les univers partagent ce bloc : sur téléphone, la barre reste collée
           jusqu'au dernier univers, y compris dans la partie sombre. */}
       <div>
