@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { animate, useInView, useReducedMotion } from "framer-motion";
 
 // Compteur : le chiffre monte de 0 à sa valeur quand il entre à l'écran (une seule fois).
-export default function CountUp({ value, suffix = "", duration = 1.8, delay = 0 }) {
+export default function CountUp({ value, prefix = "", suffix = "", animated = true, duration = 1.8, delay = 0 }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, amount: 0.6 });
   const reduceMotion = useReducedMotion();
@@ -12,7 +12,7 @@ export default function CountUp({ value, suffix = "", duration = 1.8, delay = 0 
   const [display, setDisplay] = useState(value);
 
   useEffect(() => {
-    if (!inView || reduceMotion) return undefined;
+    if (!inView || reduceMotion || !animated) return undefined;
     const controls = animate(0, value, {
       duration,
       delay,
@@ -20,11 +20,12 @@ export default function CountUp({ value, suffix = "", duration = 1.8, delay = 0 
       onUpdate: (latest) => setDisplay(Math.round(latest)),
     });
     return () => controls.stop();
-  }, [inView, reduceMotion, value, duration, delay]);
+  }, [inView, reduceMotion, animated, value, duration, delay]);
 
   return (
-    <span ref={ref} aria-label={`${value}${suffix}`}>
+    <span ref={ref} aria-label={`${prefix}${value}${suffix}`}>
       <span aria-hidden="true" className="tabular-nums">
+        {prefix}
         {display}
         {suffix}
       </span>

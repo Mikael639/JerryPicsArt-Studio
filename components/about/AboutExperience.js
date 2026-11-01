@@ -190,12 +190,13 @@ export default function AboutExperience({ aboutCopy = defaultAboutCopy, stats = 
           {chiffres.length ? (
             <dl className="grid gap-6 sm:grid-cols-3">
               {chiffres.map((item) => (
-                <motion.div key={item.libelle} className="border-t border-line/16 pt-5" {...getRevealProps(reduceMotion)}>
-                  <dd className="font-serif text-5xl leading-none tracking-[-0.04em] md:text-6xl">
+                <motion.div key={`${item.prefixe}${item.valeur}${item.suffixe}`} className="border-t border-line/16 pt-5" {...getRevealProps(reduceMotion)}>
+                  <dd className="font-serif text-4xl leading-[1.05] tracking-[-0.04em] md:text-5xl">
+                    {item.prefixe}
                     {item.valeur}
                     {item.suffixe}
                   </dd>
-                  <dt className="mt-4 text-[11px] font-bold uppercase tracking-[0.24em] text-ink/55">{item.libelle}</dt>
+                  <dt className="mt-4 text-base leading-snug text-ink/65">{item.libelle}</dt>
                   {item.precision ? <p className="mt-1 text-sm text-ink/45">{item.precision}</p> : null}
                 </motion.div>
               ))}
