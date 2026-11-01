@@ -21,6 +21,7 @@ import {
 } from "../../../lib/googleDrive";
 import { getAdminContent } from "../../../lib/adminContent";
 import { updateSiteContent } from "../../../lib/siteContent";
+import { updateLayout } from "../../../lib/layoutContent";
 import { getUniversOverrides, updateUniversOverride } from "../../../lib/universContent";
 import { getUniversList } from "../../../data/univers";
 import { deleteR2Object, isR2Configured, uploadR2Object } from "../../../lib/r2Storage";
@@ -467,6 +468,31 @@ export async function updateUniversAction(slug, patch) {
     return createActionResult({ ok: true, message: "Univers enregistré.", data: content.universList });
   } catch (error) {
     return createActionResult({ ok: false, message: error.message || "Impossible d'enregistrer cet univers." });
+  }
+}
+
+// Disposition : ordre des cartes de l'accueil (et lesquelles s'affichent), ordre des univers de chaque page.
+export async function updateLayoutAction(patch) {
+  const cookieStore = await getAuthorizedCookieStore();
+  if (!cookieStore) return unauthorizedResult();
+
+  try {
+    const layout = await updateLayout({
+      doors: Array.isArray(patch?.doors) ? patch.doors : undefined,
+      univers: patch?.univers && typeof patch.univers === "object" ? patch.univers : undefined,
+    });
+
+    revalidateTag("site-settings");
+    revalidatePath("/", "layout");
+    revalidateAdminViews();
+    const content = await getAdminContent();
+    return createActionResult({
+      ok: true,
+      message: "Mise en page enregistrée.",
+      data: { layout, universList: content.universList },
+    });
+  } catch (error) {
+    return createActionResult({ ok: false, message: error.message || "Impossible d'enregistrer la mise en page." });
   }
 }
 

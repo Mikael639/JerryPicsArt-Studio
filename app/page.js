@@ -8,6 +8,7 @@ import { getPublicPhotos } from "../lib/photoRepository";
 import { getSiteUrl, siteConfig, toAbsoluteUrl } from "../lib/siteConfig";
 import { buildPageMetadata } from "../lib/seo";
 import { getStats, getTestimonials } from "../lib/siteContent";
+import { getLayout } from "../lib/layoutContent";
 import { getHomeCopy } from "../lib/siteSettings";
 import { METADATA_COPY } from "../lib/i18n";
 import { getServerLang } from "../lib/serverLang";
@@ -190,10 +191,11 @@ export default async function HomePage() {
     sourcePhotos = [];
   }
 
-  const [stats, testimonials, lang] = await Promise.all([
+  const [stats, testimonials, lang, layout] = await Promise.all([
     getStats(),
     getTestimonials(),
     getServerLang(),
+    getLayout(),
   ]);
   const photos = (sourcePhotos.length ? sourcePhotos : [defaultFallbackPhoto]).map(normalizePhoto);
 
@@ -211,6 +213,7 @@ export default async function HomePage() {
     evenements: pickDoorPhoto(photos, "Events", usedIds),
     mariage: pickDoorPhoto(photos, "Fashion Wedding", usedIds),
     signature: pickDoorPhoto(photos, "Fashion Week & Celebrities", usedIds),
+    entreprises: pickDoorPhoto(photos, "Studio", usedIds),
   };
 
   const jsonLd = [
@@ -248,6 +251,7 @@ export default async function HomePage() {
         heroPhoto={heroPhoto}
         supportingPhotos={supportingPhotos}
         doorPhotos={doorPhotos}
+        doorsLayout={layout.doors}
         universCovers={await loadUniversCovers()}
         // Seules les photos du diaporama d'ouverture partent au navigateur (pas les centaines du catalogue).
         cinematicPool={photos.filter((photo) => photo.roles?.includes("hero"))}
