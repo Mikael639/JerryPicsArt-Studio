@@ -552,6 +552,10 @@ export default function AdminPhotosClient({
           updatePhoto={updatePhoto}
           selectedUniverse={selectedUniverse}
           setSelectedUniverse={setSelectedUniverse}
+          universList={content.universList}
+          onUniversListChange={(universList) => setContent((current) => ({ ...current, universList }))}
+          onStatus={setStatusMessage}
+          onError={setErrorMessage}
         />
       ) : null}
 
@@ -693,6 +697,7 @@ export default function AdminPhotosClient({
           {settingsSubTab === "univers" ? (
             <AdminUniversEditor
               initialUniversList={content.universList}
+              onListChange={(universList) => setContent((current) => ({ ...current, universList }))}
               onStatus={setStatusMessage}
               onError={setErrorMessage}
             />

@@ -2,7 +2,12 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { addUniversPhotosAction, removeUniversPhotoAction, updateUniversAction } from "../../app/admin/photos/actions";
+import {
+  addUniversPhotosAction,
+  removeUniversPhotoAction,
+  replaceUniversPhotoAction,
+  updateUniversAction,
+} from "../../app/admin/photos/actions";
 
 const PAGE_LABELS = {
   signature: "Signature",
@@ -23,6 +28,7 @@ function UniversCard({ univers, onSaved, onStatus, onError }) {
   const [isSaving, setIsSaving] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [replacingId, setReplacingId] = useState("");
 
   const visibleCount = images.filter((image) => !image.hidden).length;
 
@@ -73,8 +79,41 @@ function UniversCard({ univers, onSaved, onStatus, onError }) {
     }
   }
 
-  async function removeAdded(id) {
-    if (!window.confirm("Supprimer définitivement cette photo ?")) return;
+  // Remplace l'image d'une photo (ajoutée ou importée du Drive) : même place dans l'univers, même texte alternatif.
+  async function replace(id, event) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    setReplacingId(id);
+    onError("");
+    onStatus("");
+
+    const formData = new FormData();
+    formData.append("slug", univers.slug);
+    formData.append("photoId", id);
+    formData.append("file", file);
+    const result = await replaceUniversPhotoAction(formData);
+    setReplacingId("");
+
+    if (!result.ok) {
+      onError(result.message || "Impossible de remplacer cette photo.");
+      return;
+    }
+
+    onStatus(result.message || "Photo remplacée.");
+    const updated = Array.isArray(result.data) ? result.data.find((item) => item.slug === univers.slug) : null;
+    const fresh = updated?.images.find((image) => image.id === id);
+    if (fresh) setImages((current) => current.map((image) => (image.id === id ? { ...image, src: fresh.src } : image)));
+    if (updated) onSaved(updated, { silent: true });
+  }
+
+  async function removePhoto(image) {
+    const message = image.added
+      ? "Supprimer définitivement cette photo ?"
+      : "Retirer cette photo du site ? Son original reste dans votre Drive.";
+    if (!window.confirm(message)) return;
+    const id = image.id;
     onError("");
     const result = await removeUniversPhotoAction(univers.slug, id);
     if (!result.ok) {
@@ -84,6 +123,8 @@ function UniversCard({ univers, onSaved, onStatus, onError }) {
     setImages((current) => current.filter((image) => image.id !== id));
     if (cover === id) setCover(images.find((image) => image.id !== id && !image.hidden)?.id || "");
     onStatus(result.message || "Photo supprimée.");
+    const updated = Array.isArray(result.data) ? result.data.find((item) => item.slug === univers.slug) : null;
+    if (updated) onSaved(updated, { silent: true });
   }
 
   async function save() {
@@ -220,15 +261,23 @@ function UniversCard({ univers, onSaved, onStatus, onError }) {
                   >
                     Couverture
                   </button>
-                  {image.added ? (
-                    <button
-                      type="button"
-                      onClick={() => removeAdded(image.id)}
-                      className="rounded-full border border-red-200 px-2.5 py-1 text-[11px] text-red-700 hover:bg-red-50"
-                    >
-                      Supprimer
-                    </button>
-                  ) : null}
+                  <label className="cursor-pointer rounded-full border border-line/25 px-2.5 py-1 text-[11px] hover:border-ink">
+                    {replacingId === image.id ? "Envoi..." : "Remplacer"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={Boolean(replacingId)}
+                      onChange={(event) => replace(image.id, event)}
+                      className="sr-only"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(image)}
+                    className="rounded-full border border-red-200 px-2.5 py-1 text-[11px] text-red-700 hover:bg-red-50"
+                  >
+                    Supprimer
+                  </button>
                 </div>
               </div>
             ))}
@@ -264,7 +313,7 @@ function UniversCard({ univers, onSaved, onStatus, onError }) {
 // Univers de Signature, Événements et Entreprises & lieux : textes, ordre des photos, photos
 // masquées, couverture et textes alternatifs. Les photos elles-mêmes s'ajoutent via
 // scripts/import-univers.mjs (voir data/univers.js) ; cet écran ne fait que les organiser.
-export default function AdminUniversEditor({ initialUniversList = [], onStatus, onError }) {
+export default function AdminUniversEditor({ initialUniversList = [], onStatus, onError, onListChange }) {
   const [universList, setUniversList] = useState(initialUniversList);
 
   const grouped = ["signature", "evenements", "entreprises"]
@@ -272,7 +321,9 @@ export default function AdminUniversEditor({ initialUniversList = [], onStatus, 
     .filter((group) => group.items.length);
 
   function handleSaved(updated) {
-    setUniversList((current) => current.map((item) => (item.slug === updated.slug ? updated : item)));
+    const next = universList.map((item) => (item.slug === updated.slug ? updated : item));
+    setUniversList(next);
+    onListChange?.(next);
   }
 
   if (universList.length === 0) {
