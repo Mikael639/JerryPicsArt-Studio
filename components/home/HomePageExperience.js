@@ -114,18 +114,18 @@ export default function HomePageExperience({
       photo: doorPhotos.evenements,
     },
     {
+      href: "/signature",
+      titre: copy.doors.signature.titre,
+      texte: copy.doors.signature.texte,
+      lien: copy.doors.signature.lien,
+      photo: doorPhotos.signature,
+    },
+    {
       href: "/mariage",
       titre: copy.doors.mariage.titre,
       texte: copy.doors.mariage.texte,
       lien: copy.doors.mariage.lien,
       photo: doorPhotos.mariage,
-    },
-    {
-      href: "/entreprises",
-      titre: copy.doors.entreprises.titre,
-      texte: copy.doors.entreprises.texte,
-      lien: copy.doors.entreprises.lien,
-      photo: doorPhotos.entreprises,
     },
   ];
   const cinematicPhotos = useMemo(() => {

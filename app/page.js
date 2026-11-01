@@ -210,7 +210,7 @@ export default async function HomePage() {
   const doorPhotos = {
     evenements: pickDoorPhoto(photos, "Events", usedIds),
     mariage: pickDoorPhoto(photos, "Fashion Wedding", usedIds),
-    entreprises: pickDoorPhoto(photos, "Studio", usedIds),
+    signature: pickDoorPhoto(photos, "Fashion Week & Celebrities", usedIds),
   };
 
   const jsonLd = [
