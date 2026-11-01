@@ -19,6 +19,7 @@ import {
 import { compressImageFiles, formatFileSize } from "../../lib/imageCompression";
 import AdminAboutEditor from "./AdminAboutEditor";
 import AdminContentEditor from "./AdminContentEditor";
+import AdminLayoutEditor from "./AdminLayoutEditor";
 import AdminUniversEditor from "./AdminUniversEditor";
 import AdminClientsEditor from "./AdminClientsEditor";
 import AdminCategoryManager from "./AdminCategoryManager";
@@ -47,6 +48,7 @@ const settingsSubTabs = [
   { id: "references", label: "Références", description: "Personnalités, maisons, médias et lieux" },
   { id: "series", label: "Textes des séries", description: "Phrase de contexte sous chaque série" },
   { id: "clients", label: "Logos clients", description: "Bande « Ils nous ont fait confiance » (Entreprises & lieux)" },
+  { id: "mise-en-page", label: "Mise en page", description: "Ordre des cartes de l'accueil et des univers de chaque page" },
   { id: "univers", label: "Univers", description: "Signature, Événements, Entreprises & lieux : photos et textes" },
   { id: "themes", label: "Catégories & guide", description: "Ajouter une catégorie, pages du site" },
 ];
@@ -550,6 +552,10 @@ export default function AdminPhotosClient({
           updatePhoto={updatePhoto}
           selectedUniverse={selectedUniverse}
           setSelectedUniverse={setSelectedUniverse}
+          universList={content.universList}
+          onUniversListChange={(universList) => setContent((current) => ({ ...current, universList }))}
+          onStatus={setStatusMessage}
+          onError={setErrorMessage}
         />
       ) : null}
 
@@ -675,9 +681,23 @@ export default function AdminPhotosClient({
             />
           ) : null}
 
+          {settingsSubTab === "mise-en-page" ? (
+            <AdminLayoutEditor
+              key={JSON.stringify(content.layout)}
+              initialLayout={content.layout}
+              initialUniversList={content.universList}
+              onStatus={setStatusMessage}
+              onError={setErrorMessage}
+              onSaved={(data) =>
+                setContent((current) => ({ ...current, layout: data.layout, universList: data.universList }))
+              }
+            />
+          ) : null}
+
           {settingsSubTab === "univers" ? (
             <AdminUniversEditor
               initialUniversList={content.universList}
+              onListChange={(universList) => setContent((current) => ({ ...current, universList }))}
               onStatus={setStatusMessage}
               onError={setErrorMessage}
             />

@@ -89,6 +89,7 @@ function HeroImage({ photo, alt, priority = false, position, mobilePosition }) {
 export default function HomePageExperience({
   heroPhoto,
   doorPhotos = {},
+  doorsLayout = [],
   universCovers = [],
   cinematicPool = [],
   stats,
@@ -105,29 +106,14 @@ export default function HomePageExperience({
   const heroSubtitle =
     lang === "en" ? copy.heroSubtitle : siteText.heroSubtitle || copy.heroSubtitle;
 
-  const doors = [
-    {
-      href: "/evenements",
-      titre: copy.doors.evenements.titre,
-      texte: copy.doors.evenements.texte,
-      lien: copy.doors.evenements.lien,
-      photo: doorPhotos.evenements,
-    },
-    {
-      href: "/mariage",
-      titre: copy.doors.mariage.titre,
-      texte: copy.doors.mariage.texte,
-      lien: copy.doors.mariage.lien,
-      photo: doorPhotos.mariage,
-    },
-    {
-      href: "/entreprises",
-      titre: copy.doors.entreprises.titre,
-      texte: copy.doors.entreprises.texte,
-      lien: copy.doors.entreprises.lien,
-      photo: doorPhotos.entreprises,
-    },
-  ];
+  // Cartes « Ce que je photographie » : l'administration choisit lesquelles s'affichent et dans quel ordre.
+  const doorsById = {
+    evenements: { href: "/evenements", ...copy.doors.evenements, photo: doorPhotos.evenements },
+    signature: { href: "/signature", ...copy.doors.signature, photo: doorPhotos.signature },
+    mariage: { href: "/mariage", ...copy.doors.mariage, photo: doorPhotos.mariage },
+    entreprises: { href: "/entreprises", ...copy.doors.entreprises, photo: doorPhotos.entreprises },
+  };
+  const doors = doorsLayout.filter((door) => door.visible && doorsById[door.id]).map((door) => doorsById[door.id]);
   const cinematicPhotos = useMemo(() => {
     const seen = new Set();
     const heroPool = cinematicPool.filter((photo) => photo?.roles?.includes("hero"));

@@ -429,6 +429,19 @@ export function applyUniversOverride(univers, override) {
 
   // Photos ajoutées depuis l'administration : à la suite de celles importées du Drive.
   let images = override.added?.length ? [...univers.images, ...override.added.map(toUniversImage)] : univers.images;
+  // Photos importées du Drive : image remplacée, ou supprimée, depuis l'administration.
+  if (override.replaced) {
+    images = images.map((image) => {
+      const replacement = override.replaced[image.id];
+      return replacement
+        ? { ...image, src: replacement.src, width: replacement.width || image.width, height: replacement.height || image.height }
+        : image;
+    });
+  }
+  if (override.removed?.length) {
+    const removed = new Set(override.removed);
+    images = images.filter((image) => !removed.has(image.id));
+  }
   if (override.hidden?.length) {
     const hidden = new Set(override.hidden);
     images = images.filter((image) => !hidden.has(image.id));

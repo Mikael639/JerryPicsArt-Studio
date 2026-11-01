@@ -21,6 +21,7 @@ import {
 } from "../../../lib/googleDrive";
 import { getAdminContent } from "../../../lib/adminContent";
 import { updateSiteContent } from "../../../lib/siteContent";
+import { updateLayout } from "../../../lib/layoutContent";
 import { getUniversOverrides, updateUniversOverride } from "../../../lib/universContent";
 import { getUniversList } from "../../../data/univers";
 import { deleteR2Object, isR2Configured, uploadR2Object } from "../../../lib/r2Storage";
@@ -470,6 +471,31 @@ export async function updateUniversAction(slug, patch) {
   }
 }
 
+// Disposition : ordre des cartes de l'accueil (et lesquelles s'affichent), ordre des univers de chaque page.
+export async function updateLayoutAction(patch) {
+  const cookieStore = await getAuthorizedCookieStore();
+  if (!cookieStore) return unauthorizedResult();
+
+  try {
+    const layout = await updateLayout({
+      doors: Array.isArray(patch?.doors) ? patch.doors : undefined,
+      univers: patch?.univers && typeof patch.univers === "object" ? patch.univers : undefined,
+    });
+
+    revalidateTag("site-settings");
+    revalidatePath("/", "layout");
+    revalidateAdminViews();
+    const content = await getAdminContent();
+    return createActionResult({
+      ok: true,
+      message: "Mise en page enregistrée.",
+      data: { layout, universList: content.universList },
+    });
+  } catch (error) {
+    return createActionResult({ ok: false, message: error.message || "Impossible d'enregistrer la mise en page." });
+  }
+}
+
 const CLIENT_LOGO_MAX_BYTES = 2 * 1024 * 1024;
 
 // Logo d'un client : PNG, WebP ou JPEG (jamais de SVG), 2 Mo au plus. Retourne l'adresse publique et les dimensions.
@@ -513,6 +539,30 @@ export async function uploadClientLogoAction(formData) {
 }
 
 const UNIVERS_MAX_SIDE = 2400;
+
+// Redimensionne une photo d'univers (2 400 px au plus) et l'envoie sur R2.
+async function storeUniversImage(slug, file) {
+  const output = await sharp(Buffer.from(await file.arrayBuffer()))
+    .rotate()
+    .resize(UNIVERS_MAX_SIDE, UNIVERS_MAX_SIDE, { fit: "inside", withoutEnlargement: true })
+    .jpeg({ quality: 82, mozjpeg: true })
+    .toBuffer({ resolveWithObject: true });
+
+  const storagePath = `univers/${slug}/${crypto.randomUUID()}.jpg`;
+  const { publicUrl } = await uploadR2Object({ storagePath, buffer: output.data, contentType: "image/jpeg" });
+  return { src: publicUrl, storagePath, width: output.info.width, height: output.info.height };
+}
+
+// Une photo de l'univers : ajoutée depuis l'administration, ou importée du Drive (et pas déjà retirée).
+function findUniversPhoto(slug, photoId, overrides) {
+  const current = overrides[slug];
+  const added = current?.added?.find((item) => item.id === photoId) || null;
+  const imported =
+    !added &&
+    !(current?.removed || []).includes(photoId) &&
+    Boolean(getUniversList().find((item) => item.slug === slug)?.images.some((image) => image.id === photoId));
+  return { current, added, imported };
+}
 
 // Ajout de photos à un univers par envoi direct : redimensionnement à 2 400 px, envoi sur R2, enregistrement.
 // formData : slug, files (sélection multiple).
@@ -590,34 +640,98 @@ export async function addUniversPhotosAction(formData) {
   }
 }
 
-// Retire définitivement une photo ajoutée depuis l'administration (les photos importées du Drive se masquent seulement).
+// Retire une photo de l'univers, quelle qu'elle soit. Une photo ajoutée depuis l'administration est supprimée
+// définitivement ; une photo importée du Drive est retirée du site (son original reste dans le Drive et sur R2).
 export async function removeUniversPhotoAction(slug, photoId) {
   const cookieStore = await getAuthorizedCookieStore();
   if (!cookieStore) return unauthorizedResult();
 
   try {
     const overrides = await getUniversOverrides();
-    const current = overrides[slug];
-    const target = current?.added?.find((item) => item.id === photoId);
-    if (!target) return createActionResult({ ok: false, message: "Photo introuvable." });
+    const { current, added, imported } = findUniversPhoto(slug, photoId, overrides);
+    if (!added && !imported) return createActionResult({ ok: false, message: "Photo introuvable." });
 
-    const alt = Object.fromEntries(Object.entries(current.alt || {}).filter(([id]) => id !== photoId));
-    await updateUniversOverride(slug, {
-      added: current.added.filter((item) => item.id !== photoId),
-      hidden: (current.hidden || []).filter((id) => id !== photoId),
-      order: (current.order || []).filter((id) => id !== photoId),
-      cover: current.cover === photoId ? "" : current.cover || "",
-      alt,
-    });
-    if (target.storagePath) await deleteR2Object(target.storagePath).catch(() => {});
+    const patch = {
+      hidden: (current?.hidden || []).filter((id) => id !== photoId),
+      order: (current?.order || []).filter((id) => id !== photoId),
+      cover: current?.cover === photoId ? "" : current?.cover || "",
+      alt: Object.fromEntries(Object.entries(current?.alt || {}).filter(([id]) => id !== photoId)),
+    };
+    let fileToDelete = "";
+
+    if (added) {
+      patch.added = current.added.filter((item) => item.id !== photoId);
+      fileToDelete = added.storagePath || "";
+    } else {
+      patch.removed = [...(current?.removed || []), photoId];
+      patch.replaced = Object.fromEntries(Object.entries(current?.replaced || {}).filter(([id]) => id !== photoId));
+      fileToDelete = current?.replaced?.[photoId]?.storagePath || "";
+    }
+
+    await updateUniversOverride(slug, patch);
+    if (fileToDelete) await deleteR2Object(fileToDelete).catch(() => {});
 
     revalidateTag("site-settings");
     revalidatePath("/", "layout");
     revalidateAdminViews();
     const content = await getAdminContent();
-    return createActionResult({ ok: true, message: "Photo supprimée.", data: content.universList });
+    return createActionResult({
+      ok: true,
+      message: added ? "Photo supprimée." : "Photo retirée du site (l'original reste dans votre Drive).",
+      data: content.universList,
+    });
   } catch (error) {
     return createActionResult({ ok: false, message: error.message || "Impossible de supprimer cette photo." });
+  }
+}
+
+// Remplace l'image d'une photo de l'univers (ajoutée ou importée du Drive) : même place, même texte alternatif.
+// formData : slug, photoId, file.
+export async function replaceUniversPhotoAction(formData) {
+  const cookieStore = await getAuthorizedCookieStore();
+  if (!cookieStore) return unauthorizedResult();
+
+  if (!isR2Configured()) {
+    return createActionResult({ ok: false, message: "Le stockage R2 n'est pas encore configuré." });
+  }
+
+  const slug = toStringValue(formData.get("slug"));
+  const photoId = toStringValue(formData.get("photoId"));
+  const file = formData.get("file");
+  if (!file || typeof file === "string") return createActionResult({ ok: false, message: "Aucun fichier reçu." });
+  if (!file.type?.startsWith("image/")) {
+    return createActionResult({ ok: false, message: "Seuls les fichiers image sont acceptés." });
+  }
+  if (file.size > MAX_UPLOAD_FILE_SIZE_BYTES) {
+    return createActionResult({ ok: false, message: "Ce fichier dépasse la limite de 15 Mo." });
+  }
+
+  try {
+    const overrides = await getUniversOverrides();
+    const { current, added, imported } = findUniversPhoto(slug, photoId, overrides);
+    if (!added && !imported) return createActionResult({ ok: false, message: "Photo introuvable." });
+
+    const stored = await storeUniversImage(slug, file);
+    let previousFile = "";
+
+    if (added) {
+      previousFile = added.storagePath || "";
+      await updateUniversOverride(slug, {
+        added: current.added.map((item) => (item.id === photoId ? { ...item, ...stored } : item)),
+      });
+    } else {
+      previousFile = current?.replaced?.[photoId]?.storagePath || "";
+      await updateUniversOverride(slug, { replaced: { ...(current?.replaced || {}), [photoId]: stored } });
+    }
+    if (previousFile) await deleteR2Object(previousFile).catch(() => {});
+
+    revalidateTag("site-settings");
+    revalidatePath("/", "layout");
+    revalidateAdminViews();
+    const content = await getAdminContent();
+    return createActionResult({ ok: true, message: "Photo remplacée.", data: content.universList });
+  } catch (error) {
+    return createActionResult({ ok: false, message: error.message || "Impossible de remplacer cette photo." });
   }
 }
 
