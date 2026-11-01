@@ -178,6 +178,28 @@ export default function HomePageExperience({
   }
 
   useGSAP(() => {
+    // Passage du clair au sombre : léger, donc actif sur tous les appareils (tablettes tactiles comprises).
+    // Sans lui, les sections sombres de l'accueil (méthode, chiffres, avis) resteraient sur un fond clair.
+    // Avec « réduire les animations », le fond change aussitôt, sans fondu.
+    const themeDuration = reduceMotion ? 0 : 1;
+    const sections = gsap.utils.toArray("section.color-transition-section");
+    sections.forEach((section) => {
+      ScrollTrigger.create({
+        trigger: section,
+        start: "top center",
+        end: "bottom center",
+        onEnter: () => {
+          document.documentElement.dataset.theme = "dark";
+          gsap.to(document.body, { backgroundColor: "#0c0a08", duration: themeDuration, overwrite: true });
+        },
+        onLeaveBack: () => {
+          delete document.documentElement.dataset.theme;
+          gsap.to(document.body, { backgroundColor: "#fefdfa", duration: themeDuration, overwrite: true });
+        },
+      });
+    });
+
+    // Les effets lourds (flou animé, parallaxe) restent réservés aux appareils qui les supportent bien.
     if (shouldCalmHeroMotion) return;
 
     const heroImages = gsap.utils.toArray(".hero-image-container");
@@ -188,23 +210,6 @@ export default function HomePageExperience({
         { scale: 1, filter: "blur(0px)", duration: 2.4, ease: "expo.out", delay: 0.5 }
       );
     }
-
-    const sections = gsap.utils.toArray("section.color-transition-section");
-    sections.forEach((section) => {
-      ScrollTrigger.create({
-        trigger: section,
-        start: "top center",
-        end: "bottom center",
-        onEnter: () => {
-          document.documentElement.dataset.theme = "dark";
-          gsap.to(document.body, { backgroundColor: "#0c0a08", duration: 1 });
-        },
-        onLeaveBack: () => {
-          delete document.documentElement.dataset.theme;
-          gsap.to(document.body, { backgroundColor: "#fefdfa", duration: 1 });
-        },
-      });
-    });
 
     const parallaxImages = gsap.utils.toArray(".parallax-img");
     parallaxImages.forEach((img) => {
@@ -219,7 +224,7 @@ export default function HomePageExperience({
         },
       });
     });
-  }, { scope: containerRef, dependencies: [shouldCalmHeroMotion] });
+  }, { scope: containerRef, dependencies: [shouldCalmHeroMotion, reduceMotion] });
 
   useEffect(() => {
     if (reduceMotion || isHeroPaused || shuffledPhotos.length < 2) return;

@@ -132,15 +132,21 @@ export function useMarqueeSlowdown(trackRef, containerRef, slowRate = 0.3) {
       frame = window.requestAnimationFrame(tick);
     };
 
-    const slow = () => setTarget(slowRate);
+    // Seulement à la souris : sur écran tactile, un appui compte comme un survol qui ne se relâche jamais,
+    // et le défilement resterait ralenti.
+    const slow = (event) => {
+      if (event.pointerType === "mouse") setTarget(slowRate);
+    };
     const fast = () => setTarget(1);
 
-    container.addEventListener("mouseenter", slow);
-    container.addEventListener("mouseleave", fast);
+    container.addEventListener("pointerenter", slow);
+    container.addEventListener("pointerleave", fast);
+    container.addEventListener("pointercancel", fast);
     return () => {
       window.cancelAnimationFrame(frame);
-      container.removeEventListener("mouseenter", slow);
-      container.removeEventListener("mouseleave", fast);
+      container.removeEventListener("pointerenter", slow);
+      container.removeEventListener("pointerleave", fast);
+      container.removeEventListener("pointercancel", fast);
     };
   }, [trackRef, containerRef, slowRate]);
 }
