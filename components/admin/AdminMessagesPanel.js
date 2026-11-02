@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import AdminSelect from "./AdminSelect";
 
 const statusLabels = {
   new: "À traiter",
@@ -174,17 +175,13 @@ export default function AdminMessagesPanel({ messages, onUpdateStatus, onDeleteM
                       {message.phone ? ` | ${message.phone}` : ""}
                     </p>
                   </div>
-                  <select
+                  <AdminSelect
+                    compact
+                    className="w-full sm:w-52"
                     value={message.status || "new"}
-                    onChange={(event) => onUpdateStatus(message.id, event.target.value)}
-                    className="rounded-full border border-line/25 bg-paper px-4 py-2 text-sm"
-                  >
-                    {Object.entries(statusLabels).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(next) => onUpdateStatus(message.id, next)}
+                    options={Object.entries(statusLabels).map(([value, label]) => ({ value, label }))}
+                  />
                 </div>
 
                 <div className="mt-4 grid gap-3 text-sm text-ink/70 md:grid-cols-4">

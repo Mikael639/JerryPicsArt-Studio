@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import AdminSelect from "./AdminSelect";
 import { updateSiteContentAction } from "../../app/admin/photos/actions";
 import { PRESTATION_OPTIONS, REFERENCE_GROUPS } from "../../lib/contentOptions";
 
@@ -152,17 +153,12 @@ export default function AdminContentEditor({ kind, initialItems, onStatus, onErr
                       className={inputClass()}
                     />
                   ) : field.kind === "select" ? (
-                    <select
-                      value={item[field.key] ?? ""}
-                      onChange={(event) => updateItem(index, field.key, event.target.value)}
-                      className={inputClass()}
-                    >
-                      {field.options.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                    <AdminSelect
+                      inline
+                      value={String(item[field.key] ?? "")}
+                      onChange={(next) => updateItem(index, field.key, next)}
+                      options={field.options.map((option) => ({ value: String(option.value), label: option.label }))}
+                    />
                   ) : (
                     <input
                       type={field.kind === "number" ? "number" : "text"}

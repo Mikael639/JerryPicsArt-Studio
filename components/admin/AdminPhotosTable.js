@@ -282,55 +282,47 @@ export default function AdminPhotosTable({
           />
         </label>
 
-        <label className="space-y-1.5">
-          <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink/50">Série / événement</span>
-          <select
+        <div>
+          <AdminSelect
+            label="Série / événement"
             value={selectedSerie}
-            onChange={(event) => {
-              setSelectedSerie(event.target.value);
+            onChange={(next) => {
+              setSelectedSerie(next);
               setCurrentPage(1);
             }}
-            className="w-full rounded-xl border border-line/20 bg-paper px-3.5 py-2 text-sm outline-none focus:border-accent focus:bg-white"
-          >
-            <option value="all">Toutes les séries ({photosInUniverse.length})</option>
-            {seriesOptions.map((serie) => (
-              <option key={serie.slug} value={serie.slug}>
-                {serie.titre} ({serie.count})
-              </option>
-            ))}
-          </select>
-        </label>
+            options={[
+              { value: "all", label: "Toutes les séries", count: photosInUniverse.length },
+              ...seriesOptions.map((serie) => ({ value: serie.slug, label: serie.titre, count: serie.count })),
+            ]}
+          />
+        </div>
 
-        <label className="space-y-1.5">
-          <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink/50">État</span>
-          <select
-            value={publishFilter}
-            onChange={(event) => {
-              setPublishFilter(event.target.value);
-              setCurrentPage(1);
-            }}
-            className="w-full rounded-xl border border-line/20 bg-paper px-3.5 py-2 text-sm outline-none focus:border-accent focus:bg-white"
-          >
-            <option value="all">Toutes ({filteredPhotos.length})</option>
-            <option value="published">Publiées</option>
-            <option value="draft">Brouillons</option>
-          </select>
-        </label>
+        <AdminSelect
+          label="État"
+          value={publishFilter}
+          onChange={(next) => {
+            setPublishFilter(next);
+            setCurrentPage(1);
+          }}
+          options={[
+            { value: "all", label: "Toutes", count: filteredPhotos.length },
+            { value: "published", label: "Publiées" },
+            { value: "draft", label: "Brouillons" },
+          ]}
+        />
 
-        <label className="space-y-1.5">
-          <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink/50">Taille de grille</span>
-          <select
-            value={gridDensity}
-            onChange={(event) => {
-              setGridDensity(event.target.value);
-              setCurrentPage(1);
-            }}
-            className="w-full rounded-xl border border-line/20 bg-paper px-3.5 py-2 text-sm outline-none focus:border-accent focus:bg-white"
-          >
-            <option value="comfortable">Confortable (3 col.)</option>
-            <option value="compact">Compacte (5 col.)</option>
-          </select>
-        </label>
+        <AdminSelect
+          label="Taille de grille"
+          value={gridDensity}
+          onChange={(next) => {
+            setGridDensity(next);
+            setCurrentPage(1);
+          }}
+          options={[
+            { value: "comfortable", label: "Confortable (3 col.)" },
+            { value: "compact", label: "Compacte (5 col.)" },
+          ]}
+        />
       </div>
 
       {selectedUniverse === "hero" && heroPhotoCount >= maxHeroPhotoCount ? (
@@ -471,20 +463,13 @@ export default function AdminPhotosTable({
                               className="w-full rounded-lg border border-line/25 bg-white px-3 py-2"
                             />
                           </label>
-                          <label className="block space-y-1">
-                            <span className="text-xs uppercase tracking-[0.18em] text-ink/45">Thème</span>
-                            <select
-                              value={photo.category}
-                              onChange={(event) => updatePhoto(photo.id, { category: event.target.value })}
-                              className="w-full rounded-lg border border-line/25 bg-white px-3 py-2"
-                            >
-                              {categories.map((category) => (
-                                <option key={category} value={category}>
-                                  {category}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
+                          <AdminSelect
+                            inline
+                            label="Thème"
+                            value={photo.category}
+                            onChange={(next) => updatePhoto(photo.id, { category: next })}
+                            options={categories.map((category) => ({ value: category, label: category }))}
+                          />
 
                           <div className="flex flex-wrap gap-2">
                             <p className="basis-full text-xs leading-relaxed text-ink/55">
@@ -516,25 +501,18 @@ export default function AdminPhotosTable({
                           </div>
 
                           {isHeroPhoto ? (
-                            <label className="block space-y-1">
-                              <span className="text-xs uppercase tracking-[0.18em] text-ink/45">Position mobile</span>
-                              <select
+                            <div className="space-y-1">
+                              <AdminSelect
+                                inline
+                                label="Position mobile"
                                 value={photo.mobileObjectPosition || ""}
-                                onChange={(event) =>
-                                  updatePhoto(photo.id, { mobileObjectPosition: event.target.value })
-                                }
-                                className="w-full rounded-lg border border-line/25 bg-white px-3 py-2"
-                              >
-                                {mobilePositionOptions.map((option) => (
-                                  <option key={option.value || "auto"} value={option.value}>
-                                    {option.label}
-                                  </option>
-                                ))}
-                              </select>
+                                onChange={(next) => updatePhoto(photo.id, { mobileObjectPosition: next })}
+                                options={mobilePositionOptions.map((option) => ({ value: option.value, label: option.label }))}
+                              />
                               <span className="block text-xs leading-relaxed text-ink/50">
                                 Ajustez le cadrage de cette photo dans le diaporama sur téléphone.
                               </span>
-                            </label>
+                            </div>
                           ) : null}
 
                           <div className="flex flex-wrap gap-2">

@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 // bouton arrondi, panneau qui se déplie en douceur, choix actif en foncé, nombre de photos à droite.
 // options : [{ value, label, count? }]. Le panneau défile seul (data-lenis-prevent : le défilement fluide
 // du site ne lui vole pas la molette).
-export default function AdminSelect({ value, onChange, options, label, className = "" }) {
+export default function AdminSelect({ value, onChange, options, label, className = "", inline = false, compact = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
   const active = options.find((option) => option.value === value) || options[0];
@@ -39,7 +39,9 @@ export default function AdminSelect({ value, onChange, options, label, className
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         onClick={() => setIsOpen((current) => !current)}
-        className={`flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3.5 text-left outline-none transition-all duration-300 ${
+        className={`flex w-full items-center justify-between gap-3 border text-left outline-none transition-all duration-300 ${
+          compact ? "rounded-full px-4 py-2" : "rounded-2xl px-4 py-3.5"
+        } ${
           isOpen
             ? "border-accent bg-white shadow-sm ring-1 ring-accent/20"
             : "border-line/20 bg-white/80 hover:border-line/40"
@@ -68,10 +70,10 @@ export default function AdminSelect({ value, onChange, options, label, className
             data-lenis-prevent
             role="listbox"
             initial={{ opacity: 0, y: -8, scale: 0.97 }}
-            animate={{ opacity: 1, y: 6, scale: 1 }}
+            animate={{ opacity: 1, y: inline ? 0 : 6, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.97 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute z-50 max-h-[min(22rem,60svh)] w-full overflow-y-auto overscroll-contain rounded-2xl border border-line/15 bg-white/95 p-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.12)] backdrop-blur-xl"
+            className={`${inline ? "relative mt-2" : "absolute z-50"} max-h-[min(22rem,60svh)] w-full overflow-y-auto overscroll-contain rounded-2xl border border-line/15 bg-white/95 p-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.12)] backdrop-blur-xl`}
           >
             {options.map((option) => {
               const selected = option.value === active?.value;
