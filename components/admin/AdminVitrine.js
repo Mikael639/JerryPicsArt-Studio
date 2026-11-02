@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { setVitrinePhotoAction } from "../../app/admin/photos/actions";
+import AdminSelect from "./AdminSelect";
 
 // Vitrine du site : la photo de chaque carte « Ce que je photographie » et la couverture de chaque univers sur
 // l'accueil. Jerry choisit n'importe quelle photo du site (photothèque ou univers) ; sans choix, le site
@@ -103,22 +104,21 @@ function Picker({ target, photos, universList, onPick, onClose }) {
           </button>
         </div>
         <div className="grid gap-2 sm:grid-cols-2">
-          <select
+          <AdminSelect
             value={source}
-            onChange={(event) => {
-              setSource(event.target.value);
+            onChange={(next) => {
+              setSource(next);
               setLimit(PAGE_SIZE);
             }}
-            className="rounded-xl border border-line/25 bg-white px-3 py-2.5 text-sm"
-            aria-label="Provenance des photos"
-          >
-            <option value="all">Toutes les photos ({candidates.length})</option>
-            {groups.map((group) => (
-              <option key={group} value={group}>
-                {group}
-              </option>
-            ))}
-          </select>
+            options={[
+              { value: "all", label: "Toutes les photos", count: candidates.length },
+              ...groups.map((group) => ({
+                value: group,
+                label: group,
+                count: candidates.filter((item) => item.group === group).length,
+              })),
+            ]}
+          />
           <input
             type="search"
             value={query}
@@ -127,12 +127,12 @@ function Picker({ target, photos, universList, onPick, onClose }) {
               setLimit(PAGE_SIZE);
             }}
             placeholder="Rechercher"
-            className="rounded-xl border border-line/25 bg-white px-3 py-2.5 text-sm"
+            className="rounded-2xl border border-line/20 bg-white/80 px-4 py-3.5 text-sm"
           />
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
+      <div data-lenis-prevent className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
         {visible.length ? (
           <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
             {visible.slice(0, limit).map((item) => (

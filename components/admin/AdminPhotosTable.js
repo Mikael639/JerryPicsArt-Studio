@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { buildSeries, sortSeries } from "../../data/series";
 import AdminUniversEditor from "./AdminUniversEditor";
+import AdminSelect from "./AdminSelect";
 import AdminVitrine from "./AdminVitrine";
 
 function roleLabel(role) {
@@ -200,22 +201,22 @@ export default function AdminPhotosTable({
     <section className="space-y-4">
       {/* BARRE D'ONGLETS PAR CATÉGORIE / PAGE */}
       {/* Téléphone : une liste déroulante (8 onglets ne tiennent pas sur une ligne). */}
-      <label className="block md:hidden">
-        <span className="sr-only">Afficher</span>
-        <select
-          value={selectedUniverse}
-          onChange={(event) => handleSelectUniverse(event.target.value)}
-          className="w-full rounded-2xl border border-line/20 bg-white px-4 py-3 text-sm"
-        >
-          {universeTabs.map((tab) => (
-            <option key={tab.id} value={tab.id}>
-              {tab.id === "vitrine"
-                ? tab.label
-                : `${tab.label} (${tab.id === "hero" ? `${universeCounts[tab.id] ?? 0}/${maxHeroPhotoCount}` : universeCounts[tab.id] ?? 0})`}
-            </option>
-          ))}
-        </select>
-      </label>
+      <AdminSelect
+        className="md:hidden"
+        label="Afficher"
+        value={selectedUniverse}
+        onChange={handleSelectUniverse}
+        options={universeTabs.map((tab) => ({
+          value: tab.id,
+          label: tab.label,
+          count:
+            tab.id === "vitrine"
+              ? undefined
+              : tab.id === "hero"
+                ? `${universeCounts[tab.id] ?? 0}/${maxHeroPhotoCount}`
+                : universeCounts[tab.id] ?? 0,
+        }))}
+      />
 
       <div className="hidden flex-wrap items-center gap-1.5 rounded-2xl border border-line/20 bg-white/65 p-2 md:flex">
         {universeTabs.map((tab) => {
