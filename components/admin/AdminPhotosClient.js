@@ -552,6 +552,7 @@ export default function AdminPhotosClient({
           setSelectedUniverse={setSelectedUniverse}
           universList={content.universList}
           vitrine={content.vitrine}
+          pageDefaults={content.pageDefaults}
           layout={content.layout}
           onLayoutSaved={(data) =>
             setContent((current) => ({ ...current, layout: data.layout, universList: data.universList }))

@@ -16,6 +16,18 @@ const DOORS = [
   { id: "entreprises", label: "Entreprises & lieux", hint: "Carte masquée par défaut (réglable dans Mise en page)" },
 ];
 
+// Pages à photo d'en-tête : « intro » = grande photo à droite du titre, « menu » = aperçu au survol du menu.
+const PAGES = [
+  { id: "signature", label: "Signature", href: "/signature" },
+  { id: "evenements", label: "Événements", href: "/evenements" },
+  { id: "mariage", label: "Mariage", href: "/mariage" },
+  { id: "entreprises", label: "Entreprises & lieux", href: "/entreprises" },
+];
+const PAGE_SLOTS = [
+  { id: "intro", label: "Photo d'en-tête", hint: "À droite du titre, en haut de la page" },
+  { id: "menu", label: "Photo du menu", hint: "Aperçu quand on survole le menu" },
+];
+
 const PAGE_LABELS = { signature: "Signature", evenements: "Événements", entreprises: "Entreprises & lieux" };
 const PAGE_SIZE = 48;
 
@@ -168,6 +180,7 @@ export default function AdminVitrine({
   photos,
   universList,
   vitrine,
+  pageDefaults,
   layout,
   onLayoutSaved,
   onVitrineChange,
@@ -225,6 +238,34 @@ export default function AdminVitrine({
               onReset={() => save("doors", door.id, null)}
             />
           ))}
+        </ul>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="font-serif text-2xl">Pages du site</h2>
+        <p className="text-sm leading-relaxed text-ink/65">
+          La grande photo en haut de chaque page et celle qui s&apos;affiche dans le menu.
+        </p>
+        <ul className="grid gap-3 lg:grid-cols-2">
+          {PAGES.flatMap((page) =>
+            PAGE_SLOTS.map((slot) => {
+              const key = `${page.id}:${slot.id}`;
+              const chosen = vitrine.pages?.[key];
+              return (
+                <Slot
+                  key={key}
+                  title={`${page.label} · ${slot.label}`}
+                  hint={slot.hint}
+                  currentSrc={chosen?.src || pageDefaults?.[slot.id]?.[page.href]?.src}
+                  isChosen={Boolean(chosen)}
+                  autoLabel="Automatique"
+                  busy={busy}
+                  onChange={() => setTarget({ kind: "pages", key, label: `${page.label} · ${slot.label}` })}
+                  onReset={() => save("pages", key, null)}
+                />
+              );
+            })
+          )}
         </ul>
       </section>
 
