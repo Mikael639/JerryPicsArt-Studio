@@ -189,11 +189,7 @@ export default function AdminUploadForm({
                 />
                 {isHeroRole
                   ? `Diaporama (${heroPhotoCount}/${maxHeroPhotoCount})`
-                  : role === "featured"
-                    ? "Mise en avant"
-                    : role === "servicesBackground"
-                      ? "Fond"
-                      : "Approche"}
+                  : "Mise en avant"}
               </label>
             );
           })}

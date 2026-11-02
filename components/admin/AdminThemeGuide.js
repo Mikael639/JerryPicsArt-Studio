@@ -43,7 +43,7 @@ export default function AdminThemeGuide({ categories }) {
             <strong className="text-paper">Brouillon</strong> garde la photo dans l&apos;administration sans l&apos;afficher.
           </p>
           <p>
-            <strong className="text-paper">Mise en avant</strong> donne plus de chances d&apos;apparaître en premier.
+            <strong className="text-paper">Mise en avant</strong> met la photo en priorité sur l&apos;accueil (les photos d&apos;appui et les cartes).
           </p>
         </div>
       </article>

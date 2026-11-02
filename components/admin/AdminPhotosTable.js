@@ -8,8 +8,6 @@ import { buildSeries, sortSeries } from "../../data/series";
 function roleLabel(role) {
   if (role === "hero") return "Diaporama accueil";
   if (role === "featured") return "Mise en avant";
-  if (role === "servicesBackground") return "Fond";
-  if (role === "approachImage") return "Image approche";
   return role;
 }
 
@@ -356,9 +354,6 @@ export default function AdminPhotosTable({
                       {isHeroPhoto ? (
                         <span className="rounded-full bg-ink px-3 py-1 text-xs text-paper">Accueil</span>
                       ) : null}
-                      {photo.isPinned ? (
-                        <span className="rounded-full bg-ink px-3 py-1 text-xs text-paper">En haut</span>
-                      ) : null}
                     </div>
                   </div>
 
@@ -381,7 +376,7 @@ export default function AdminPhotosTable({
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="grid grid-cols-1 gap-2 text-sm">
                       <button
                         type="button"
                         disabled={busyId === photo.id}
@@ -390,14 +385,6 @@ export default function AdminPhotosTable({
                       >
                         {busyId === photo.id ? <span className="absolute inset-0 animate-pulse bg-ink/5" /> : null}
                         {photo.isPublished ? "Masquer" : "Publier"}
-                      </button>
-                      <button
-                        type="button"
-                        disabled={busyId === photo.id}
-                        onClick={() => updatePhoto(photo.id, { isPinned: !photo.isPinned })}
-                        className="rounded-full border border-line/25 px-3 py-2 hover:border-ink disabled:opacity-50"
-                      >
-                        {photo.isPinned ? "Retirer du haut" : "Mettre en haut"}
                       </button>
                     </div>
 
