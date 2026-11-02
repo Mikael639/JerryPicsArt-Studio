@@ -49,7 +49,8 @@ export default function AdminPhotosTable({
   selectedUniverse = "all",
   setSelectedUniverse,
   universList = [],
-  vitrine = { doors: {}, covers: {} },
+  vitrine = { doors: {}, covers: {}, pages: {} },
+  pageDefaults,
   layout,
   onLayoutSaved,
   onVitrineChange,
@@ -254,6 +255,7 @@ export default function AdminPhotosTable({
           photos={photos}
           universList={universList}
           vitrine={vitrine}
+          pageDefaults={pageDefaults}
           layout={layout}
           onLayoutSaved={onLayoutSaved}
           onVitrineChange={onVitrineChange}
