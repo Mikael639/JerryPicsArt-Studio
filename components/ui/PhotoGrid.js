@@ -162,9 +162,11 @@ function bestAssignment(ratios, count) {
 function buildColumns(items) {
   const ratios = items.map(({ photo }) => (photo.height || FALLBACK_HEIGHT) / (photo.width || FALLBACK_WIDTH));
   if (items.length <= 4) {
-    const columns = Array.from({ length: items.length }, () => []);
-    items.forEach((item, position) => columns[position].push(item));
-    return columns;
+    // Une photo par colonne, la plus haute à gauche : le vide éventuel en bas reste à droite.
+    return items
+      .map((item, position) => ({ item, ratio: ratios[position] }))
+      .sort((a, b) => b.ratio - a.ratio)
+      .map(({ item }) => [item]);
   }
 
   // Moins de photos que de colonnes serait absurde ; 4 colonnes demandent au moins 7 photos pour ne pas être trop petites.
@@ -184,15 +186,12 @@ function buildColumns(items) {
     column.height += ratios[position];
   });
 
-  // Les colonnes les plus courtes ne sont pas regroupées sur un bord (ce qui ferait un vide d'un seul côté) :
-  // on alterne une colonne haute, une basse, etc., pour que le bas de la grille reste équilibré.
-  const sorted = columns.filter((column) => column.items.length).sort((a, b) => b.height - a.height);
-  const alternated = [];
-  while (sorted.length) {
-    alternated.push(sorted.shift());
-    if (sorted.length) alternated.push(sorted.pop());
-  }
-  return alternated.map((column) => column.items);
+  // Les colonnes les plus hautes à gauche, les plus courtes à droite : le petit vide éventuel en bas de la grille
+  // se place toujours à droite, jamais entre deux photos.
+  return columns
+    .filter((column) => column.items.length)
+    .sort((a, b) => b.height - a.height)
+    .map((column) => column.items);
 }
 
 // Grille de photos déjà choisies : `items` = [{ photo, index }] où `index` est la position dans la visionneuse.
