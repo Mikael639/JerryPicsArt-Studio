@@ -50,6 +50,8 @@ export default function AdminPhotosTable({
   setSelectedUniverse,
   universList = [],
   vitrine = { doors: {}, covers: {} },
+  layout,
+  onLayoutSaved,
   onVitrineChange,
   onUniversListChange,
   onStatus,
@@ -252,6 +254,8 @@ export default function AdminPhotosTable({
           photos={photos}
           universList={universList}
           vitrine={vitrine}
+          layout={layout}
+          onLayoutSaved={onLayoutSaved}
           onVitrineChange={onVitrineChange}
           onOpenHero={() => setSelectedUniverse("hero")}
           onStatus={onStatus}

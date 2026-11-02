@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { setVitrinePhotoAction } from "../../app/admin/photos/actions";
+import AdminLayoutEditor from "./AdminLayoutEditor";
 import AdminSelect from "./AdminSelect";
 
 // Vitrine du site : la photo de chaque carte « Ce que je photographie » et la couverture de chaque univers sur
@@ -163,7 +164,17 @@ function Picker({ target, photos, universList, onPick, onClose }) {
   );
 }
 
-export default function AdminVitrine({ photos, universList, vitrine, onVitrineChange, onOpenHero, onStatus, onError }) {
+export default function AdminVitrine({
+  photos,
+  universList,
+  vitrine,
+  layout,
+  onLayoutSaved,
+  onVitrineChange,
+  onOpenHero,
+  onStatus,
+  onError,
+}) {
   const [target, setTarget] = useState(null);
   const [busy, setBusy] = useState(false);
 
@@ -251,6 +262,23 @@ export default function AdminVitrine({ photos, universList, vitrine, onVitrineCh
           Gérer le diaporama
         </button>
       </section>
+
+      {layout ? (
+        <section className="space-y-3">
+          <h2 className="font-serif text-2xl">Ordre et affichage</h2>
+          <p className="text-sm leading-relaxed text-ink/65">
+            L&apos;ordre des cartes de l&apos;accueil, celles qui s&apos;affichent, et l&apos;ordre des univers de chaque page.
+          </p>
+          <AdminLayoutEditor
+            key={JSON.stringify(layout)}
+            initialLayout={layout}
+            initialUniversList={universList}
+            onStatus={onStatus}
+            onError={onError}
+            onSaved={onLayoutSaved}
+          />
+        </section>
+      ) : null}
 
       {target ? (
         <Picker target={target} photos={photos} universList={universList} onPick={pick} onClose={() => setTarget(null)} />
