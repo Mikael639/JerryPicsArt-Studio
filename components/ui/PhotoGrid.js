@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Lightbox from "../Lightbox";
 import RevealOnView from "./RevealOnView";
 import { UI_COPY } from "../../lib/i18n";
@@ -76,16 +76,18 @@ function GridPhoto({ photo, index, onOpen, priority, openLabel, alone = false, f
         aria-label={openLabel}
         className="group relative block w-full overflow-hidden rounded-[0.8rem] bg-ink/5 text-left"
       >
-        <FadeImage
-          photo={photo}
-          priority={priority}
-          sizes={
-            isLandscape
-              ? "(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 420px"
-              : "(max-width: 639px) 50vw, (max-width: 1023px) 50vw, 420px"
-          }
-          className="block h-auto w-full"
-        />
+        <span className="hover-zoom block">
+          <FadeImage
+            photo={photo}
+            priority={priority}
+            sizes={
+              isLandscape
+                ? "(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 420px"
+                : "(max-width: 639px) 50vw, (max-width: 1023px) 50vw, 420px"
+            }
+            className="block h-auto w-full"
+          />
+        </span>
         <span className="pointer-events-none absolute inset-0 bg-ink/0 transition-colors duration-300 group-hover:bg-ink/10" />
       </button>
       {/* Les légendes ne sont plus sous les photos : elles s'affichent dans la visionneuse (clic sur la photo). */}
@@ -256,6 +258,25 @@ export function FeaturedPhoto({ photo, index, onOpen, priority = false }) {
   const { lang } = useLanguage();
   const copy = UI_COPY[lang]?.series || UI_COPY.fr.series;
   const isLandscape = isLandscapePhoto(photo);
+  const settleRef = useRef(null);
+  const [settled, setSettled] = useState(false);
+
+  // La photo d'ouverture se pose (voir .settle) la première fois qu'elle entre à l'écran.
+  useEffect(() => {
+    const node = settleRef.current;
+    if (!node || typeof IntersectionObserver === "undefined") return undefined;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setSettled(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.2 }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <RevealOnView as="figure">
@@ -266,12 +287,14 @@ export function FeaturedPhoto({ photo, index, onOpen, priority = false }) {
         aria-label={copy.openPhoto(photo.alt)}
         className="group relative mx-auto block w-fit max-w-full overflow-hidden rounded-[0.8rem] bg-ink/5"
       >
-        <FadeImage
-          photo={photo}
-          priority={priority}
-          sizes={isLandscape ? "(max-width: 1280px) 100vw, 1200px" : "(max-width: 767px) 90vw, 560px"}
-          className="block h-auto w-auto max-h-[70svh] max-w-full"
-        />
+        <span ref={settleRef} className={`settle block ${settled ? "is-in" : ""}`}>
+          <FadeImage
+            photo={photo}
+            priority={priority}
+            sizes={isLandscape ? "(max-width: 1280px) 100vw, 1200px" : "(max-width: 767px) 90vw, 560px"}
+            className="block h-auto w-auto max-h-[70svh] max-w-full"
+          />
+        </span>
         <span className="pointer-events-none absolute inset-0 bg-ink/0 transition-colors duration-300 group-hover:bg-ink/10" />
       </button>
     </RevealOnView>
@@ -295,7 +318,9 @@ export function PhotoPair({ items, onOpen }) {
             aria-label={copy.openPhoto(photo.alt)}
             className="group relative block w-full overflow-hidden rounded-[0.8rem] bg-ink/5"
           >
-            <FadeImage photo={photo} sizes="(max-width: 767px) 50vw, 620px" className="block h-auto w-full" />
+            <span className="hover-zoom block">
+              <FadeImage photo={photo} sizes="(max-width: 767px) 50vw, 620px" className="block h-auto w-full" />
+            </span>
             <span className="pointer-events-none absolute inset-0 bg-ink/0 transition-colors duration-300 group-hover:bg-ink/10" />
           </button>
         </RevealOnView>

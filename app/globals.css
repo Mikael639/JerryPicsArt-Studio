@@ -252,3 +252,25 @@ html.page-leaving footer {
   15% { opacity: 1; }
   100% { opacity: 0; transform: scale(1.2); }
 }
+
+/* Photos : deux mouvements très doux, réservés aux ordinateurs à souris et coupés si « réduire les animations ».
+   .settle : la photo d'ouverture se pose en reculant (de 1,08 à 1) quand elle entre à l'écran.
+   .hover-zoom : la photo se rapproche légèrement au survol de sa vignette (le parent porte .group). */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .settle {
+    transform: scale(1.08);
+  }
+
+  .settle.is-in {
+    transform: scale(1);
+    transition: transform 1.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .hover-zoom {
+    transition: transform 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .group:hover .hover-zoom {
+    transform: scale(1.04);
+  }
+}
