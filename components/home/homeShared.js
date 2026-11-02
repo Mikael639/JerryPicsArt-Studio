@@ -63,14 +63,21 @@ export function StatsSection({ reduceMotion, items = defaultStats }) {
         <dl className={`mt-10 grid gap-6 sm:grid-cols-2 ${visibleItems.length > 2 ? "lg:grid-cols-3" : ""}`}>
           {visibleItems.map((item, index) => (
             <motion.div
-              key={item.libelle}
+              key={`${item.prefixe}${item.valeur}${item.suffixe}`}
               {...getRevealProps(reduceMotion, index * 0.08, 0.3)}
               className="border-t border-line/16 pt-5"
             >
-              <dd className="font-serif text-5xl leading-none tracking-[-0.04em] text-ink md:text-6xl">
-                <CountUp value={item.valeur} suffix={item.suffixe} delay={index * 0.12} />
+              <dd className="font-serif text-4xl leading-[1.05] tracking-[-0.04em] text-ink md:text-5xl">
+                {/* Une année (« Depuis 2022 ») ne se compte pas : elle s'affiche telle quelle. */}
+                <CountUp
+                  value={item.valeur}
+                  prefix={item.prefixe}
+                  suffix={item.suffixe}
+                  animated={item.valeur < 1900}
+                  delay={index * 0.12}
+                />
               </dd>
-              <dt className="mt-4 text-[11px] font-bold uppercase tracking-[0.24em] text-ink/55">{item.libelle}</dt>
+              <dt className="mt-4 text-base leading-snug text-ink/65">{item.libelle}</dt>
               {item.precision ? <p className="mt-1 text-sm text-ink/45">{item.precision}</p> : null}
             </motion.div>
           ))}
@@ -132,15 +139,21 @@ export function useMarqueeSlowdown(trackRef, containerRef, slowRate = 0.3) {
       frame = window.requestAnimationFrame(tick);
     };
 
-    const slow = () => setTarget(slowRate);
+    // Seulement à la souris : sur écran tactile, un appui compte comme un survol qui ne se relâche jamais,
+    // et le défilement resterait ralenti.
+    const slow = (event) => {
+      if (event.pointerType === "mouse") setTarget(slowRate);
+    };
     const fast = () => setTarget(1);
 
-    container.addEventListener("mouseenter", slow);
-    container.addEventListener("mouseleave", fast);
+    container.addEventListener("pointerenter", slow);
+    container.addEventListener("pointerleave", fast);
+    container.addEventListener("pointercancel", fast);
     return () => {
       window.cancelAnimationFrame(frame);
-      container.removeEventListener("mouseenter", slow);
-      container.removeEventListener("mouseleave", fast);
+      container.removeEventListener("pointerenter", slow);
+      container.removeEventListener("pointerleave", fast);
+      container.removeEventListener("pointercancel", fast);
     };
   }, [trackRef, containerRef, slowRate]);
 }

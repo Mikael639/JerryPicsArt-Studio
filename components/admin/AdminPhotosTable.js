@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { buildSeries, sortSeries } from "../../data/series";
+import AdminUniversEditor from "./AdminUniversEditor";
 
 function roleLabel(role) {
   if (role === "hero") return "Diaporama accueil";
@@ -27,6 +28,7 @@ const universeTabs = [
   { id: "Events", label: "Événements" },
   { id: "Fashion Wedding", label: "Mariage" },
   { id: "Studio", label: "Studio & Entreprises" },
+  { id: "univers", label: "Photos des univers" },
   { id: "drafts", label: "Brouillons" },
 ];
 
@@ -43,6 +45,10 @@ export default function AdminPhotosTable({
   onReorder,
   selectedUniverse = "all",
   setSelectedUniverse,
+  universList = [],
+  onUniversListChange,
+  onStatus,
+  onError,
 }) {
   const [editingId, setEditingId] = useState("");
   const [draggedId, setDraggedId] = useState("");
@@ -76,6 +82,7 @@ export default function AdminPhotosTable({
       Events: 0,
       "Fashion Wedding": 0,
       Studio: 0,
+      univers: universList.reduce((total, univers) => total + univers.images.length, 0),
     };
 
     for (const photo of photos) {
@@ -85,7 +92,7 @@ export default function AdminPhotosTable({
     }
 
     return counts;
-  }, [photos]);
+  }, [photos, universList]);
 
   // Photos de l'onglet actif
   const photosInUniverse = useMemo(() => {
@@ -215,6 +222,15 @@ export default function AdminPhotosTable({
         })}
       </div>
 
+      {selectedUniverse === "univers" ? (
+        <AdminUniversEditor
+          initialUniversList={universList}
+          onListChange={onUniversListChange}
+          onStatus={onStatus}
+          onError={onError}
+        />
+      ) : (
+        <>
       {/* BARRE DE FILTRES ALIGNÉE EN 4 COLONNES PROPRES */}
       <div className="grid gap-4 rounded-2xl border border-line/20 bg-white/65 p-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_180px_190px]">
         <label className="space-y-1.5">
@@ -563,6 +579,8 @@ export default function AdminPhotosTable({
             </div>
           ) : null}
         </div>
+      )}
+        </>
       )}
     </section>
   );

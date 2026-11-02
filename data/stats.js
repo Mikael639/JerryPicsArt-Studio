@@ -1,6 +1,28 @@
-// Chiffres affichés sur le site. Un chiffre à 0 n'est pas affiché.
+// Repères affichés sur le site (accueil et À propos). Un repère dont la valeur est 0 n'est pas affiché.
+// prefixe + valeur + suffixe forment le grand texte ; libelle est le petit texte dessous.
 export const stats = [
-  { valeur: 320, suffixe: "+", libelle: "Séries livrées", precision: "depuis 2020" },
-  { valeur: 200, suffixe: "+", libelle: "Événements couverts", precision: "France et international" },
-  { valeur: 15, suffixe: "+", libelle: "Marques accompagnées", precision: "mode, mariage, lifestyle" },
+  { prefixe: "Depuis ", valeur: 2022, suffixe: "", libelle: "à la Fashion Week de Paris et à la Haute Couture", precision: "" },
+  { prefixe: "", valeur: 150, suffixe: "+", libelle: "événements couverts", precision: "" },
+  {
+    prefixe: "",
+    valeur: 15,
+    suffixe: "+",
+    libelle: "maisons et marques, dont Galeries Lafayette, Printemps, Kering Eyewear, Decathlon et Imane Ayissi",
+    precision: "",
+  },
+  {
+    prefixe: "",
+    valeur: 8,
+    suffixe: " pays",
+    libelle: "France, Monaco, Danemark, Espagne, Sénégal, Guinée, Cameroun, Pays-Bas",
+    precision: "",
+  },
+  { prefixe: "", valeur: 20, suffixe: "+", libelle: "personnalités internationales devant l'objectif", precision: "" },
+  {
+    prefixe: "",
+    valeur: 2,
+    suffixe: " Stade de France",
+    libelle: "les deux concerts de Fally Ipupa, pour Taptap Send",
+    precision: "",
+  },
 ];

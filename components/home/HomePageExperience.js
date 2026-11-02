@@ -88,6 +88,7 @@ function HeroImage({ photo, alt, priority = false, position, mobilePosition }) {
 export default function HomePageExperience({
   heroPhoto,
   doorPhotos = {},
+  doorsLayout = [],
   universCovers = [],
   cinematicPool = [],
   stats,
@@ -104,29 +105,14 @@ export default function HomePageExperience({
   const heroSubtitle =
     lang === "en" ? copy.heroSubtitle : siteText.heroSubtitle || copy.heroSubtitle;
 
-  const doors = [
-    {
-      href: "/evenements",
-      titre: copy.doors.evenements.titre,
-      texte: copy.doors.evenements.texte,
-      lien: copy.doors.evenements.lien,
-      photo: doorPhotos.evenements,
-    },
-    {
-      href: "/mariage",
-      titre: copy.doors.mariage.titre,
-      texte: copy.doors.mariage.texte,
-      lien: copy.doors.mariage.lien,
-      photo: doorPhotos.mariage,
-    },
-    {
-      href: "/entreprises",
-      titre: copy.doors.entreprises.titre,
-      texte: copy.doors.entreprises.texte,
-      lien: copy.doors.entreprises.lien,
-      photo: doorPhotos.entreprises,
-    },
-  ];
+  // Cartes « Ce que je photographie » : l'administration choisit lesquelles s'affichent et dans quel ordre.
+  const doorsById = {
+    evenements: { href: "/evenements", ...copy.doors.evenements, photo: doorPhotos.evenements },
+    signature: { href: "/signature", ...copy.doors.signature, photo: doorPhotos.signature },
+    mariage: { href: "/mariage", ...copy.doors.mariage, photo: doorPhotos.mariage },
+    entreprises: { href: "/entreprises", ...copy.doors.entreprises, photo: doorPhotos.entreprises },
+  };
+  const doors = doorsLayout.filter((door) => door.visible && doorsById[door.id]).map((door) => doorsById[door.id]);
   const cinematicPhotos = useMemo(() => {
     const seen = new Set();
     const heroPool = cinematicPool.filter((photo) => photo?.roles?.includes("hero"));
@@ -177,6 +163,28 @@ export default function HomePageExperience({
   }
 
   useGSAP(() => {
+    // Passage du clair au sombre : léger, donc actif sur tous les appareils (tablettes tactiles comprises).
+    // Sans lui, les sections sombres de l'accueil (méthode, chiffres, avis) resteraient sur un fond clair.
+    // Avec « réduire les animations », le fond change aussitôt, sans fondu.
+    const themeDuration = reduceMotion ? 0 : 1;
+    const sections = gsap.utils.toArray("section.color-transition-section");
+    sections.forEach((section) => {
+      ScrollTrigger.create({
+        trigger: section,
+        start: "top center",
+        end: "bottom center",
+        onEnter: () => {
+          document.documentElement.dataset.theme = "dark";
+          gsap.to(document.body, { backgroundColor: "#0c0a08", duration: themeDuration, overwrite: true });
+        },
+        onLeaveBack: () => {
+          delete document.documentElement.dataset.theme;
+          gsap.to(document.body, { backgroundColor: "#fefdfa", duration: themeDuration, overwrite: true });
+        },
+      });
+    });
+
+    // Les effets lourds (flou animé, parallaxe) restent réservés aux appareils qui les supportent bien.
     if (shouldCalmHeroMotion) return;
 
     const heroImages = gsap.utils.toArray(".hero-image-container");
@@ -187,23 +195,6 @@ export default function HomePageExperience({
         { scale: 1, filter: "blur(0px)", duration: 2.4, ease: "expo.out", delay: 0.5 }
       );
     }
-
-    const sections = gsap.utils.toArray("section.color-transition-section");
-    sections.forEach((section) => {
-      ScrollTrigger.create({
-        trigger: section,
-        start: "top center",
-        end: "bottom center",
-        onEnter: () => {
-          document.documentElement.dataset.theme = "dark";
-          gsap.to(document.body, { backgroundColor: "#0c0a08", duration: 1 });
-        },
-        onLeaveBack: () => {
-          delete document.documentElement.dataset.theme;
-          gsap.to(document.body, { backgroundColor: "#fefdfa", duration: 1 });
-        },
-      });
-    });
 
     const parallaxImages = gsap.utils.toArray(".parallax-img");
     parallaxImages.forEach((img) => {
@@ -218,7 +209,7 @@ export default function HomePageExperience({
         },
       });
     });
-  }, { scope: containerRef, dependencies: [shouldCalmHeroMotion] });
+  }, { scope: containerRef, dependencies: [shouldCalmHeroMotion, reduceMotion] });
 
   useEffect(() => {
     if (reduceMotion || isHeroPaused || shuffledPhotos.length < 2) return;

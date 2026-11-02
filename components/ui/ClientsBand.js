@@ -39,11 +39,16 @@ function Logo({ client }) {
         loading="eager"
         // Logos livrés avec le site : déjà petits, servis tels quels (pas besoin de l'optimiseur d'images).
         unoptimized={client.logo.startsWith("/")}
-        className={`${LOGO_HEIGHT[client.name] || "h-10 md:h-12"} w-auto object-contain ${
-          // Logos envoyés depuis l'administration (en couleur, souvent sur fond blanc) : passés en gris,
-          // le fond blanc disparaît. Logos livrés avec le site (blancs sur transparent) : passés en gris foncé.
-          client.logo.startsWith("http") ? "opacity-70 grayscale mix-blend-multiply" : "opacity-55 brightness-0"
-        }`}
+        className={`${LOGO_HEIGHT[client.name] || "h-10 md:h-12"} w-auto object-contain`}
+        // Filtres écrits en style direct (et non en classes) pour que les navigateurs de tablette plus anciens
+        // les appliquent aussi : sinon le logo restait en couleur.
+        // Logos envoyés depuis l'administration (en couleur, souvent sur fond blanc) : passés en gris, le fond
+        // blanc disparaît. Logos livrés avec le site (blancs sur transparent) : passés en gris foncé.
+        style={
+          client.logo.startsWith("http")
+            ? { opacity: 0.7, WebkitFilter: "grayscale(1)", filter: "grayscale(1)", mixBlendMode: "multiply" }
+            : { opacity: 0.55, WebkitFilter: "brightness(0)", filter: "brightness(0)" }
+        }
       />
     );
   }
