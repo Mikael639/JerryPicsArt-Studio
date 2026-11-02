@@ -116,21 +116,31 @@ function bestAssignment(ratios, count) {
   const heights = new Array(count).fill(0);
   const assignment = new Array(ratios.length).fill(0);
 
+  const spreadOf = () => {
+    let low = heights[0];
+    let high = heights[0];
+    for (let column = 1; column < count; column += 1) {
+      if (heights[column] < low) low = heights[column];
+      if (heights[column] > high) high = heights[column];
+    }
+    return high - low;
+  };
+
   if (ratios.length > 12) {
     ratios.forEach((ratio, position) => {
       const column = heights.indexOf(Math.min(...heights));
       assignment[position] = column;
       heights[column] += ratio;
     });
-    return { assignment, spread: Math.max(...heights) - Math.min(...heights), tallest: Math.max(...heights) };
+    return { assignment, spread: spreadOf() };
   }
 
-  let best = { assignment, spread: Infinity, tallest: 0 };
+  let best = { assignment, spread: Infinity };
   const current = new Array(ratios.length).fill(0);
   const search = (position) => {
     if (position === ratios.length) {
-      const spread = Math.max(...heights) - Math.min(...heights);
-      if (spread < best.spread - 1e-9) best = { assignment: [...current], spread, tallest: Math.max(...heights) };
+      const spread = spreadOf();
+      if (spread < best.spread - 1e-9) best = { assignment: [...current], spread };
       return;
     }
     const limit = position === 0 ? 1 : count;
@@ -147,25 +157,42 @@ function bestAssignment(ratios, count) {
 
 // Répartit les photos en colonnes sur ordinateur. Les photos gardent leur hauteur naturelle (rien n'est recadré),
 // mais les colonnes finissent à peu près à la même hauteur : plus de grand vide à droite en bas de la grille.
-// 2 photos : 2 colonnes, 3 : 3, 4 : 4. Au-delà, 3 colonnes ; si elles ne peuvent pas se remplir (10 photos
-// verticales : 4 + 3 + 3), on passe à 2 colonnes quand le vide en bas devient moitié moindre.
+// 2 photos : 2 colonnes, 3 : 3, 4 : 4. Au-delà, on compare 3 et 4 colonnes (2 colonnes donneraient des photos
+// énormes) et on garde celle dont le vide en bas est le plus petit, mesuré en largeur de colonne.
 function buildColumns(items) {
   const ratios = items.map(({ photo }) => (photo.height || FALLBACK_HEIGHT) / (photo.width || FALLBACK_WIDTH));
-  let count = items.length <= 4 ? items.length : 3;
-  let { assignment, spread } = bestAssignment(ratios, count);
-
-  // Le vide en bas se mesure en largeur de colonne : un écart de hauteur pèse plus en 2 colonnes (larges) qu'en 3.
-  if (items.length > 4 && spread / count > 0.15) {
-    const alternative = bestAssignment(ratios, 2);
-    if (alternative.spread / 2 < (spread / count) * 0.5) {
-      count = 2;
-      ({ assignment } = alternative);
-    }
+  if (items.length <= 4) {
+    const columns = Array.from({ length: items.length }, () => []);
+    items.forEach((item, position) => columns[position].push(item));
+    return columns;
   }
 
-  const columns = Array.from({ length: count }, () => []);
-  items.forEach((item, position) => columns[assignment[position]].push(item));
-  return columns.filter((column) => column.length);
+  // Moins de photos que de colonnes serait absurde ; 4 colonnes demandent au moins 7 photos pour ne pas être trop petites.
+  const candidates = items.length >= 7 ? [3, 4] : [3];
+  let chosen = null;
+  for (const count of candidates) {
+    const { assignment, spread } = bestAssignment(ratios, count);
+    // Un écart de hauteur pèse moins en 4 colonnes (étroites) qu'en 3 : on le compare en largeur de colonne.
+    const gap = spread / count;
+    if (!chosen || gap < chosen.gap - 0.05) chosen = { count, assignment, gap };
+  }
+
+  const columns = Array.from({ length: chosen.count }, () => ({ height: 0, items: [] }));
+  items.forEach((item, position) => {
+    const column = columns[chosen.assignment[position]];
+    column.items.push(item);
+    column.height += ratios[position];
+  });
+
+  // Les colonnes les plus courtes ne sont pas regroupées sur un bord (ce qui ferait un vide d'un seul côté) :
+  // on alterne une colonne haute, une basse, etc., pour que le bas de la grille reste équilibré.
+  const sorted = columns.filter((column) => column.items.length).sort((a, b) => b.height - a.height);
+  const alternated = [];
+  while (sorted.length) {
+    alternated.push(sorted.shift());
+    if (sorted.length) alternated.push(sorted.pop());
+  }
+  return alternated.map((column) => column.items);
 }
 
 // Grille de photos déjà choisies : `items` = [{ photo, index }] où `index` est la position dans la visionneuse.
