@@ -5,12 +5,12 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { buildSeries, sortSeries } from "../../data/series";
 import AdminUniversEditor from "./AdminUniversEditor";
+import AdminSelect from "./AdminSelect";
+import AdminVitrine from "./AdminVitrine";
 
 function roleLabel(role) {
   if (role === "hero") return "Diaporama accueil";
   if (role === "featured") return "Mise en avant";
-  if (role === "servicesBackground") return "Fond";
-  if (role === "approachImage") return "Image approche";
   return role;
 }
 
@@ -25,6 +25,7 @@ const mobilePositionOptions = [
 
 const universeTabs = [
   { id: "all", label: "Toutes" },
+  { id: "vitrine", label: "Vitrine du site" },
   { id: "hero", label: "Diaporama accueil" },
   { id: "Fashion Week & Celebrities", label: "Signature · Fashion Week" },
   { id: "Events", label: "Événements" },
@@ -48,6 +49,10 @@ export default function AdminPhotosTable({
   selectedUniverse = "all",
   setSelectedUniverse,
   universList = [],
+  vitrine = { doors: {}, covers: {} },
+  layout,
+  onLayoutSaved,
+  onVitrineChange,
   onUniversListChange,
   onStatus,
   onError,
@@ -197,7 +202,25 @@ export default function AdminPhotosTable({
   return (
     <section className="space-y-4">
       {/* BARRE D'ONGLETS PAR CATÉGORIE / PAGE */}
-      <div className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-line/20 bg-white/65 p-2">
+      {/* Téléphone : une liste déroulante (8 onglets ne tiennent pas sur une ligne). */}
+      <AdminSelect
+        className="md:hidden"
+        label="Afficher"
+        value={selectedUniverse}
+        onChange={handleSelectUniverse}
+        options={universeTabs.map((tab) => ({
+          value: tab.id,
+          label: tab.label,
+          count:
+            tab.id === "vitrine"
+              ? undefined
+              : tab.id === "hero"
+                ? `${universeCounts[tab.id] ?? 0}/${maxHeroPhotoCount}`
+                : universeCounts[tab.id] ?? 0,
+        }))}
+      />
+
+      <div className="hidden flex-wrap items-center gap-1.5 rounded-2xl border border-line/20 bg-white/65 p-2 md:flex">
         {universeTabs.map((tab) => {
           const active = selectedUniverse === tab.id;
           const count = universeCounts[tab.id] ?? 0;
@@ -212,19 +235,33 @@ export default function AdminPhotosTable({
               }`}
             >
               <span>{tab.label}</span>
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs ${
-                  active ? "bg-white/20 text-paper" : "bg-ink/8 text-ink/60"
-                }`}
-              >
-                {tab.id === "hero" ? `${count}/${maxHeroPhotoCount}` : count}
-              </span>
+              {tab.id === "vitrine" ? null : (
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs ${
+                    active ? "bg-white/20 text-paper" : "bg-ink/8 text-ink/60"
+                  }`}
+                >
+                  {tab.id === "hero" ? `${count}/${maxHeroPhotoCount}` : count}
+                </span>
+              )}
             </button>
           );
         })}
       </div>
 
-      {selectedUniverse === "univers" ? (
+      {selectedUniverse === "vitrine" ? (
+        <AdminVitrine
+          photos={photos}
+          universList={universList}
+          vitrine={vitrine}
+          layout={layout}
+          onLayoutSaved={onLayoutSaved}
+          onVitrineChange={onVitrineChange}
+          onOpenHero={() => setSelectedUniverse("hero")}
+          onStatus={onStatus}
+          onError={onError}
+        />
+      ) : selectedUniverse === "univers" ? (
         <AdminUniversEditor
           initialUniversList={universList}
           onListChange={onUniversListChange}
@@ -249,55 +286,47 @@ export default function AdminPhotosTable({
           />
         </label>
 
-        <label className="space-y-1.5">
-          <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink/50">Série / événement</span>
-          <select
+        <div>
+          <AdminSelect
+            label="Série / événement"
             value={selectedSerie}
-            onChange={(event) => {
-              setSelectedSerie(event.target.value);
+            onChange={(next) => {
+              setSelectedSerie(next);
               setCurrentPage(1);
             }}
-            className="w-full rounded-xl border border-line/20 bg-paper px-3.5 py-2 text-sm outline-none focus:border-accent focus:bg-white"
-          >
-            <option value="all">Toutes les séries ({photosInUniverse.length})</option>
-            {seriesOptions.map((serie) => (
-              <option key={serie.slug} value={serie.slug}>
-                {serie.titre} ({serie.count})
-              </option>
-            ))}
-          </select>
-        </label>
+            options={[
+              { value: "all", label: "Toutes les séries", count: photosInUniverse.length },
+              ...seriesOptions.map((serie) => ({ value: serie.slug, label: serie.titre, count: serie.count })),
+            ]}
+          />
+        </div>
 
-        <label className="space-y-1.5">
-          <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink/50">État</span>
-          <select
-            value={publishFilter}
-            onChange={(event) => {
-              setPublishFilter(event.target.value);
-              setCurrentPage(1);
-            }}
-            className="w-full rounded-xl border border-line/20 bg-paper px-3.5 py-2 text-sm outline-none focus:border-accent focus:bg-white"
-          >
-            <option value="all">Toutes ({filteredPhotos.length})</option>
-            <option value="published">Publiées</option>
-            <option value="draft">Brouillons</option>
-          </select>
-        </label>
+        <AdminSelect
+          label="État"
+          value={publishFilter}
+          onChange={(next) => {
+            setPublishFilter(next);
+            setCurrentPage(1);
+          }}
+          options={[
+            { value: "all", label: "Toutes", count: filteredPhotos.length },
+            { value: "published", label: "Publiées" },
+            { value: "draft", label: "Brouillons" },
+          ]}
+        />
 
-        <label className="space-y-1.5">
-          <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink/50">Taille de grille</span>
-          <select
-            value={gridDensity}
-            onChange={(event) => {
-              setGridDensity(event.target.value);
-              setCurrentPage(1);
-            }}
-            className="w-full rounded-xl border border-line/20 bg-paper px-3.5 py-2 text-sm outline-none focus:border-accent focus:bg-white"
-          >
-            <option value="comfortable">Confortable (3 col.)</option>
-            <option value="compact">Compacte (5 col.)</option>
-          </select>
-        </label>
+        <AdminSelect
+          label="Taille de grille"
+          value={gridDensity}
+          onChange={(next) => {
+            setGridDensity(next);
+            setCurrentPage(1);
+          }}
+          options={[
+            { value: "comfortable", label: "Confortable (3 col.)" },
+            { value: "compact", label: "Compacte (5 col.)" },
+          ]}
+        />
       </div>
 
       {selectedUniverse === "hero" && heroPhotoCount >= maxHeroPhotoCount ? (
@@ -372,9 +401,6 @@ export default function AdminPhotosTable({
                       {isHeroPhoto ? (
                         <span className="rounded-full bg-ink px-3 py-1 text-xs text-paper">Accueil</span>
                       ) : null}
-                      {photo.isPinned ? (
-                        <span className="rounded-full bg-ink px-3 py-1 text-xs text-paper">En haut</span>
-                      ) : null}
                     </div>
                   </div>
 
@@ -397,7 +423,7 @@ export default function AdminPhotosTable({
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="grid grid-cols-1 gap-2 text-sm">
                       <button
                         type="button"
                         disabled={busyId === photo.id}
@@ -406,14 +432,6 @@ export default function AdminPhotosTable({
                       >
                         {busyId === photo.id ? <span className="absolute inset-0 animate-pulse bg-ink/5" /> : null}
                         {photo.isPublished ? "Masquer" : "Publier"}
-                      </button>
-                      <button
-                        type="button"
-                        disabled={busyId === photo.id}
-                        onClick={() => updatePhoto(photo.id, { isPinned: !photo.isPinned })}
-                        className="rounded-full border border-line/25 px-3 py-2 hover:border-ink disabled:opacity-50"
-                      >
-                        {photo.isPinned ? "Retirer du haut" : "Mettre en haut"}
                       </button>
                     </div>
 
@@ -449,20 +467,13 @@ export default function AdminPhotosTable({
                               className="w-full rounded-lg border border-line/25 bg-white px-3 py-2"
                             />
                           </label>
-                          <label className="block space-y-1">
-                            <span className="text-xs uppercase tracking-[0.18em] text-ink/45">Thème</span>
-                            <select
-                              value={photo.category}
-                              onChange={(event) => updatePhoto(photo.id, { category: event.target.value })}
-                              className="w-full rounded-lg border border-line/25 bg-white px-3 py-2"
-                            >
-                              {categories.map((category) => (
-                                <option key={category} value={category}>
-                                  {category}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
+                          <AdminSelect
+                            inline
+                            label="Thème"
+                            value={photo.category}
+                            onChange={(next) => updatePhoto(photo.id, { category: next })}
+                            options={categories.map((category) => ({ value: category, label: category }))}
+                          />
 
                           <div className="flex flex-wrap gap-2">
                             <p className="basis-full text-xs leading-relaxed text-ink/55">
@@ -494,25 +505,18 @@ export default function AdminPhotosTable({
                           </div>
 
                           {isHeroPhoto ? (
-                            <label className="block space-y-1">
-                              <span className="text-xs uppercase tracking-[0.18em] text-ink/45">Position mobile</span>
-                              <select
+                            <div className="space-y-1">
+                              <AdminSelect
+                                inline
+                                label="Position mobile"
                                 value={photo.mobileObjectPosition || ""}
-                                onChange={(event) =>
-                                  updatePhoto(photo.id, { mobileObjectPosition: event.target.value })
-                                }
-                                className="w-full rounded-lg border border-line/25 bg-white px-3 py-2"
-                              >
-                                {mobilePositionOptions.map((option) => (
-                                  <option key={option.value || "auto"} value={option.value}>
-                                    {option.label}
-                                  </option>
-                                ))}
-                              </select>
+                                onChange={(next) => updatePhoto(photo.id, { mobileObjectPosition: next })}
+                                options={mobilePositionOptions.map((option) => ({ value: option.value, label: option.label }))}
+                              />
                               <span className="block text-xs leading-relaxed text-ink/50">
                                 Ajustez le cadrage de cette photo dans le diaporama sur téléphone.
                               </span>
-                            </label>
+                            </div>
                           ) : null}
 
                           <div className="flex flex-wrap gap-2">

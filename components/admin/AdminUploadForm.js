@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import AdminSelect from "./AdminSelect";
 
 export default function AdminUploadForm({
   categories,
@@ -95,20 +96,12 @@ export default function AdminUploadForm({
             />
           </label>
 
-          <label className="block space-y-2">
-            <span className="text-xs font-bold uppercase tracking-widest text-ink/40">Thème / catégorie</span>
-            <select
-              value={uploadForm.category}
-              onChange={(event) => setUploadForm((current) => ({ ...current, category: event.target.value }))}
-              className="w-full rounded-xl border border-line/25 bg-paper px-4 py-2 outline-none focus:border-accent"
-            >
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </label>
+          <AdminSelect
+            label="Thème / catégorie"
+            value={uploadForm.category}
+            onChange={(next) => setUploadForm((current) => ({ ...current, category: next }))}
+            options={categories.map((category) => ({ value: category, label: category }))}
+          />
         </div>
 
         <div className="space-y-4">
@@ -189,11 +182,7 @@ export default function AdminUploadForm({
                 />
                 {isHeroRole
                   ? `Diaporama (${heroPhotoCount}/${maxHeroPhotoCount})`
-                  : role === "featured"
-                    ? "Mise en avant"
-                    : role === "servicesBackground"
-                      ? "Fond"
-                      : "Approche"}
+                  : "Mise en avant"}
               </label>
             );
           })}

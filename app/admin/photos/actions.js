@@ -22,6 +22,7 @@ import {
 import { getAdminContent } from "../../../lib/adminContent";
 import { updateSiteContent } from "../../../lib/siteContent";
 import { updateLayout } from "../../../lib/layoutContent";
+import { setVitrinePhoto } from "../../../lib/vitrineContent";
 import { getUniversOverrides, updateUniversOverride } from "../../../lib/universContent";
 import { getUniversList } from "../../../data/univers";
 import { deleteR2Object, isR2Configured, uploadR2Object } from "../../../lib/r2Storage";
@@ -493,6 +494,24 @@ export async function updateLayoutAction(patch) {
     });
   } catch (error) {
     return createActionResult({ ok: false, message: error.message || "Impossible d'enregistrer la mise en page." });
+  }
+}
+
+// Vitrine du site : choisit (ou, avec photo null, efface) la photo d'une carte de l'accueil ou d'une couverture d'univers.
+// kind : "doors" ou "covers" ; key : identifiant de la carte ou de l'univers.
+export async function setVitrinePhotoAction(kind, key, photo) {
+  const cookieStore = await getAuthorizedCookieStore();
+  if (!cookieStore) return unauthorizedResult();
+
+  try {
+    const vitrine = await setVitrinePhoto(kind, toStringValue(key), photo ? { src: toStringValue(photo.src), alt: toStringValue(photo.alt) } : null);
+
+    revalidateTag("site-settings");
+    revalidatePath("/", "layout");
+    revalidateAdminViews();
+    return createActionResult({ ok: true, message: photo ? "Photo enregistrée." : "Retour à la sélection automatique.", data: vitrine });
+  } catch (error) {
+    return createActionResult({ ok: false, message: error.message || "Impossible d'enregistrer cette photo." });
   }
 }
 

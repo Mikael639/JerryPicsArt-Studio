@@ -19,7 +19,7 @@ function inputClass() {
   return "w-full rounded-xl border border-line/25 bg-paper px-3 py-2 text-sm outline-none focus:border-accent";
 }
 
-function UniversCard({ univers, onSaved, onStatus, onError }) {
+function UniversCard({ univers, mode, onSaved, onStatus, onError }) {
   const [titre, setTitre] = useState(univers.titre);
   const [credits, setCredits] = useState(univers.credits);
   const [contexte, setContexte] = useState(univers.contexte);
@@ -174,14 +174,17 @@ function UniversCard({ univers, onSaved, onStatus, onError }) {
         </div>
         <div className="min-w-0 flex-1">
           <p className="font-serif text-lg leading-tight">{titre}</p>
-          <p className="mt-0.5 text-xs text-ink/50">
-            {visibleCount}/{images.length} photo(s) visible(s)
-          </p>
+          {mode === "photos" ? (
+            <p className="mt-0.5 text-xs text-ink/50">
+              {visibleCount}/{images.length} photo(s) visible(s)
+            </p>
+          ) : null}
         </div>
         <span className="text-xs text-ink/40 transition group-open:rotate-180">▾</span>
       </summary>
 
       <div className="space-y-5 border-t border-line/10 p-4 pt-5">
+        {mode === "texts" ? (
         <div className="grid gap-3 md:grid-cols-2">
           <label className="space-y-1.5">
             <span className="text-xs uppercase tracking-[0.18em] text-ink/50">Titre</span>
@@ -202,10 +205,11 @@ function UniversCard({ univers, onSaved, onStatus, onError }) {
             />
           </label>
         </div>
-
+        ) : (
         <div className="space-y-3">
           <p className="text-xs uppercase tracking-[0.18em] text-ink/50">
-            Photos, dans l&rsquo;ordre d&rsquo;affichage · une photo masquée reste ici mais n&rsquo;apparaît plus sur le site
+            Photos, dans l&rsquo;ordre d&rsquo;affichage · une photo masquée reste ici mais n&rsquo;apparaît plus sur le site. La
+            couverture se choisit dans « Vitrine du site »
           </p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {images.map((image, index) => (
@@ -215,11 +219,6 @@ function UniversCard({ univers, onSaved, onStatus, onError }) {
               >
                 <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-ink/10">
                   <Image src={image.src} alt="" fill sizes="220px" className="object-cover" />
-                  {image.id === cover ? (
-                    <span className="absolute left-1.5 top-1.5 rounded-full bg-ink px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-paper">
-                      Couverture
-                    </span>
-                  ) : null}
                 </div>
                 <textarea
                   rows={2}
@@ -253,14 +252,6 @@ function UniversCard({ univers, onSaved, onStatus, onError }) {
                   >
                     {image.hidden ? "Afficher" : "Masquer"}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setCover(image.id)}
-                    disabled={image.id === cover || image.hidden}
-                    className="rounded-full border border-line/25 px-2.5 py-1 text-[11px] hover:border-ink disabled:opacity-30"
-                  >
-                    Couverture
-                  </button>
                   <label className="cursor-pointer rounded-full border border-line/25 px-2.5 py-1 text-[11px] hover:border-ink">
                     {replacingId === image.id ? "Envoi..." : "Remplacer"}
                     <input
@@ -283,8 +274,10 @@ function UniversCard({ univers, onSaved, onStatus, onError }) {
             ))}
           </div>
         </div>
+        )}
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line/10 pt-4">
+          {mode === "photos" ? (
           <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-ink px-5 py-2.5 text-xs font-bold uppercase tracking-[0.14em] text-ink transition hover:bg-ink hover:text-paper">
             {isUploading ? "Envoi en cours..." : "Ajouter des photos"}
             <input
@@ -296,6 +289,9 @@ function UniversCard({ univers, onSaved, onStatus, onError }) {
               className="sr-only"
             />
           </label>
+          ) : (
+            <span />
+          )}
           <button
             type="button"
             onClick={save}
@@ -313,7 +309,7 @@ function UniversCard({ univers, onSaved, onStatus, onError }) {
 // Univers de Signature, Événements et Entreprises & lieux : textes, ordre des photos, photos
 // masquées, couverture et textes alternatifs. Les photos elles-mêmes s'ajoutent via
 // scripts/import-univers.mjs (voir data/univers.js) ; cet écran ne fait que les organiser.
-export default function AdminUniversEditor({ initialUniversList = [], onStatus, onError, onListChange }) {
+export default function AdminUniversEditor({ initialUniversList = [], mode = "photos", onStatus, onError, onListChange }) {
   const [universList, setUniversList] = useState(initialUniversList);
 
   const grouped = ["signature", "evenements", "entreprises"]
@@ -352,7 +348,7 @@ export default function AdminUniversEditor({ initialUniversList = [], onStatus, 
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-ink/45">{PAGE_LABELS[group.page]}</p>
           <div className="space-y-3">
             {group.items.map((univers) => (
-              <UniversCard key={univers.slug} univers={univers} onSaved={handleSaved} onStatus={onStatus} onError={onError} />
+              <UniversCard key={univers.slug} univers={univers} mode={mode} onSaved={handleSaved} onStatus={onStatus} onError={onError} />
             ))}
           </div>
         </div>

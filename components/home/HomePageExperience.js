@@ -35,7 +35,6 @@ function getHeroPriority(photo) {
   return (
     (roles.has("hero") ? 8 : 0) +
     (roles.has("featured") ? 4 : 0) +
-    (roles.has("servicesBackground") ? 1 : 0) +
     (photo?.isPinned ? 1 : 0)
   );
 }
