@@ -94,29 +94,6 @@ function GridPhoto({ photo, index, onOpen, priority, openLabel, alone = false, r
   );
 }
 
-// Répartit les photos en rangées de 3 ou 4 (une seule rangée jusqu'à 4 photos). Ni rangée d'une seule photo, ni
-// rangée de deux photos verticales (plus hautes qu'un écran) : le reste de la division par 3 passe en rangées de 4.
-function splitRows(items) {
-  const total = items.length;
-  if (total <= 4) return [items];
-
-  // 5 photos : 3 + 2 (la seule répartition possible).
-  const fours = total === 5 ? 0 : total % 3 === 1 ? 1 : total % 3 === 2 ? 2 : 0;
-  const sizes = total === 5 ? [3, 2] : [];
-  if (total !== 5) {
-    const threes = (total - fours * 4) / 3;
-    for (let i = 0; i < threes; i += 1) sizes.push(3);
-    for (let i = 0; i < fours; i += 1) sizes.push(4);
-  }
-
-  let start = 0;
-  return sizes.map((size) => {
-    const slice = items.slice(start, start + size);
-    start += size;
-    return slice;
-  });
-}
-
 // Grille de photos déjà choisies : `items` = [{ photo, index }] où `index` est la position dans la visionneuse.
 export function PhotoTiles({ items, onOpen, priority = false }) {
   const { lang } = useLanguage();
@@ -134,31 +111,23 @@ export function PhotoTiles({ items, onOpen, priority = false }) {
       4: "sm:columns-2 lg:columns-4",
     }[items.length] || "sm:columns-2 lg:columns-3";
 
-  // Sur grand écran, les photos forment des rangées à hauteur égale : chaque photo prend une largeur proportionnelle
-  // à son format (rien n'est recadré) et la rangée remplit toute la largeur. Des colonnes de hauteurs inégales
-  // laissaient un vide à droite en bas de la grille. Sous le grand écran, les rangées « disparaissent » (contents)
-  // et les photos reprennent leur grille de téléphone et de tablette.
-  const row = items.length >= 2;
-  const rows = row ? splitRows(items) : [items];
-  let position = 0;
+  // Sur grand écran, 2 à 4 photos forment une seule rangée à hauteur égale : chaque photo prend une largeur
+  // proportionnelle à son format (rien n'est recadré), au lieu de colonnes aux hauteurs inégales.
+  const row = items.length >= 2 && items.length <= 4;
 
   return (
-    <div className={`mx-auto grid grid-cols-2 gap-1.5 sm:-mb-4 sm:block sm:gap-4 ${row ? "lg:mb-0 lg:flex lg:flex-col" : ""} ${layout}`}>
-      {rows.map((rowItems) => (
-        <div key={rowItems[0].photo.id || rowItems[0].photo.src} className={row ? "contents lg:flex lg:gap-4" : "contents"}>
-          {rowItems.map(({ photo, index }) => (
-            <GridPhoto
-              row={row}
-              key={photo.id || photo.src}
-              photo={photo}
-              index={index}
-              onOpen={onOpen}
-              priority={priority && position++ < 2}
-              openLabel={copy.openPhoto(photo.alt)}
-              alone={items.length === 1}
-            />
-          ))}
-        </div>
+    <div className={`mx-auto grid grid-cols-2 gap-1.5 sm:-mb-4 sm:block sm:gap-4 ${row ? "lg:mb-0 lg:flex" : ""} ${layout}`}>
+      {items.map(({ photo, index }, position) => (
+        <GridPhoto
+          row={row}
+          key={photo.id || photo.src}
+          photo={photo}
+          index={index}
+          onOpen={onOpen}
+          priority={priority && position < 2}
+          openLabel={copy.openPhoto(photo.alt)}
+          alone={items.length === 1}
+        />
       ))}
     </div>
   );
