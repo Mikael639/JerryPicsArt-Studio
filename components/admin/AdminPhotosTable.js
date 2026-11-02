@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { buildSeries, sortSeries } from "../../data/series";
 import AdminUniversEditor from "./AdminUniversEditor";
+import AdminVitrine from "./AdminVitrine";
 
 function roleLabel(role) {
   if (role === "hero") return "Diaporama accueil";
@@ -23,6 +24,7 @@ const mobilePositionOptions = [
 
 const universeTabs = [
   { id: "all", label: "Toutes" },
+  { id: "vitrine", label: "Vitrine du site" },
   { id: "hero", label: "Diaporama accueil" },
   { id: "Fashion Week & Celebrities", label: "Signature · Fashion Week" },
   { id: "Events", label: "Événements" },
@@ -46,6 +48,8 @@ export default function AdminPhotosTable({
   selectedUniverse = "all",
   setSelectedUniverse,
   universList = [],
+  vitrine = { doors: {}, covers: {} },
+  onVitrineChange,
   onUniversListChange,
   onStatus,
   onError,
@@ -195,7 +199,25 @@ export default function AdminPhotosTable({
   return (
     <section className="space-y-4">
       {/* BARRE D'ONGLETS PAR CATÉGORIE / PAGE */}
-      <div className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-line/20 bg-white/65 p-2">
+      {/* Téléphone : une liste déroulante (8 onglets ne tiennent pas sur une ligne). */}
+      <label className="block md:hidden">
+        <span className="sr-only">Afficher</span>
+        <select
+          value={selectedUniverse}
+          onChange={(event) => handleSelectUniverse(event.target.value)}
+          className="w-full rounded-2xl border border-line/20 bg-white px-4 py-3 text-sm"
+        >
+          {universeTabs.map((tab) => (
+            <option key={tab.id} value={tab.id}>
+              {tab.id === "vitrine"
+                ? tab.label
+                : `${tab.label} (${tab.id === "hero" ? `${universeCounts[tab.id] ?? 0}/${maxHeroPhotoCount}` : universeCounts[tab.id] ?? 0})`}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <div className="hidden flex-wrap items-center gap-1.5 rounded-2xl border border-line/20 bg-white/65 p-2 md:flex">
         {universeTabs.map((tab) => {
           const active = selectedUniverse === tab.id;
           const count = universeCounts[tab.id] ?? 0;
@@ -210,19 +232,31 @@ export default function AdminPhotosTable({
               }`}
             >
               <span>{tab.label}</span>
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs ${
-                  active ? "bg-white/20 text-paper" : "bg-ink/8 text-ink/60"
-                }`}
-              >
-                {tab.id === "hero" ? `${count}/${maxHeroPhotoCount}` : count}
-              </span>
+              {tab.id === "vitrine" ? null : (
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs ${
+                    active ? "bg-white/20 text-paper" : "bg-ink/8 text-ink/60"
+                  }`}
+                >
+                  {tab.id === "hero" ? `${count}/${maxHeroPhotoCount}` : count}
+                </span>
+              )}
             </button>
           );
         })}
       </div>
 
-      {selectedUniverse === "univers" ? (
+      {selectedUniverse === "vitrine" ? (
+        <AdminVitrine
+          photos={photos}
+          universList={universList}
+          vitrine={vitrine}
+          onVitrineChange={onVitrineChange}
+          onOpenHero={() => setSelectedUniverse("hero")}
+          onStatus={onStatus}
+          onError={onError}
+        />
+      ) : selectedUniverse === "univers" ? (
         <AdminUniversEditor
           initialUniversList={universList}
           onListChange={onUniversListChange}

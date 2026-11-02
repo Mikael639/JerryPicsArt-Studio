@@ -9,6 +9,7 @@ import { getSiteUrl, siteConfig, toAbsoluteUrl } from "../lib/siteConfig";
 import { buildPageMetadata } from "../lib/seo";
 import { getStats, getTestimonials } from "../lib/siteContent";
 import { getLayout } from "../lib/layoutContent";
+import { getVitrine } from "../lib/vitrineContent";
 import { getHomeCopy } from "../lib/siteSettings";
 import { METADATA_COPY } from "../lib/i18n";
 import { getServerLang } from "../lib/serverLang";
@@ -191,11 +192,12 @@ export default async function HomePage() {
     sourcePhotos = [];
   }
 
-  const [stats, testimonials, lang, layout] = await Promise.all([
+  const [stats, testimonials, lang, layout, vitrine] = await Promise.all([
     getStats(),
     getTestimonials(),
     getServerLang(),
     getLayout(),
+    getVitrine(),
   ]);
   const photos = (sourcePhotos.length ? sourcePhotos : [defaultFallbackPhoto]).map(normalizePhoto);
 
@@ -215,6 +217,10 @@ export default async function HomePage() {
     signature: pickDoorPhoto(photos, "Fashion Week & Celebrities", usedIds),
     entreprises: pickDoorPhoto(photos, "Studio", usedIds),
   };
+  // Photo choisie dans l'administration (Vitrine du site) : elle remplace la sélection automatique.
+  for (const [door, chosen] of Object.entries(vitrine.doors)) {
+    doorPhotos[door] = { id: `vitrine-${door}`, src: chosen.src, alt: chosen.alt || doorPhotos[door]?.alt || "", objectPosition: "center center" };
+  }
 
   const jsonLd = [
     {

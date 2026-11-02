@@ -553,6 +553,8 @@ export default function AdminPhotosClient({
           selectedUniverse={selectedUniverse}
           setSelectedUniverse={setSelectedUniverse}
           universList={content.universList}
+          vitrine={content.vitrine}
+          onVitrineChange={(vitrine) => setContent((current) => ({ ...current, vitrine }))}
           onUniversListChange={(universList) => setContent((current) => ({ ...current, universList }))}
           onStatus={setStatusMessage}
           onError={setErrorMessage}
