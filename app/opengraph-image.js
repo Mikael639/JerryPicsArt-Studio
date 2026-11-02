@@ -4,16 +4,18 @@ import { ImageResponse } from "next/og";
 import sharp from "sharp";
 import { siteConfig } from "../lib/siteConfig";
 import { getPublicPhotos } from "../lib/photoRepository";
+import { UNIVERS_PHOTOS } from "../data/universPhotos";
 
 export const alt = `${siteConfig.name} : photographe éditorial à Paris, Fashion Week, mariage et événements`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/jpeg";
 
-// Triptyque : Fashion Week, mariage, événement. Photos repérées par un morceau de leur nom de fichier.
+// Triptyque : Fashion Week (Davido), mariage, événement (gala Mboa). Photos repérées par un morceau de leur nom de
+// fichier, dans la photothèque puis dans les univers.
 const TRIPTYCH = [
-  { match: "pfw-011025-jpa-102", position: "50% 30%" },
+  { match: "06-davido-jpa-16", position: "50% 40%" },
   { match: "silhouette-au-flash", position: "50% 35%" },
-  { match: "gala-fc-1ere-edition-jpa-442", position: "50% 25%" },
+  { match: "01-gala-mboa-paris-2025-jpa-139", position: "50% 25%" },
 ];
 
 // Le fichier est lu au moment de la construction (l'image est générée une fois, puis servie telle quelle).
@@ -22,9 +24,11 @@ const font = (name) => readFile(path.join(process.cwd(), "app", "fonts", name));
 async function loadPhotos() {
   try {
     const photos = await getPublicPhotos({ limit: 500 });
+    const universSources = Object.values(UNIVERS_PHOTOS).map((item) => item.src);
     return TRIPTYCH.map(({ match, position }) => {
       const photo = photos.find((item) => item.src?.toLowerCase().includes(match));
-      return { src: photo?.src || null, position };
+      const src = photo?.src || universSources.find((item) => item.toLowerCase().includes(match));
+      return { src: src || null, position };
     });
   } catch {
     return TRIPTYCH.map(({ position }) => ({ src: null, position }));
