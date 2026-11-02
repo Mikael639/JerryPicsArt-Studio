@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import { FeaturedPhoto, isLandscapePhoto, PhotoPair, PhotoTiles, SeeAllButton, usePhotoViewer } from "./PhotoGrid";
 import { localize } from "../../data/univers";
 import { useLanguage } from "../LanguageProvider";
-import Ornament from "./Ornament";
 
 // Photo de couverture + 4 autres photos visibles ; le reste est replié (« Voir les N photos »).
 const MAX_PREVIEW_PHOTOS = 5;
@@ -135,7 +134,6 @@ export default function Universe({ univers, number = 1, priority = false, exclud
       aria-labelledby={`${univers.slug}-titre`}
       className="mx-auto max-w-7xl scroll-mt-36 px-4 md:scroll-mt-28 md:px-8"
     >
-      {number > 1 ? <Ornament /> : null}
       <div className={`grid gap-y-6 ${verticalCover ? "md:grid-cols-2 md:gap-x-14 md:gap-y-0" : "md:gap-y-8"}`}>
         <header
           className={`order-1 space-y-3 ${verticalCover ? "md:col-start-1 md:row-start-1 md:self-end md:pb-6" : "md:order-1"}`}
@@ -163,12 +161,6 @@ export default function Universe({ univers, number = 1, priority = false, exclud
 
         <div className={`order-2 ${verticalCover ? "md:col-start-2 md:row-span-2 md:row-start-1" : "md:order-3"}`}>
           <FeaturedPhoto photo={cover} index={0} onOpen={open} priority={priority} />
-          {/* Légende en marge : le texte alternatif de la photo d'ouverture (lieu, événement). */}
-          {cover.alt ? (
-            <p className="mx-auto mt-3 line-clamp-1 max-w-full text-[11px] uppercase tracking-[0.16em] text-ink/45">
-              {cover.alt}
-            </p>
-          ) : null}
         </div>
       </div>
 
