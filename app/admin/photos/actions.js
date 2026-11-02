@@ -22,7 +22,7 @@ import {
 import { getAdminContent } from "../../../lib/adminContent";
 import { updateSiteContent } from "../../../lib/siteContent";
 import { updateLayout } from "../../../lib/layoutContent";
-import { setVitrinePhoto } from "../../../lib/vitrineContent";
+import { setVitrinePhoto, setVitrineWedding } from "../../../lib/vitrineContent";
 import { getUniversOverrides, updateUniversOverride } from "../../../lib/universContent";
 import { getUniversList } from "../../../data/univers";
 import { deleteR2Object, isR2Configured, uploadR2Object } from "../../../lib/r2Storage";
@@ -512,6 +512,33 @@ export async function setVitrinePhotoAction(kind, key, photo) {
     return createActionResult({ ok: true, message: photo ? "Photo enregistrée." : "Retour à la sélection automatique.", data: vitrine });
   } catch (error) {
     return createActionResult({ ok: false, message: error.message || "Impossible d'enregistrer cette photo." });
+  }
+}
+
+// Journée de mariage : photos d'une étape (preparatifs, ceremonie, portrait, cocktail, soiree). Liste vide = photos d'origine.
+export async function setWeddingChapterAction(chapter, photos) {
+  const cookieStore = await getAuthorizedCookieStore();
+  if (!cookieStore) return unauthorizedResult();
+
+  try {
+    const list = (Array.isArray(photos) ? photos : []).map((photo) => ({
+      src: toStringValue(photo?.src),
+      alt: toStringValue(photo?.alt),
+      width: photo?.width,
+      height: photo?.height,
+    }));
+    const vitrine = await setVitrineWedding(toStringValue(chapter), list);
+
+    revalidateTag("site-settings");
+    revalidatePath("/", "layout");
+    revalidateAdminViews();
+    return createActionResult({
+      ok: true,
+      message: list.length ? "Photos de l'étape enregistrées." : "Retour aux photos d'origine.",
+      data: vitrine,
+    });
+  } catch (error) {
+    return createActionResult({ ok: false, message: error.message || "Impossible d'enregistrer ces photos." });
   }
 }
 

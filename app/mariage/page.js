@@ -13,6 +13,7 @@ import { MARIAGE_CHAPITRES } from "../../data/mariageJournee";
 import { showPlaceholders } from "../../data/placeholders";
 import { getPublicPhotos } from "../../lib/photoRepository";
 import { getTestimonials } from "../../lib/siteContent";
+import { getVitrine } from "../../lib/vitrineContent";
 import { buildPageMetadata } from "../../lib/seo";
 import { METADATA_COPY, PAGES_COPY } from "../../lib/i18n";
 import { getServerLang } from "../../lib/serverLang";
@@ -42,12 +43,16 @@ export default async function MariagePage() {
 
   // Les photos du récit : celles de data/mariageJournee.js encore publiées, avec leur source actuelle.
   const byId = new Map(photos.map((photo) => [photo.id, photo]));
+  // Une étape dont les photos ont été choisies dans l'administration (Vitrine du site) remplace celles d'origine.
+  const vitrine = await getVitrine();
   const chapters = Object.keys(MARIAGE_CHAPITRES).map((key, index) => ({
     key,
     ...copy.chapters[index],
-    photos: MARIAGE_CHAPITRES[key]
-      .filter((item) => byId.has(item.id))
-      .map((item) => ({ ...item, src: byId.get(item.id).src })),
+    photos: vitrine.wedding[key]?.length
+      ? vitrine.wedding[key].map((photo, position) => ({ id: `vitrine-${key}-${position}`, ...photo }))
+      : MARIAGE_CHAPITRES[key]
+          .filter((item) => byId.has(item.id))
+          .map((item) => ({ ...item, src: byId.get(item.id).src })),
   }));
   const opening = byId.get(OPENING_PHOTO_ID) || photos[0] || null;
 
