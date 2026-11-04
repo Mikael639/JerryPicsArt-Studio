@@ -58,3 +58,6 @@ tmp-import-test.jpg
 
 # photos redimensionnées par scripts/import-univers.mjs
 /.cache/
+
+# Notes techniques gardées sur le poste, pas sur GitHub (le dépôt est public)
+README.md
