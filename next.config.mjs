@@ -23,8 +23,31 @@ function getR2PublicHostname() {
 const supabaseHostname = getSupabaseHostname();
 const r2PublicHostname = getR2PublicHostname();
 
+// Protections de navigateur appliquées à toutes les pages. Pas de Content-Security-Policy complète : elle risquerait de
+// bloquer les scripts de Next.js ou de Vercel Analytics ; seule la partie « qui peut afficher le site dans un cadre » est posée.
+const securityHeaders = [
+  // Le site ne peut être affiché dans un cadre (iframe) que par lui-même : protège l'admin du « clickjacking ».
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
+  // Le navigateur ne doit pas deviner le type d'un fichier (empêche de faire passer une image pour un script).
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  // L'adresse complète des pages n'est pas transmise aux autres sites quand on clique sur un lien sortant.
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  // Le site n'utilise ni caméra, ni micro, ni position, ni paiement : on les interdit.
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Ne pas annoncer « X-Powered-By: Next.js » à chaque réponse.
+  poweredByHeader: false,
+  async headers() {
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // L'administration ne doit jamais apparaître dans un moteur de recherche (en plus de robots.txt).
+      { source: "/admin/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
+    ];
+  },
   async redirects() {
     return [
       { source: "/gallery", destination: "/signature", permanent: true },
