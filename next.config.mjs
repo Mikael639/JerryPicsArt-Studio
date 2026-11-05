@@ -62,11 +62,12 @@ const nextConfig = {
           ]
         : []),
     ],
-    deviceSizes: [640, 828, 1080, 1200, 1920],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    formats: ["image/avif", "image/webp"],
-    minimumCacheTTL: 2678400,
-    qualities: [75, 85, 90],
+    // Les photos de R2 passent par lib/imageLoader.js (tailles fixes 480 / 960 / 1600 / 2400 px fabriquées une fois) :
+    // plus de transformations d'images facturées par Vercel.
+    loader: "custom",
+    loaderFile: "./lib/imageLoader.js",
+    deviceSizes: [480, 960, 1600, 2400],
+    imageSizes: [48, 96, 256],
   },
 };
 
