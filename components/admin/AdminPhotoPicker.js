@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import imageLoader from "../../lib/imageLoader";
 import AdminSelect from "./AdminSelect";
 
 // Sélecteur de photo plein écran : toutes les photos du site (photothèque et univers), filtre par provenance et
@@ -9,10 +10,11 @@ const PAGE_SIZE = 48;
 
 export const buttonClass = "rounded-full border border-line/25 px-4 py-2 text-sm hover:border-ink disabled:opacity-50";
 
+// Vignette : la petite taille (480 px) de la photo plutôt que l'original (voir lib/imageLoader.js).
 export function Thumb({ src, label }) {
   return src ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt="" loading="lazy" className="h-full w-full object-cover" />
+    <img src={imageLoader({ src, width: 480 })} alt="" loading="lazy" className="h-full w-full object-cover" />
   ) : (
     <span className="flex h-full w-full items-center justify-center px-2 text-center text-[11px] leading-tight text-ink/45">
       {label}
