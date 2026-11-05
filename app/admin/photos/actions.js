@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import {
   ADMIN_COOKIE_NAME,
   createAdminSessionToken,
@@ -26,6 +26,7 @@ import { setVitrinePhoto, setVitrineWedding } from "../../../lib/vitrineContent"
 import { getUniversOverrides, updateUniversOverride } from "../../../lib/universContent";
 import { getUniversList } from "../../../data/univers";
 import { deleteR2Object, isR2Configured, uploadR2Object } from "../../../lib/r2Storage";
+import { clearLoginFailures, getLoginBlock, recordLoginFailure } from "../../../lib/loginThrottle";
 import crypto from "node:crypto";
 import { deleteContactMessage, listContactMessages, updateContactMessageStatus } from "../../../lib/contactStore";
 import {
@@ -97,6 +98,14 @@ function toBooleanValue(value, fallback = false) {
   return fallback;
 }
 
+// Adresse IP du visiteur (Vercel la renseigne dans x-forwarded-for) ; sert à la limite d'essais de connexion.
+async function getClientIp() {
+  const requestHeaders = await headers();
+  const forwarded = requestHeaders.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  return requestHeaders.get("x-real-ip")?.trim() || "unknown";
+}
+
 export async function loginAdminAction(credentials) {
   if (!isAdminConfigured()) {
     return createActionResult({
@@ -108,10 +117,22 @@ export async function loginAdminAction(credentials) {
   const username = typeof credentials?.username === "string" ? credentials.username : "";
   const password = typeof credentials?.password === "string" ? credentials.password : "";
 
+  // Limite d'essais : 5 échecs en 15 minutes par adresse IP (voir lib/loginThrottle.js).
+  const ip = await getClientIp();
+  const block = await getLoginBlock(ip);
+  if (block.blocked) {
+    return createActionResult({
+      ok: false,
+      message: `Trop de tentatives. Réessayez dans ${block.retryAfterMinutes} minute${block.retryAfterMinutes > 1 ? "s" : ""}.`,
+    });
+  }
+
   if (!validateAdminCredentials(username, password)) {
+    await recordLoginFailure(ip);
     return createActionResult({ ok: false, message: "Identifiants invalides." });
   }
 
+  await clearLoginFailures(ip);
   const cookieStore = await cookies();
   cookieStore.set(ADMIN_COOKIE_NAME, createAdminSessionToken(username), getAdminCookieOptions());
   const [photos, messages, categories, homeCopy, aboutCopy, maintenanceMode, content] = await Promise.all([
