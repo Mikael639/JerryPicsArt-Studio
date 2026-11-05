@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import { createContactMessage, listContactMessages } from "../../../lib/contactStore";
+import { createContactMessage } from "../../../lib/contactStore";
 import { sendContactEmails } from "../../../lib/contactEmail";
 import { validateContactInput } from "../../../lib/contactValidation";
 import { prepareContactSubmission } from "../../../lib/contactSubmission";
 import { consumeRateLimit } from "../../../lib/rateLimit";
-import { secretsMatch } from "../../../lib/adminAuth";
 
 export const runtime = "nodejs";
 
@@ -94,27 +93,4 @@ export async function POST(request) {
     },
     { status: 201 }
   );
-}
-
-export async function GET(request) {
-  const adminKey = process.env.ADMIN_API_KEY;
-  const requestKey = request.headers.get("x-admin-key");
-
-  if (!adminKey || !secretsMatch(requestKey, adminKey)) {
-    return NextResponse.json(
-      {
-        ok: false,
-        message: "Unauthorized.",
-      },
-      { status: 401 }
-    );
-  }
-
-  const messages = await listContactMessages();
-
-  return NextResponse.json({
-    ok: true,
-    total: messages.length,
-    data: messages,
-  });
 }
