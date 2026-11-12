@@ -99,7 +99,7 @@ function GridPhoto({ photo, index, onOpen, priority, openLabel, alone = false, f
 // grille de téléphone et de tablette, puis passe aux colonnes de l'ordinateur.
 const DESKTOP_QUERY = "(min-width: 1024px)";
 
-function useIsDesktop() {
+export function useIsDesktop() {
   return useSyncExternalStore(
     (notify) => {
       const query = window.matchMedia(DESKTOP_QUERY);
@@ -292,7 +292,7 @@ export function FeaturedPhoto({ photo, index, onOpen, priority = false }) {
             photo={photo}
             priority={priority}
             sizes={isLandscape ? "(max-width: 1280px) 100vw, 1200px" : "(max-width: 767px) 90vw, 560px"}
-            className="block h-auto w-auto max-h-[70svh] max-w-full"
+            className="block h-auto w-auto max-h-[70svh] max-w-full lg:max-h-[80svh]"
           />
         </span>
         <span className="pointer-events-none absolute inset-0 bg-ink/0 transition-colors duration-300 group-hover:bg-ink/10" />
