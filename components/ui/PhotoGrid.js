@@ -197,7 +197,8 @@ function buildColumns(items) {
 }
 
 // Grille de photos déjà choisies : `items` = [{ photo, index }] où `index` est la position dans la visionneuse.
-export function PhotoTiles({ items, onOpen, priority = false }) {
+// `tripleRow` : sur téléphone et tablette, 3 photos verticales tiennent sur une seule rangée (pas de 2 + 1 avec un trou).
+export function PhotoTiles({ items, onOpen, priority = false, tripleRow = false }) {
   const { lang } = useLanguage();
   const copy = UI_COPY[lang]?.series || UI_COPY.fr.series;
   const isDesktop = useIsDesktop();
@@ -235,9 +236,14 @@ export function PhotoTiles({ items, onOpen, priority = false }) {
     {
       1: "max-w-[78%] sm:columns-1 sm:max-w-sm lg:columns-1",
     }[items.length] || "sm:columns-2";
+  const triple = tripleRow && items.length === 3 && items.every(({ photo }) => !isLandscapePhoto(photo));
 
   return (
-    <div className={`mx-auto grid grid-cols-2 gap-1.5 sm:-mb-4 sm:block sm:gap-4 ${layout}`}>
+    <div
+      className={`mx-auto grid gap-1.5 sm:-mb-4 sm:block sm:gap-4 ${
+        triple ? "grid-cols-3 sm:columns-3" : `grid-cols-2 ${layout}`
+      }`}
+    >
       {items.map(({ photo, index }, position) => (
         <GridPhoto
           key={photo.id || photo.src}
