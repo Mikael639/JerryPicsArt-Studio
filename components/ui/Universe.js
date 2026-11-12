@@ -3,13 +3,38 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { FeaturedPhoto, isLandscapePhoto, PhotoPair, PhotoTiles, SeeAllButton, usePhotoViewer } from "./PhotoGrid";
+import {
+  FeaturedPhoto,
+  isLandscapePhoto,
+  PhotoPair,
+  PhotoTiles,
+  SeeAllButton,
+  useIsDesktop,
+  usePhotoViewer,
+} from "./PhotoGrid";
 import { localize } from "../../data/univers";
 import { useLanguage } from "../LanguageProvider";
 
 // Photo de couverture + 4 autres photos visibles ; le reste est replié (« Voir les N photos »).
 const MAX_PREVIEW_PHOTOS = 5;
 const PAIR_MIN_PHOTOS = 6;
+// Ordinateur : une rangée de 3 photos (chacune tient entière dans l'écran), puis une grande photo horizontale.
+const DESKTOP_ROW_PHOTOS = 3;
+
+// Ordinateur : choisit la rangée de photos (les verticales d'abord), la grande horizontale éventuelle, et le reste.
+function desktopLayout(indexed, cover) {
+  const rest = indexed.slice(1);
+  const landscape = ({ photo }) => isLandscapePhoto(photo);
+  // Pas de grande horizontale si la photo d'ouverture en est déjà une.
+  const wide = isLandscapePhoto(cover) ? null : rest.find(landscape) || null;
+  const candidates = rest.filter((item) => item !== wide);
+  const row = [...candidates.filter((item) => !landscape(item)), ...candidates.filter(landscape)].slice(
+    0,
+    DESKTOP_ROW_PHOTOS
+  );
+  const others = candidates.filter((item) => !row.includes(item));
+  return { row, wide, others };
+}
 
 function pad(number) {
   return String(number).padStart(2, "0");
@@ -101,6 +126,7 @@ export default function Universe({ univers, number = 1, priority = false, exclud
   const { open, viewer } = usePhotoViewer(images);
   const [expanded, setExpanded] = useState(false);
   const sectionRef = useRef(null);
+  const isDesktop = useIsDesktop();
 
   if (!images.length) return null;
 
@@ -118,7 +144,10 @@ export default function Universe({ univers, number = 1, priority = false, exclud
   const restItems = indexed.filter((item) => !usedIndexes.has(item.index));
   // Au départ, quelques photos seulement ; « Voir les N photos » déplie le reste, « Réduire » le replie.
   const gridItems = expanded ? restItems : restItems.slice(0, remainingSlots);
-  const shownCount = usedIndexes.size + restItems.slice(0, remainingSlots).length;
+  const desktop = isDesktop ? desktopLayout(indexed, cover) : null;
+  const shownCount = desktop
+    ? 1 + desktop.row.length + (desktop.wide ? 1 : 0)
+    : usedIndexes.size + restItems.slice(0, remainingSlots).length;
 
   function toggleExpanded() {
     // En repliant, on revient en haut de l'univers pour ne pas laisser le visiteur perdu au milieu de la page.
@@ -134,7 +163,11 @@ export default function Universe({ univers, number = 1, priority = false, exclud
       aria-labelledby={`${univers.slug}-titre`}
       className="mx-auto max-w-7xl scroll-mt-36 px-4 md:scroll-mt-28 md:px-8"
     >
-      <div className={`grid gap-y-6 ${verticalCover ? "md:grid-cols-2 md:gap-x-14 md:gap-y-0" : "md:gap-y-8"}`}>
+      <div
+        className={`grid gap-y-6 ${
+          verticalCover ? "md:grid-cols-2 md:gap-x-14 md:gap-y-0 lg:grid-cols-[5fr_7fr]" : "md:gap-y-8"
+        }`}
+      >
         <header
           className={`order-1 space-y-3 ${verticalCover ? "md:col-start-1 md:row-start-1 md:self-end md:pb-6" : "md:order-1"}`}
         >
@@ -164,17 +197,39 @@ export default function Universe({ univers, number = 1, priority = false, exclud
         </div>
       </div>
 
-      {pairComplete.length ? (
-        <div className="mt-4 md:mt-8">
-          <PhotoPair items={pairComplete} onOpen={open} />
-        </div>
-      ) : null}
+      {desktop ? (
+        <>
+          {desktop.row.length ? (
+            <div className="mt-8">
+              <PhotoTiles items={desktop.row} onOpen={open} />
+            </div>
+          ) : null}
+          {desktop.wide ? (
+            <div className="mt-8">
+              <FeaturedPhoto photo={desktop.wide.photo} index={desktop.wide.index} onOpen={open} />
+            </div>
+          ) : null}
+          {expanded && desktop.others.length ? (
+            <div className="mt-8">
+              <PhotoTiles items={desktop.others} onOpen={open} />
+            </div>
+          ) : null}
+        </>
+      ) : (
+        <>
+          {pairComplete.length ? (
+            <div className="mt-4 md:mt-8">
+              <PhotoPair items={pairComplete} onOpen={open} />
+            </div>
+          ) : null}
 
-      {gridItems.length ? (
-        <div className="mt-4 md:mt-8">
-          <PhotoTiles items={gridItems} onOpen={open} />
-        </div>
-      ) : null}
+          {gridItems.length ? (
+            <div className="mt-4 md:mt-8">
+              <PhotoTiles items={gridItems} onOpen={open} />
+            </div>
+          ) : null}
+        </>
+      )}
 
       {images.length > shownCount ? (
         <SeeAllButton count={images.length} expanded={expanded} onClick={toggleExpanded} />

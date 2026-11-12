@@ -99,7 +99,7 @@ function GridPhoto({ photo, index, onOpen, priority, openLabel, alone = false, f
 // grille de téléphone et de tablette, puis passe aux colonnes de l'ordinateur.
 const DESKTOP_QUERY = "(min-width: 1024px)";
 
-function useIsDesktop() {
+export function useIsDesktop() {
   return useSyncExternalStore(
     (notify) => {
       const query = window.matchMedia(DESKTOP_QUERY);
@@ -197,7 +197,8 @@ function buildColumns(items) {
 }
 
 // Grille de photos déjà choisies : `items` = [{ photo, index }] où `index` est la position dans la visionneuse.
-export function PhotoTiles({ items, onOpen, priority = false }) {
+// `tripleRow` : sur téléphone et tablette, 3 photos verticales tiennent sur une seule rangée (pas de 2 + 1 avec un trou).
+export function PhotoTiles({ items, onOpen, priority = false, tripleRow = false }) {
   const { lang } = useLanguage();
   const copy = UI_COPY[lang]?.series || UI_COPY.fr.series;
   const isDesktop = useIsDesktop();
@@ -235,9 +236,14 @@ export function PhotoTiles({ items, onOpen, priority = false }) {
     {
       1: "max-w-[78%] sm:columns-1 sm:max-w-sm lg:columns-1",
     }[items.length] || "sm:columns-2";
+  const triple = tripleRow && items.length === 3 && items.every(({ photo }) => !isLandscapePhoto(photo));
 
   return (
-    <div className={`mx-auto grid grid-cols-2 gap-1.5 sm:-mb-4 sm:block sm:gap-4 ${layout}`}>
+    <div
+      className={`mx-auto grid gap-1.5 sm:-mb-4 sm:block sm:gap-4 ${
+        triple ? "grid-cols-3 sm:columns-3" : `grid-cols-2 ${layout}`
+      }`}
+    >
       {items.map(({ photo, index }, position) => (
         <GridPhoto
           key={photo.id || photo.src}
@@ -292,7 +298,7 @@ export function FeaturedPhoto({ photo, index, onOpen, priority = false }) {
             photo={photo}
             priority={priority}
             sizes={isLandscape ? "(max-width: 1280px) 100vw, 1200px" : "(max-width: 767px) 90vw, 560px"}
-            className="block h-auto w-auto max-h-[70svh] max-w-full"
+            className="block h-auto w-auto max-h-[70svh] max-w-full lg:max-h-[80svh]"
           />
         </span>
         <span className="pointer-events-none absolute inset-0 bg-ink/0 transition-colors duration-300 group-hover:bg-ink/10" />
