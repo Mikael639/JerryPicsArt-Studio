@@ -15,9 +15,25 @@ import CustomSelect from "./CustomSelect";
 const inputClass =
   "w-full rounded-xl border border-line/18 bg-paper/88 px-4 py-3 outline-none transition focus:border-accent focus:bg-white";
 
+// Amène un élément au milieu de l'écran (sans animation si le visiteur l'a demandé dans ses réglages).
+function centerInView(element) {
+  if (!element) return;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  element.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
+}
+
 function SuccessCard({ message, onReset, copy }) {
+  const cardRef = useRef(null);
+
+  // Le formulaire (long) est remplacé par ce message (court) : sans cela, le visiteur reste en bas de page, loin du message.
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => centerInView(cardRef.current));
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
   return (
     <motion.div
+      ref={cardRef}
       initial={{ opacity: 0, y: 20, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -10, scale: 0.98 }}
@@ -138,6 +154,16 @@ export default function ContactForm({ type = "" }) {
       formRef.current?.reset();
     }
   }, [status]);
+
+  // Erreur sur un champ : on amène le premier champ à corriger à l'écran (il peut être loin au-dessus du bouton).
+  useEffect(() => {
+    if (status !== "error") return;
+    const frame = requestAnimationFrame(() => {
+      const invalid = formRef.current?.querySelector('[aria-invalid="true"]');
+      if (invalid) centerInView(invalid);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [formState, status]);
 
   if (showSuccessCard) {
     return (
