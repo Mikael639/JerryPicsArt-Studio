@@ -113,7 +113,14 @@ export default function AdminPhotosClient({
     { id: "overview", label: "Vue d'ensemble" },
     { id: "photos", label: "Photothèque", badge: photos.length },
     { id: "upload", label: "Ajouter des photos" },
-    { id: "messages", label: "Demandes de devis", badge: pendingMessagesCount || messages.length },
+    {
+      id: "messages",
+      label: "Demandes de devis",
+      badge: pendingMessagesCount || messages.length,
+      // Rouge uniquement s'il y a des demandes à traiter : le chiffre de la photothèque reste neutre.
+      urgent: pendingMessagesCount > 0,
+      badgeLabel: pendingMessagesCount > 0 ? `${pendingMessagesCount} à traiter` : undefined,
+    },
     { id: "settings", label: "Textes & réglages" },
   ];
 
@@ -509,8 +516,14 @@ export default function AdminPhotosClient({
               {tab.label}
               {typeof tab.badge === "number" ? (
                 <span
+                  title={tab.badgeLabel}
+                  aria-label={tab.badgeLabel}
                   className={`rounded-full px-2 py-0.5 text-[10px] ${
-                    active ? "bg-white/20 text-paper" : "bg-ink/8 text-ink/70"
+                    tab.urgent
+                      ? "bg-red-600 text-white shadow-[0_0_0_2px_rgba(220,38,38,0.18)]"
+                      : active
+                        ? "bg-white/20 text-paper"
+                        : "bg-ink/8 text-ink/70"
                   }`}
                 >
                   {tab.badge}

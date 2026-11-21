@@ -168,7 +168,7 @@ export default function AdminMessagesPanel({ messages, onUpdateStatus, onDeleteM
           </div>
         </div>
 
-        <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto]">
+        <div className="mt-5 grid gap-3 lg:grid-cols-[1fr_auto]">
           <label className="flex items-center gap-3 rounded-full border border-line/25 bg-paper/70 px-4 py-2">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-ink/40" aria-hidden="true">
               <circle cx="11" cy="11" r="8" />
