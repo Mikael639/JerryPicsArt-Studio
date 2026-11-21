@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import AdminSelect from "./AdminSelect";
 
+const PAGE_SIZE = 20;
+
 const statusLabels = {
   new: "À traiter",
   soon: "Répondre vite",
@@ -15,6 +17,14 @@ const statusFilters = [
   { value: "replied", label: "Répondu" },
   { value: "archived", label: "Archivé" },
 ];
+
+// Pastille de statut affichée sur la ligne repliée : on voit d'un coup d'œil ce qu'il reste à traiter.
+const statusDotStyles = {
+  new: "bg-amber-500",
+  soon: "bg-rose-500",
+  replied: "bg-emerald-500",
+  archived: "bg-stone-300",
+};
 
 const qualificationStyles = {
   PRIORITAIRE: "bg-emerald-50 text-emerald-800 border-emerald-200",
@@ -35,9 +45,45 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
+// Date courte de réception (ligne repliée) : « 20 nov. 2026 ».
+function formatShortDate(value) {
+  if (!value) return "";
+  return new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", year: "numeric" }).format(new Date(value));
+}
+
+// Date de l'événement (2027-06-12 devient « 12 juin 2027 ») ; toute autre valeur est reprise telle quelle.
+function formatEventDate(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(value || ""));
+  if (!match) return String(value || "");
+  return new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" }).format(
+    new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+  );
+}
+
+function Chevron({ open }) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={`shrink-0 text-ink/45 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
 export default function AdminMessagesPanel({ messages, onUpdateStatus, onDeleteMessage }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [openIds, setOpenIds] = useState(() => new Set());
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const statusCounts = useMemo(() => {
     const counts = { all: messages.length, new: 0, soon: 0, replied: 0, archived: 0 };
@@ -72,6 +118,33 @@ export default function AdminMessagesPanel({ messages, onUpdateStatus, onDeleteM
     });
   }, [messages, searchQuery, statusFilter]);
 
+  const visibleMessages = filteredMessages.slice(0, visibleCount);
+  const allVisibleOpen = visibleMessages.length > 0 && visibleMessages.every((message) => openIds.has(message.id));
+
+  function toggleOne(id) {
+    setOpenIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    setOpenIds(allVisibleOpen ? new Set() : new Set(visibleMessages.map((message) => message.id)));
+  }
+
+  // Un changement de recherche ou de filtre repart du premier paquet de 20.
+  function changeSearch(value) {
+    setSearchQuery(value);
+    setVisibleCount(PAGE_SIZE);
+  }
+
+  function changeFilter(value) {
+    setStatusFilter(value);
+    setVisibleCount(PAGE_SIZE);
+  }
+
   return (
     <section className="space-y-4">
       <div className="rounded-2xl border border-line/20 bg-white/65 p-5">
@@ -95,7 +168,7 @@ export default function AdminMessagesPanel({ messages, onUpdateStatus, onDeleteM
           </div>
         </div>
 
-        <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto]">
+        <div className="mt-5 grid gap-3 lg:grid-cols-[1fr_auto]">
           <label className="flex items-center gap-3 rounded-full border border-line/25 bg-paper/70 px-4 py-2">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-ink/40" aria-hidden="true">
               <circle cx="11" cy="11" r="8" />
@@ -104,14 +177,14 @@ export default function AdminMessagesPanel({ messages, onUpdateStatus, onDeleteM
             <input
               type="search"
               value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
+              onChange={(event) => changeSearch(event.target.value)}
               placeholder="Rechercher par nom, e-mail, lieu, contenu..."
               className="w-full bg-transparent text-sm outline-none placeholder:text-ink/35"
             />
             {searchQuery ? (
               <button
                 type="button"
-                onClick={() => setSearchQuery("")}
+                onClick={() => changeSearch("")}
                 className="text-xs text-ink/45 hover:text-ink"
                 aria-label="Effacer la recherche"
               >
@@ -127,7 +200,7 @@ export default function AdminMessagesPanel({ messages, onUpdateStatus, onDeleteM
                 <button
                   key={filter.value}
                   type="button"
-                  onClick={() => setStatusFilter(filter.value)}
+                  onClick={() => changeFilter(filter.value)}
                   className={`rounded-full border px-3 py-1.5 text-xs uppercase tracking-[0.16em] transition ${
                     isActive
                       ? "border-ink bg-ink text-paper"
@@ -152,109 +225,173 @@ export default function AdminMessagesPanel({ messages, onUpdateStatus, onDeleteM
           Aucun message ne correspond aux filtres.
         </div>
       ) : (
-        <div className="grid gap-4">
-          {filteredMessages.map((message) => {
-            const qualification = extractQualification(message.project);
-            const badgeStyle = qualificationStyles[qualification] || "bg-paper text-ink/70 border-line/20";
+        <>
+          <div className="flex flex-wrap items-center justify-between gap-3 px-1 text-xs text-ink/55">
+            <p>
+              {visibleMessages.length === filteredMessages.length
+                ? `${filteredMessages.length} demande${filteredMessages.length > 1 ? "s" : ""}`
+                : `${visibleMessages.length} sur ${filteredMessages.length} demandes`}
+            </p>
+            <button
+              type="button"
+              onClick={toggleAll}
+              className="font-bold uppercase tracking-[0.16em] text-ink/65 underline decoration-ink/25 underline-offset-4 transition hover:text-ink"
+            >
+              {allVisibleOpen ? "Tout replier" : "Tout déplier"}
+            </button>
+          </div>
 
-            return (
-              <article key={message.id} className="rounded-2xl border border-line/20 bg-white/70 p-5">
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-ink/45">{formatDate(message.createdAt)}</p>
-                      {qualification ? (
-                        <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] ${badgeStyle}`}>
-                          {qualification}
-                        </span>
-                      ) : null}
-                    </div>
-                    <h3 className="mt-2 font-serif text-2xl">{message.name}</h3>
-                    <p className="text-sm text-ink/65">
-                      {message.email}
-                      {message.phone ? ` | ${message.phone}` : ""}
-                    </p>
-                  </div>
-                  <AdminSelect
-                    compact
-                    className="w-full sm:w-52"
-                    value={message.status || "new"}
-                    onChange={(next) => onUpdateStatus(message.id, next)}
-                    options={Object.entries(statusLabels).map(([value, label]) => ({ value, label }))}
-                  />
-                </div>
+          <div className="grid gap-2">
+            {visibleMessages.map((message) => {
+              const status = message.status || "new";
+              const qualification = extractQualification(message.project);
+              const badgeStyle = qualificationStyles[qualification] || "bg-paper text-ink/70 border-line/20";
+              const isOpen = openIds.has(message.id);
+              const panelId = `demande-${message.id}`;
+              const summary = [message.serviceType, formatEventDate(message.eventDate), message.location]
+                .filter(Boolean)
+                .join(" · ");
 
-                <div className="mt-4 grid gap-3 text-sm text-ink/70 md:grid-cols-4">
-                  <p>
-                    <span className="font-semibold text-ink">Prestation :</span> {message.serviceType || "Non précisée"}
-                  </p>
-                  <p>
-                    <span className="font-semibold text-ink">Lieu :</span> {message.location || "Non précisé"}
-                  </p>
-                  <p>
-                    <span className="font-semibold text-ink">Date :</span> {message.eventDate || "Non précisée"}
-                  </p>
-                  <p>
-                    <span className="font-semibold text-ink">Budget :</span> {message.budget || "Non précisé"}
-                  </p>
-                </div>
-
-                <p className="mt-4 whitespace-pre-wrap rounded-xl bg-paper/70 p-4 text-sm leading-relaxed text-ink/75">
-                  {message.project}
-                </p>
-
-                <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-line/10 pt-4">
-                  <div className="flex flex-wrap gap-2">
-                    {message.email ? (
-                      <a
-                        href={`mailto:${message.email}?subject=${encodeURIComponent(`Re: ${message.serviceType || "votre demande"} - JerryPicsArt`)}`}
-                        className="inline-flex items-center gap-2 rounded-full border border-line/25 px-4 py-2 text-xs font-medium transition hover:border-ink hover:bg-paper"
-                      >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          <rect x="2" y="4" width="20" height="16" rx="2" />
-                          <path d="m22 7-10 5L2 7" />
-                        </svg>
-                        Répondre par e-mail
-                      </a>
-                    ) : null}
-                    {message.phone ? (
-                      <a
-                        href={`tel:${message.phone.replace(/\s+/g, "")}`}
-                        className="inline-flex items-center gap-2 rounded-full border border-line/25 px-4 py-2 text-xs font-medium transition hover:border-ink hover:bg-paper"
-                      >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.8a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.35 1.84.59 2.8.72A2 2 0 0 1 22 16.92z" />
-                        </svg>
-                        Appeler
-                      </a>
-                    ) : null}
-                    {message.referenceLink ? (
-                      <a
-                        href={message.referenceLink}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-block rounded-full border border-line/25 px-4 py-2 text-xs font-medium transition hover:border-ink hover:bg-paper"
-                      >
-                        Ouvrir la référence
-                      </a>
-                    ) : null}
-                  </div>
+              return (
+                <article key={message.id} className="overflow-hidden rounded-2xl border border-line/20 bg-white/70">
                   <button
                     type="button"
-                    onClick={() => {
-                      if (window.confirm("Supprimer ce message définitivement ?")) {
-                        onDeleteMessage(message.id);
-                      }
-                    }}
-                    className="rounded-full px-4 py-2 text-xs font-bold uppercase tracking-widest text-red-500 transition hover:bg-red-50"
+                    onClick={() => toggleOne(message.id)}
+                    aria-expanded={isOpen}
+                    aria-controls={panelId}
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-paper/60 sm:gap-4 sm:px-5"
                   >
-                    Supprimer
+                    <span
+                      className={`h-2.5 w-2.5 shrink-0 rounded-full ${statusDotStyles[status] || statusDotStyles.new}`}
+                      title={statusLabels[status] || statusLabels.new}
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className={`truncate font-serif text-lg leading-tight sm:text-xl ${status === "new" ? "font-semibold" : ""}`}>
+                          {message.name || "Sans nom"}
+                        </span>
+                        {qualification ? (
+                          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] ${badgeStyle}`}>
+                            {qualification}
+                          </span>
+                        ) : null}
+                        <span className="sr-only">{statusLabels[status] || statusLabels.new}</span>
+                      </span>
+                      <span className="mt-0.5 block truncate text-xs text-ink/55 sm:text-[13px]">
+                        {summary || "Prestation non précisée"}
+                      </span>
+                    </span>
+                    <span className="hidden shrink-0 text-[11px] uppercase tracking-[0.18em] text-ink/45 sm:block">
+                      {formatShortDate(message.createdAt)}
+                    </span>
+                    <Chevron open={isOpen} />
                   </button>
-                </div>
-              </article>
-            );
-          })}
-        </div>
+
+                  {isOpen ? (
+                    <div id={panelId} className="border-t border-line/10 p-5">
+                      <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div>
+                          <p className="text-[11px] uppercase tracking-[0.22em] text-ink/45">{formatDate(message.createdAt)}</p>
+                          <p className="mt-1 text-sm text-ink/65">
+                            {message.email}
+                            {message.phone ? ` | ${message.phone}` : ""}
+                          </p>
+                        </div>
+                        <AdminSelect
+                          compact
+                          className="w-full sm:w-52"
+                          value={status}
+                          onChange={(next) => onUpdateStatus(message.id, next)}
+                          options={Object.entries(statusLabels).map(([value, label]) => ({ value, label }))}
+                        />
+                      </div>
+
+                      <div className="mt-4 grid gap-3 text-sm text-ink/70 md:grid-cols-4">
+                        <p>
+                          <span className="font-semibold text-ink">Prestation :</span> {message.serviceType || "Non précisée"}
+                        </p>
+                        <p>
+                          <span className="font-semibold text-ink">Lieu :</span> {message.location || "Non précisé"}
+                        </p>
+                        <p>
+                          <span className="font-semibold text-ink">Date :</span> {message.eventDate || "Non précisée"}
+                        </p>
+                        <p>
+                          <span className="font-semibold text-ink">Budget :</span> {message.budget || "Non précisé"}
+                        </p>
+                      </div>
+
+                      <p className="mt-4 whitespace-pre-wrap rounded-xl bg-paper/70 p-4 text-sm leading-relaxed text-ink/75">
+                        {message.project}
+                      </p>
+
+                      <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-line/10 pt-4">
+                        <div className="flex flex-wrap gap-2">
+                          {message.email ? (
+                            <a
+                              href={`mailto:${message.email}?subject=${encodeURIComponent(`Re: ${message.serviceType || "votre demande"} - JerryPicsArt`)}`}
+                              className="inline-flex items-center gap-2 rounded-full border border-line/25 px-4 py-2 text-xs font-medium transition hover:border-ink hover:bg-paper"
+                            >
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <rect x="2" y="4" width="20" height="16" rx="2" />
+                                <path d="m22 7-10 5L2 7" />
+                              </svg>
+                              Répondre par e-mail
+                            </a>
+                          ) : null}
+                          {message.phone ? (
+                            <a
+                              href={`tel:${message.phone.replace(/\s+/g, "")}`}
+                              className="inline-flex items-center gap-2 rounded-full border border-line/25 px-4 py-2 text-xs font-medium transition hover:border-ink hover:bg-paper"
+                            >
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.8a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.35 1.84.59 2.8.72A2 2 0 0 1 22 16.92z" />
+                              </svg>
+                              Appeler
+                            </a>
+                          ) : null}
+                          {message.referenceLink ? (
+                            <a
+                              href={message.referenceLink}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-block rounded-full border border-line/25 px-4 py-2 text-xs font-medium transition hover:border-ink hover:bg-paper"
+                            >
+                              Ouvrir la référence
+                            </a>
+                          ) : null}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm("Supprimer ce message définitivement ?")) {
+                              onDeleteMessage(message.id);
+                            }
+                          }}
+                          className="rounded-full px-4 py-2 text-xs font-bold uppercase tracking-widest text-red-500 transition hover:bg-red-50"
+                        >
+                          Supprimer
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+                </article>
+              );
+            })}
+          </div>
+
+          {visibleMessages.length < filteredMessages.length ? (
+            <div className="flex justify-center pt-2">
+              <button
+                type="button"
+                onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+                className="rounded-full border border-line/25 bg-paper/70 px-6 py-3 text-xs font-bold uppercase tracking-[0.16em] text-ink/70 transition hover:border-ink hover:text-ink"
+              >
+                Afficher {Math.min(PAGE_SIZE, filteredMessages.length - visibleMessages.length)} de plus
+              </button>
+            </div>
+          ) : null}
+        </>
       )}
     </section>
   );
