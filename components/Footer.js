@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { siteConfig } from "../lib/siteConfig";
 import { NAV_LABELS, UI_COPY } from "../lib/i18n";
 import { useLanguage } from "./LanguageProvider";
+import { CONSENT_OPEN_EVENT } from "../lib/tracking";
 
 function scrollToTop() {
   if (typeof window === "undefined") return;
@@ -116,6 +117,13 @@ export default function Footer({ collections = [] }) {
             <Link href="/confidentialite" className="transition-colors hover:text-paper">
               {copy.privacy}
             </Link>
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event(CONSENT_OPEN_EVENT))}
+              className="transition-colors hover:text-paper"
+            >
+              {lang === "en" ? "Manage cookies" : "Gérer mes cookies"}
+            </button>
             <button
               type="button"
               onClick={scrollToTop}
