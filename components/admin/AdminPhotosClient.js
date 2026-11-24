@@ -30,6 +30,7 @@ import AdminPhotosTable from "./AdminPhotosTable";
 import AdminSiteTextEditor from "./AdminSiteTextEditor";
 import AdminThemeGuide from "./AdminThemeGuide";
 import AdminDriveImport from "./AdminDriveImport";
+import AdminReviewInvitationForm from "./AdminReviewInvitationForm";
 import AdminUploadForm from "./AdminUploadForm";
 import {
   categories as staticCategories,
@@ -42,7 +43,6 @@ import {
 const settingsSubTabs = [
   { id: "accueil", label: "Page d'accueil", description: "Titre et sous-titre du hero" },
   { id: "a-propos", label: "Page À propos", description: "Biographie, histoire, valeurs et manifeste" },
-  { id: "avis", label: "Avis clients", description: "Témoignages affichés sur le site" },
   { id: "chiffres", label: "Chiffres", description: "Séries livrées, événements, marques" },
   { id: "references", label: "Références", description: "Personnalités, maisons, médias et lieux" },
   { id: "series", label: "Textes des séries", description: "Phrase de contexte sous chaque série" },
@@ -121,6 +121,7 @@ export default function AdminPhotosClient({
       urgent: pendingMessagesCount > 0,
       badgeLabel: pendingMessagesCount > 0 ? `${pendingMessagesCount} à traiter` : undefined,
     },
+    { id: "reviews", label: "Avis clients" },
     { id: "settings", label: "Textes & réglages" },
   ];
 
@@ -499,7 +500,7 @@ export default function AdminPhotosClient({
       {/* NAVIGATION PRINCIPALE : toujours visible, sans défilement horizontal, collée en haut au défilement */}
       <nav
         aria-label="Sections de l'administration"
-        className="sticky top-2 z-30 grid grid-cols-2 gap-1.5 rounded-2xl border border-line/15 bg-white/90 p-1.5 shadow-[0_8px_30px_rgba(12,10,8,0.06)] backdrop-blur-md sm:grid-cols-5"
+        className="sticky top-2 z-30 grid grid-cols-2 gap-1.5 rounded-2xl border border-line/15 bg-white/90 p-1.5 shadow-[0_8px_30px_rgba(12,10,8,0.06)] backdrop-blur-md sm:grid-cols-3 lg:grid-cols-6"
       >
         {mainTabs.map((tab) => {
           const active = activeTab === tab.id;
@@ -509,7 +510,7 @@ export default function AdminPhotosClient({
               type="button"
               onClick={() => setActiveTab(tab.id)}
               aria-current={active ? "page" : undefined}
-              className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[11px] font-bold uppercase leading-tight tracking-[0.14em] transition last:col-span-2 sm:last:col-span-1 ${
+              className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[11px] font-bold uppercase leading-tight tracking-[0.14em] transition ${
                 active ? "bg-ink text-paper shadow-sm" : "text-ink/65 hover:bg-paper hover:text-ink"
               }`}
             >
@@ -611,7 +612,20 @@ export default function AdminPhotosClient({
         />
       ) : null}
 
-      {/* ONGLET 5 : TEXTES & RÉGLAGES (AVEC SOUS-ONGLETS) */}
+      {/* ONGLET 5 : AVIS CLIENTS (INVITATIONS TRUSTPILOT & TÉMOIGNAGES) */}
+      {activeTab === "reviews" ? (
+        <div className="space-y-6">
+          <AdminReviewInvitationForm onStatus={setStatusMessage} onError={setErrorMessage} />
+          <AdminContentEditor
+            kind="testimonials"
+            initialItems={content.testimonials}
+            onStatus={setStatusMessage}
+            onError={setErrorMessage}
+          />
+        </div>
+      ) : null}
+
+      {/* ONGLET 6 : TEXTES & RÉGLAGES (AVEC SOUS-ONGLETS) */}
       {activeTab === "settings" ? (
         <div className="space-y-6">
           <div className="space-y-3 rounded-2xl border border-line/15 bg-white/75 p-4">
@@ -652,15 +666,6 @@ export default function AdminPhotosClient({
               aboutCopy={aboutCopy}
               onSave={handleSaveAboutCopy}
               isSaving={isSavingSettings}
-            />
-          ) : null}
-
-          {settingsSubTab === "avis" ? (
-            <AdminContentEditor
-              kind="testimonials"
-              initialItems={content.testimonials}
-              onStatus={setStatusMessage}
-              onError={setErrorMessage}
             />
           ) : null}
 

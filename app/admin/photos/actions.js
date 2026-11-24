@@ -27,6 +27,7 @@ import { getUniversOverrides, updateUniversOverride } from "../../../lib/univers
 import { getUniversList } from "../../../data/univers";
 import { deleteR2Object, isR2Configured, uploadR2Object } from "../../../lib/r2Storage";
 import { clearLoginFailures, getLoginBlock, recordLoginFailure } from "../../../lib/loginThrottle";
+import { sendTrustpilotReviewInvitation } from "../../../lib/reviewInvitation";
 import crypto from "node:crypto";
 import { deleteContactMessage, listContactMessages, updateContactMessageStatus } from "../../../lib/contactStore";
 import {
@@ -823,5 +824,28 @@ export async function updateSiteContentAction(kind, input) {
     return createActionResult({ ok: true, message: CONTENT_LABELS[kind] || "Contenu enregistré.", data: content });
   } catch (error) {
     return createActionResult({ ok: false, message: error.message || "Impossible d'enregistrer ce contenu." });
+  }
+}
+
+// Envoie un e-mail de remerciement au client avec l'adresse Trustpilot en copie cachée (BCC côté serveur uniquement).
+export async function sendReviewInvitationAction(input) {
+  const cookieStore = await getAuthorizedCookieStore();
+  if (!cookieStore) return unauthorizedResult();
+
+  try {
+    const result = await sendTrustpilotReviewInvitation(input);
+    if (result.ok) {
+      revalidateAdminViews();
+    }
+    return createActionResult({
+      ok: result.ok,
+      message: result.message,
+      data: result.data || null,
+    });
+  } catch (error) {
+    return createActionResult({
+      ok: false,
+      message: error.message || "Impossible d'envoyer l'invitation d'avis.",
+    });
   }
 }
