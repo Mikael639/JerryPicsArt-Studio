@@ -13,6 +13,7 @@ import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script";
 import { GoogleTagManager } from "@next/third-parties/google";
 import ClarityLoader from "../components/ClarityLoader";
+import ConsentBanner from "../components/ConsentBanner";
 import { CONSENT_DEFAULT_SCRIPT, GTM_ID } from "../lib/tracking";
 import { getSiteUrl, siteConfig, toAbsoluteUrl } from "../lib/siteConfig";
 import { getCategories, getMaintenanceMode } from "../lib/siteSettings";
@@ -163,6 +164,7 @@ export default async function RootLayout({ children }) {
               {!isAdmin ? <PageTransition /> : null}
               {!isAdmin ? <Footer collections={collections} /> : null}
               {!isAdmin ? <Analytics /> : null}
+              {!isAdmin ? <ConsentBanner /> : null}
             </div>
           </SmoothScroll>
         </LanguageProvider>
