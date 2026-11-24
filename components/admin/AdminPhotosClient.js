@@ -514,8 +514,9 @@ export default function AdminPhotosClient({
               }}
               aria-current={active ? "page" : undefined}
               className={`inline-flex shrink-0 snap-start items-center justify-center gap-2.5 whitespace-nowrap rounded-xl px-4 py-2.5 text-[11px] font-bold uppercase leading-none tracking-[0.11em] transition sm:shrink sm:gap-2 sm:px-3 sm:leading-tight sm:tracking-[0.14em] ${
-                active ? "bg-ink text-paper shadow-sm" : "text-ink/65 hover:bg-paper hover:text-ink"
-              }`}
+                // Sur téléphone, la pastille qui porte le chiffre rouge passe en premier : l'urgence se voit sans glisser.
+                tab.urgent ? "order-first sm:order-none" : ""
+              } ${active ? "bg-ink text-paper shadow-sm" : "text-ink/65 hover:bg-paper hover:text-ink"}`}
             >
               {tab.label}
               {typeof tab.badge === "number" ? (
