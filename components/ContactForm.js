@@ -180,6 +180,7 @@ export default function ContactForm({ type = "" }) {
     <form
       ref={formRef}
       id="contact-form"
+      data-clarity-mask="True"
       action={formAction}
       className="grid scroll-mt-32 gap-5 rounded-inset border border-line/12 bg-white/52 p-6 md:grid-cols-2 md:p-7"
     >

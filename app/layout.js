@@ -10,6 +10,10 @@ import ThemeScroll from "../components/ThemeScroll";
 import PageTransition from "../components/PageTransition";
 import { LanguageProvider } from "../components/LanguageProvider";
 import { Analytics } from "@vercel/analytics/next";
+import Script from "next/script";
+import { GoogleTagManager } from "@next/third-parties/google";
+import ClarityLoader from "../components/ClarityLoader";
+import { CONSENT_DEFAULT_SCRIPT, GTM_ID } from "../lib/tracking";
 import { getSiteUrl, siteConfig, toAbsoluteUrl } from "../lib/siteConfig";
 import { getCategories, getMaintenanceMode } from "../lib/siteSettings";
 import { getCustomCollections } from "../lib/categories";
@@ -129,6 +133,23 @@ export default async function RootLayout({ children }) {
   return (
     <html lang={lang} className={`${display.variable} ${body.variable}`} suppressHydrationWarning>
       <body className="antialiased" suppressHydrationWarning>
+        {/* Suivi statistique : pages publiques seulement (jamais l'administration), consentement refusé par défaut. */}
+        {!isAdmin ? (
+          <>
+            <Script id="consent-default" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: CONSENT_DEFAULT_SCRIPT }} />
+            <GoogleTagManager gtmId={GTM_ID} />
+            <noscript>
+              <iframe
+                src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+                height="0"
+                width="0"
+                style={{ display: "none", visibility: "hidden" }}
+                title="Google Tag Manager"
+              />
+            </noscript>
+            <ClarityLoader />
+          </>
+        ) : null}
         <LanguageProvider initialLang={lang}>
           {!isAdmin ? <IntroSplash /> : null}
           <SmoothScroll>
