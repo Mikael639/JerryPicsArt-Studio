@@ -43,7 +43,6 @@ import {
 const settingsSubTabs = [
   { id: "accueil", label: "Page d'accueil", description: "Titre et sous-titre du hero" },
   { id: "a-propos", label: "Page À propos", description: "Biographie, histoire, valeurs et manifeste" },
-  { id: "avis", label: "Avis clients", description: "Invitations Trustpilot et témoignages affichés sur le site" },
   { id: "chiffres", label: "Chiffres", description: "Séries livrées, événements, marques" },
   { id: "references", label: "Références", description: "Personnalités, maisons, médias et lieux" },
   { id: "series", label: "Textes des séries", description: "Phrase de contexte sous chaque série" },
@@ -668,18 +667,6 @@ export default function AdminPhotosClient({
               onSave={handleSaveAboutCopy}
               isSaving={isSavingSettings}
             />
-          ) : null}
-
-          {settingsSubTab === "avis" ? (
-            <div className="space-y-6">
-              <AdminReviewInvitationForm onStatus={setStatusMessage} onError={setErrorMessage} />
-              <AdminContentEditor
-                kind="testimonials"
-                initialItems={content.testimonials}
-                onStatus={setStatusMessage}
-                onError={setErrorMessage}
-              />
-            </div>
           ) : null}
 
           {settingsSubTab === "chiffres" ? (

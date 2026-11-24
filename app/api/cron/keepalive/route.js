@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { purgeOldReviewInvitations } from "../../../../lib/reviewInvitation";
 
 // Réveil quotidien de la base : Supabase met en pause un projet gratuit après 7 jours sans activité, et les pages du site
 // sont en grande partie mises en mémoire, donc les visites seules ne suffisent pas. Vercel appelle cette adresse une fois
@@ -27,6 +28,10 @@ export async function GET(request) {
       headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
       cache: "no-store",
     });
+
+    // Même passage quotidien : on supprime les invitations d'avis de plus de 12 mois (durée annoncée aux clients).
+    // Un échec ici ne doit pas faire échouer le réveil de la base.
+    await purgeOldReviewInvitations();
 
     return NextResponse.json({ ok: response.ok }, { status: response.ok ? 200 : 502 });
   } catch {
