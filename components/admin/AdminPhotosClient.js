@@ -497,10 +497,10 @@ export default function AdminPhotosClient({
         </div>
       </header>
 
-      {/* NAVIGATION PRINCIPALE : toujours visible, sans défilement horizontal, collée en haut au défilement */}
+      {/* NAVIGATION PRINCIPALE : ruban horizontal glissant sur téléphone, grille sur tablette et ordinateur */}
       <nav
         aria-label="Sections de l'administration"
-        className="sticky top-2 z-30 grid grid-cols-2 gap-1.5 rounded-2xl border border-line/15 bg-white/90 p-1.5 shadow-[0_8px_30px_rgba(12,10,8,0.06)] backdrop-blur-md sm:grid-cols-3 lg:grid-cols-6"
+        className="no-scrollbar sticky top-2 z-30 flex snap-x scroll-px-2 items-center gap-1.5 overflow-x-auto rounded-2xl border border-line/15 bg-white/90 p-1.5 shadow-[0_8px_30px_rgba(12,10,8,0.06)] backdrop-blur-md sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-6"
       >
         {mainTabs.map((tab) => {
           const active = activeTab === tab.id;
@@ -508,9 +508,12 @@ export default function AdminPhotosClient({
             <button
               key={tab.id}
               type="button"
-              onClick={() => setActiveTab(tab.id)}
+              onClick={(event) => {
+                setActiveTab(tab.id);
+                event.currentTarget.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+              }}
               aria-current={active ? "page" : undefined}
-              className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[11px] font-bold uppercase leading-tight tracking-[0.14em] transition ${
+              className={`inline-flex shrink-0 snap-start items-center justify-center gap-2.5 whitespace-nowrap rounded-xl px-4 py-2.5 text-[11px] font-bold uppercase leading-none tracking-[0.11em] transition sm:shrink sm:gap-2 sm:px-3 sm:leading-tight sm:tracking-[0.14em] ${
                 active ? "bg-ink text-paper shadow-sm" : "text-ink/65 hover:bg-paper hover:text-ink"
               }`}
             >
