@@ -43,7 +43,8 @@ export default function AdminThemeGuide({ categories }) {
             <strong className="text-paper">Brouillon</strong> garde la photo dans l&apos;administration sans l&apos;afficher.
           </p>
           <p>
-            <strong className="text-paper">Mise en avant</strong> met la photo en priorité sur l&apos;accueil (les photos d&apos;appui et les cartes).
+            <strong className="text-paper">Mise en avant</strong> choisit la photo des cartes « Ce que je photographie » de l&apos;accueil : une seule par
+            carte, la première cochée dans l&apos;ordre de la photothèque. Un choix fait dans « Vitrine du site » passe avant.
           </p>
         </div>
       </article>

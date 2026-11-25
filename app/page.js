@@ -2,7 +2,6 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import HomePageExperience from "../components/home/HomePageExperience";
 import { loadUniversCovers } from "../lib/loadUnivers";
-import { defaultPortfolioCategory } from "../lib/categories";
 import { getPhotoObjectPosition } from "../lib/photoPresentation";
 import { getPublicPhotos } from "../lib/photoRepository";
 import { getSiteUrl, siteConfig, toAbsoluteUrl } from "../lib/siteConfig";
@@ -13,8 +12,6 @@ import { getVitrine } from "../lib/vitrineContent";
 import { getHomeCopy } from "../lib/siteSettings";
 import { METADATA_COPY } from "../lib/i18n";
 import { getServerLang } from "../lib/serverLang";
-
-const FEATURED_ROTATION_INTERVAL_MS = 30 * 60 * 1000;
 
 export async function generateMetadata() {
   const lang = await getServerLang();
@@ -80,101 +77,8 @@ function normalizePhoto(photo) {
     category,
     roles: Array.isArray(photo?.roles) ? photo.roles : [],
     objectPosition: getPhotoObjectPosition({ ...photo, title }),
+    mobileObjectPosition: photo?.mobileObjectPosition || "",
   };
-}
-
-function rotatePhotosByTimeWindow(pool, intervalMs = FEATURED_ROTATION_INTERVAL_MS) {
-  if (!pool.length) return pool;
-
-  const rotationIndex = Math.floor(Date.now() / intervalMs) % pool.length;
-  return [...pool.slice(rotationIndex), ...pool.slice(0, rotationIndex)];
-}
-
-function buildCategoryPriority(pool, preferredCategories = []) {
-  const availableCategories = [];
-
-  for (const photo of pool) {
-    const category = photo?.category || defaultPortfolioCategory;
-    if (!availableCategories.includes(category)) {
-      availableCategories.push(category);
-    }
-  }
-
-  const ordered = [];
-
-  for (const category of preferredCategories) {
-    if (availableCategories.includes(category) && !ordered.includes(category)) {
-      ordered.push(category);
-    }
-  }
-
-  for (const category of availableCategories) {
-    if (!ordered.includes(category)) {
-      ordered.push(category);
-    }
-  }
-
-  return ordered;
-}
-
-function collectMixedPhotos(
-  pool,
-  count,
-  { excludeIds = [], preferredCategories = [], fallbackPhoto = defaultFallbackPhoto } = {}
-) {
-  const taken = [];
-  const seen = new Set(excludeIds);
-  const grouped = new Map();
-
-  for (const photo of pool) {
-    if (!photo || seen.has(photo.id)) continue;
-
-    const category = photo.category || defaultPortfolioCategory;
-    if (!grouped.has(category)) {
-      grouped.set(category, []);
-    }
-
-    grouped.get(category).push(photo);
-  }
-
-  const categoryPriority = buildCategoryPriority(pool, preferredCategories);
-  let progressed = true;
-
-  while (taken.length < count && progressed) {
-    progressed = false;
-
-    for (const category of categoryPriority) {
-      const bucket = grouped.get(category) || [];
-      const nextPhoto = bucket.shift();
-      if (!nextPhoto || seen.has(nextPhoto.id)) continue;
-
-      seen.add(nextPhoto.id);
-      taken.push(nextPhoto);
-      progressed = true;
-
-      if (taken.length === count) break;
-    }
-  }
-
-  if (taken.length < count) {
-    for (const photo of pool) {
-      if (!photo || seen.has(photo.id)) continue;
-      seen.add(photo.id);
-      taken.push(photo);
-      if (taken.length === count) break;
-    }
-  }
-
-  while (taken.length < count) {
-    const index = taken.length + 1;
-    taken.push({
-      ...fallbackPhoto,
-      id: `${fallbackPhoto.id}-mixed-fallback-${index}`,
-      src: getFallbackSrc(fallbackPhoto.category),
-    });
-  }
-
-  return taken;
 }
 
 function pickDoorPhoto(photos, category, excludeIds) {
@@ -205,12 +109,8 @@ export default async function HomePage() {
   const heroPhoto = normalizePhoto(
     getFirstPhotoByRole(heroPool, "hero") || getFirstPhotoByRole(photos, "hero") || heroPool[0] || defaultFallbackPhoto
   );
-  const supportingPhotos = collectMixedPhotos(rotatePhotosByTimeWindow(photos.filter((photo) => photo.roles?.includes("featured"))), 2, {
-    excludeIds: [heroPhoto.id],
-    preferredCategories: ["Events", "Fashion Wedding"],
-    fallbackPhoto: heroPhoto,
-  });
-  const usedIds = new Set([heroPhoto.id, ...supportingPhotos.map((photo) => photo.id)]);
+  // La photo d'ouverture n'est pas reprise sur les cartes ; chaque carte prend d'abord une photo « mise en avant ».
+  const usedIds = new Set([heroPhoto.id]);
   const doorPhotos = {
     evenements: pickDoorPhoto(photos, "Events", usedIds),
     mariage: pickDoorPhoto(photos, "Fashion Wedding", usedIds),
@@ -255,7 +155,6 @@ export default async function HomePage() {
       />
       <HomePageExperience
         heroPhoto={heroPhoto}
-        supportingPhotos={supportingPhotos}
         doorPhotos={doorPhotos}
         doorsLayout={layout.doors}
         universCovers={await loadUniversCovers()}
