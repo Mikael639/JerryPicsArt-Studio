@@ -203,7 +203,7 @@ export default function AdminUploadForm({
             disabled={isUploading || uploadForm.files.length === 0}
             className="rounded-full bg-ink px-10 py-3 text-xs font-bold uppercase tracking-widest text-paper transition-all hover:bg-accent disabled:opacity-40"
           >
-            {isUploading ? "Envoi en cours..." : "Publier maintenant"}
+            {isUploading ? "Envoi en cours..." : uploadForm.isPublished ? "Publier maintenant" : "Enregistrer en brouillon"}
           </button>
         </div>
       </div>
