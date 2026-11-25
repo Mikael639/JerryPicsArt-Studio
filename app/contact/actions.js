@@ -104,7 +104,8 @@ export async function submitContactForm(_previousState, formData) {
 
   try {
     await sendContactEmails(created, emailExtras);
-    return { status: "success", message: resultMessage, qualification, errors: {} };
+    // formType : le type validé par le serveur, repris par le suivi statistique (aucune donnée personnelle).
+    return { status: "success", message: resultMessage, qualification, formType: validation.sanitized.type, errors: {} };
   } catch (error) {
     console.error("Contact email delivery failed", error);
     return {
