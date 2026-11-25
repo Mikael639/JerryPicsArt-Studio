@@ -155,6 +155,16 @@ export default function ContactForm({ type = "" }) {
     }
   }, [status]);
 
+  // Suivi des demandes de devis (Google Tag Manager) : un seul « generate_lead » par envoi réussi, après la réponse
+  // positive du serveur. Aucune donnée personnelle : seulement le type de formulaire.
+  const reportedLeadRef = useRef(null);
+  useEffect(() => {
+    if (formState.status !== "success" || reportedLeadRef.current === formState) return;
+    reportedLeadRef.current = formState;
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ event: "generate_lead", form_type: formState.formType });
+  }, [formState]);
+
   // Erreur sur un champ : on amène le premier champ à corriger à l'écran (il peut être loin au-dessus du bouton).
   useEffect(() => {
     if (status !== "error") return;
