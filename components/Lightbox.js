@@ -102,6 +102,8 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
           role="dialog"
           aria-modal="true"
           aria-label={copy.dialogLabel}
+          // Sans cela, le défilement fluide du site fait bouger la page cachée au lieu des miniatures.
+          data-lenis-prevent
           data-cursor-surface="dark"
           className="fixed inset-0 z-[100] h-dvh w-full overflow-hidden bg-[#050403] focus:outline-none"
           onClick={handleClose}
@@ -325,7 +327,7 @@ export default function Lightbox({ photos, activeIndex, onClose, onPrev, onNext,
                 <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-8 bg-gradient-to-b from-black/35 to-transparent" />
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-8 bg-gradient-to-t from-black/35 to-transparent" />
 
-                <div className="no-scrollbar flex h-full flex-col gap-3 overflow-y-auto px-2 py-8">
+                <div className="no-scrollbar flex h-full flex-col gap-3 overflow-y-auto overscroll-contain px-2 py-8">
                   {photos.map((photo, index) => (
                     <button
                       key={photo.id}

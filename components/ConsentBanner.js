@@ -172,7 +172,8 @@ export default function ConsentBanner() {
               </button>
             </div>
 
-            <div className="mt-4 min-h-0 flex-1 space-y-4 overflow-y-auto px-5 text-[13px] leading-relaxed text-ink/75 sm:px-6">
+            {/* data-lenis-prevent : sans lui, le défilement fluide du site capte la molette et la fenêtre ne défile pas. */}
+            <div data-lenis-prevent className="mt-4 min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-5 text-[13px] leading-relaxed text-ink/75 sm:px-6">
               {copy.detail.map((item) => (
                 <div key={item.name} className="rounded-xl border border-line/12 bg-white/60 p-3.5">
                   <p className="font-bold text-ink">{item.name}</p>

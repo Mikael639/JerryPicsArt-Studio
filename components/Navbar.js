@@ -239,11 +239,12 @@ export default function Navbar({ previews = {} }) {
           <motion.div
             key="mobile-menu"
             id="mobile-navigation"
+            data-lenis-prevent
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-40 overflow-y-auto bg-paper pt-[calc(73px+env(safe-area-inset-top))] xl:hidden"
+            className="fixed inset-0 z-40 overflow-y-auto overscroll-contain bg-paper pt-[calc(73px+env(safe-area-inset-top))] xl:hidden"
           >
             <div className="mx-auto flex min-h-full max-w-xl flex-col gap-[clamp(0.75rem,2svh,1.25rem)] px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4 md:px-8">
               {mobilePreview ? (
@@ -397,6 +398,7 @@ export default function Navbar({ previews = {} }) {
           <motion.div
             key="desktop-menu"
             id="desktop-navigation"
+            data-lenis-prevent
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
