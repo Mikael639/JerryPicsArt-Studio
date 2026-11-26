@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useActionState, useEffect, useRef, useState } from "react";
+import { Fragment, startTransition, useActionState, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { submitContactForm } from "../app/contact/actions";
@@ -8,6 +8,7 @@ import { initialContactFormState } from "../app/contact/constants";
 import { budgetOptions, getQuoteType, quoteTypeList, sourceOptions } from "../lib/quoteTypes";
 import { trackEvent } from "../lib/analytics";
 import { CONTACT_FORM_COPY } from "../lib/i18n";
+import { earliestEventDate } from "../lib/contactValidation";
 import { useLanguage } from "./LanguageProvider";
 import SubmitButton from "./SubmitButton";
 import CustomSelect from "./CustomSelect";
@@ -20,6 +21,18 @@ function centerInView(element) {
   if (!element) return;
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   element.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
+}
+
+// Si l'appel au serveur échoue (coupure réseau, page restée ouverte pendant une mise à jour du site),
+// on affiche un message et la saisie reste en place, au lieu de faire planter la page.
+async function sendSafely(previousState, formData) {
+  try {
+    return await submitContactForm(previousState, formData);
+  } catch (error) {
+    console.error("Contact form request failed", error);
+    const copy = CONTACT_FORM_COPY[formData.get("lang")] || CONTACT_FORM_COPY.fr;
+    return { status: "error", message: copy.networkError, errors: {} };
+  }
 }
 
 function SuccessCard({ message, onReset, copy }) {
@@ -119,10 +132,10 @@ export default function ContactForm({ type = "" }) {
   const { lang } = useLanguage();
   const copy = CONTACT_FORM_COPY[lang] || CONTACT_FORM_COPY.fr;
   const formRef = useRef(null);
-  const [formState, formAction] = useActionState(submitContactForm, initialContactFormState);
+  const [formState, formAction] = useActionState(sendSafely, initialContactFormState);
   const [selectedType, setSelectedType] = useState(getQuoteType(type) ? type : "");
   const [isSuccessDismissed, setIsSuccessDismissed] = useState(false);
-  const [lastStatus, setLastStatus] = useState("idle");
+  const [lastState, setLastState] = useState(formState);
   const errors = formState.errors || {};
   const status = formState.status || "idle";
   const message = formState.message || "";
@@ -141,26 +154,19 @@ export default function ContactForm({ type = "" }) {
   }
 
   // Modèle React 19 : dériver l'état pendant le rendu.
-  if (status !== lastStatus) {
-    setLastStatus(status);
-    if (status === "success") {
-      setIsSuccessDismissed(false);
-      trackEvent("formulaire_envoye", { type: selectedType, qualification: formState.qualification || "inconnue" });
-    }
+  // On compare la réponse elle-même et non son statut : deux envois réussis d'affilée doivent chacun être confirmés.
+  if (formState !== lastState) {
+    setLastState(formState);
+    if (status === "success") setIsSuccessDismissed(false);
   }
 
-  useEffect(() => {
-    if (status === "success") {
-      formRef.current?.reset();
-    }
-  }, [status]);
-
-  // Suivi des demandes de devis (Google Tag Manager) : un seul « generate_lead » par envoi réussi, après la réponse
+  // Suivi des demandes de devis : un seul « generate_lead » par envoi réussi, après la réponse
   // positive du serveur. Aucune donnée personnelle : seulement le type de formulaire.
   const reportedLeadRef = useRef(null);
   useEffect(() => {
     if (formState.status !== "success" || reportedLeadRef.current === formState) return;
     reportedLeadRef.current = formState;
+    trackEvent("formulaire_envoye", { type: formState.formType, qualification: formState.qualification || "inconnue" });
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({ event: "generate_lead", form_type: formState.formType });
   }, [formState]);
@@ -169,7 +175,7 @@ export default function ContactForm({ type = "" }) {
   useEffect(() => {
     if (status !== "error") return;
     const frame = requestAnimationFrame(() => {
-      const invalid = formRef.current?.querySelector('[aria-invalid="true"]');
+      const invalid = formRef.current?.querySelector('[aria-invalid="true"], [data-invalid="true"]');
       if (invalid) centerInView(invalid);
     });
     return () => cancelAnimationFrame(frame);
@@ -183,6 +189,14 @@ export default function ContactForm({ type = "" }) {
     );
   }
 
+  // Avec « action » seule, React 19 vide le formulaire après chaque envoi, même refusé : le visiteur perdrait sa saisie.
+  // On déclenche donc l'envoi nous-mêmes ; « action » couvre un envoi fait avant la fin du chargement de la page.
+  function handleSubmit(event) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    startTransition(() => formAction(data));
+  }
+
   const audiences = config?.audiences || [];
   const singleAudience = audiences.length === 1 ? audiences[0] : "";
 
@@ -192,6 +206,7 @@ export default function ContactForm({ type = "" }) {
       id="contact-form"
       data-clarity-mask="True"
       action={formAction}
+      onSubmit={handleSubmit}
       className="grid scroll-mt-32 gap-5 rounded-inset border border-line/12 bg-white/52 p-6 md:grid-cols-2 md:p-7"
     >
       <input type="hidden" name="type" value={selectedType} />
@@ -216,22 +231,19 @@ export default function ContactForm({ type = "" }) {
             {singleAudience ? (
               <input type="hidden" name="audience" value={singleAudience} />
             ) : (
-              <>
-                <CustomSelect
-                  name="audience"
-                  label={copy.youAre}
-                  options={buildSelectOptions(audiences)}
-                  defaultValue=""
-                  error={errors.audience}
-                />
-                <FieldError message={errors.audience} />
-              </>
+              <CustomSelect
+                name="audience"
+                label={copy.youAre}
+                options={buildSelectOptions(audiences)}
+                defaultValue=""
+                error={errors.audience}
+              />
             )}
           </div>
 
           <label className="space-y-2">
             <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">{copy.fullName}</span>
-            <input name="name" autoComplete="name" aria-invalid={Boolean(errors.name)} className={inputClass} required />
+            <input name="name" maxLength={80} autoComplete="name" aria-invalid={Boolean(errors.name)} className={inputClass} required />
             <FieldError message={errors.name} />
           </label>
 
@@ -245,6 +257,7 @@ export default function ContactForm({ type = "" }) {
             <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">{copy.phone}</span>
             <input
               name="phone"
+              maxLength={40}
               autoComplete="tel"
               inputMode="tel"
               aria-invalid={Boolean(errors.phone)}
@@ -266,13 +279,13 @@ export default function ContactForm({ type = "" }) {
                   defaultValue=""
                   error={errors[field.name]}
                 />
-                <FieldError message={errors[field.name]} />
               </div>
             ) : (
               <label key={`${selectedType}-${field.name}`} className="space-y-2">
                 <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">{fieldLabel}</span>
                 <input
                   name={`extra_${field.name}`}
+                  maxLength={120}
                   aria-invalid={Boolean(errors[field.name])}
                   className={inputClass}
                   placeholder={fieldPlaceholder}
@@ -288,6 +301,7 @@ export default function ContactForm({ type = "" }) {
             <input
               name="eventDate"
               type="date"
+              min={earliestEventDate()}
               aria-invalid={Boolean(errors.eventDate)}
               className={inputClass}
               required={config.dateRequired}
@@ -300,6 +314,7 @@ export default function ContactForm({ type = "" }) {
               <span className="text-[11px] uppercase tracking-[0.2em] text-ink/58">{localizedConfig.locationLabel}</span>
               <input
                 name="location"
+                maxLength={120}
                 autoComplete="address-level2"
                 aria-invalid={Boolean(errors.location)}
                 className={inputClass}
@@ -318,7 +333,6 @@ export default function ContactForm({ type = "" }) {
               defaultValue=""
               error={errors.budget}
             />
-            <FieldError message={errors.budget} />
           </div>
 
           <div>
@@ -329,7 +343,6 @@ export default function ContactForm({ type = "" }) {
               defaultValue=""
               error={errors.source}
             />
-            <FieldError message={errors.source} />
           </div>
 
           <label className="space-y-2 md:col-span-2">
@@ -349,11 +362,13 @@ export default function ContactForm({ type = "" }) {
             <textarea
               name="project"
               rows={6}
+              maxLength={2000}
               aria-invalid={Boolean(errors.project)}
               className="w-full rounded-[1.2rem] border border-line/18 bg-paper/88 px-4 py-3 outline-none transition focus:border-accent focus:bg-white"
               placeholder={copy.messagePlaceholder}
               required
             />
+            <span className="block text-xs text-ink/45">{copy.messageLimit}</span>
             <FieldError message={errors.project} />
           </label>
 

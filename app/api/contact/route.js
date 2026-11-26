@@ -10,6 +10,8 @@ export const runtime = "nodejs";
 const CONTACT_SEND_ERROR_MESSAGE =
   "Message enregistré, mais l'envoi email est temporairement indisponible. Nous traiterons votre demande rapidement.";
 
+const CONTACT_NOT_SENT_MESSAGE = "La demande n'a pas pu être envoyée. Veuillez réessayer dans quelques minutes.";
+
 function getClientIp(request) {
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) return forwarded.split(",")[0].trim();
@@ -21,24 +23,6 @@ function getClientIp(request) {
 }
 
 export async function POST(request) {
-  const ip = getClientIp(request);
-  const limiter = consumeRateLimit(ip, { limit: 5, windowMs: 10 * 60 * 1000 });
-
-  if (!limiter.allowed) {
-    return NextResponse.json(
-      {
-        ok: false,
-        message: "Trop de tentatives. Veuillez réessayer dans quelques minutes.",
-      },
-      {
-        status: 429,
-        headers: {
-          "Retry-After": String(Math.ceil(limiter.retryAfterMs / 1000)),
-        },
-      }
-    );
-  }
-
   let body;
   try {
     body = await request.json();
@@ -64,6 +48,24 @@ export async function POST(request) {
     );
   }
 
+  const ip = getClientIp(request);
+  const limiter = consumeRateLimit(ip, { limit: 5, windowMs: 10 * 60 * 1000 });
+
+  if (!limiter.allowed) {
+    return NextResponse.json(
+      {
+        ok: false,
+        message: "Trop de tentatives. Veuillez réessayer dans quelques minutes.",
+      },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(Math.ceil(limiter.retryAfterMs / 1000)),
+        },
+      }
+    );
+  }
+
   const { record, emailExtras } = prepareContactSubmission(validation.sanitized);
   const created = await createContactMessage(record);
 
@@ -75,7 +77,7 @@ export async function POST(request) {
     return NextResponse.json(
       {
         ok: false,
-        message: CONTACT_SEND_ERROR_MESSAGE,
+        message: created.persisted === false ? CONTACT_NOT_SENT_MESSAGE : CONTACT_SEND_ERROR_MESSAGE,
       },
       { status: 502 }
     );

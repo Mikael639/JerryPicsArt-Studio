@@ -6,6 +6,7 @@ import { sendContactEmails } from "../../lib/contactEmail";
 import { QUALIFICATION, validateContactInput } from "../../lib/contactValidation";
 import { prepareContactSubmission } from "../../lib/contactSubmission";
 import { getQuoteType } from "../../lib/quoteTypes";
+import { siteConfig } from "../../lib/siteConfig";
 import { consumeRateLimit } from "../../lib/rateLimit";
 
 const MESSAGES = {
@@ -14,6 +15,7 @@ const MESSAGES = {
     invalidFields: "Veuillez corriger les champs signalés.",
     sendError:
       "Votre message est enregistré, mais l'envoi de l'e-mail est temporairement indisponible. Je traite votre demande rapidement.",
+    notSent: `Votre demande n'a pas pu être envoyée. Réessayez dans quelques minutes ou écrivez-moi à ${siteConfig.email}.`,
     outOfBudget:
       "Merci pour votre demande. Nos prestations démarrent à partir de 650 € (événements) et 1 500 € (mariages). Si votre budget évolue, je serai ravi d'en parler.",
     success: "Merci, votre demande est bien reçue. Réponse sous 24 à 48 h.",
@@ -23,6 +25,7 @@ const MESSAGES = {
     invalidFields: "Please check the highlighted fields.",
     sendError:
       "Your inquiry has been saved, though email notification is temporarily unavailable. I will review your request shortly.",
+    notSent: `Your inquiry could not be sent. Please try again in a few minutes or email me at ${siteConfig.email}.`,
     outOfBudget:
       "Thank you for your inquiry. Our packages start from 650 € (events) and 1,500 € (weddings). If your budget evolves, I would be glad to discuss your project.",
     success: "Thank you, your inquiry has been received. Reply within 24 to 48h.",
@@ -53,17 +56,6 @@ function getStringValue(formData, key, fallback = "") {
 export async function submitContactForm(_previousState, formData) {
   const lang = getStringValue(formData, "lang") === "en" ? "en" : "fr";
   const msg = MESSAGES[lang];
-
-  const ip = await getClientIp();
-  const limiter = consumeRateLimit(ip, { limit: 5, windowMs: 10 * 60 * 1000 });
-
-  if (!limiter.allowed) {
-    return {
-      status: "error",
-      message: msg.rateLimit,
-      errors: {},
-    };
-  }
 
   const quoteType = getQuoteType(getStringValue(formData, "type"));
   const extra = {};
@@ -96,6 +88,18 @@ export async function submitContactForm(_previousState, formData) {
     };
   }
 
+  // Seules les demandes complètes comptent dans la limite : se tromper dans un champ ne bloque personne.
+  const ip = await getClientIp();
+  const limiter = consumeRateLimit(ip, { limit: 5, windowMs: 10 * 60 * 1000 });
+
+  if (!limiter.allowed) {
+    return {
+      status: "error",
+      message: msg.rateLimit,
+      errors: {},
+    };
+  }
+
   const { qualification, record, emailExtras } = prepareContactSubmission(validation.sanitized);
   const created = await createContactMessage(record);
 
@@ -110,7 +114,7 @@ export async function submitContactForm(_previousState, formData) {
     console.error("Contact email delivery failed", error);
     return {
       status: "error",
-      message: msg.sendError,
+      message: created.persisted === false ? msg.notSent : msg.sendError,
       errors: {},
     };
   }
