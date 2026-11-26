@@ -101,6 +101,7 @@ export default function CustomSelect({
         type="button"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
+        data-invalid={Boolean(error)}
         onClick={toggleOpen}
         onKeyDown={handleKeyDown}
         className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 outline-none transition-all duration-300 ${

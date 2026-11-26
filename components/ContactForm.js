@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useActionState, useEffect, useRef, useState } from "react";
+import { Fragment, startTransition, useActionState, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { submitContactForm } from "../app/contact/actions";
@@ -149,12 +149,6 @@ export default function ContactForm({ type = "" }) {
     }
   }
 
-  useEffect(() => {
-    if (status === "success") {
-      formRef.current?.reset();
-    }
-  }, [status]);
-
   // Suivi des demandes de devis (Google Tag Manager) : un seul « generate_lead » par envoi réussi, après la réponse
   // positive du serveur. Aucune donnée personnelle : seulement le type de formulaire.
   const reportedLeadRef = useRef(null);
@@ -169,7 +163,7 @@ export default function ContactForm({ type = "" }) {
   useEffect(() => {
     if (status !== "error") return;
     const frame = requestAnimationFrame(() => {
-      const invalid = formRef.current?.querySelector('[aria-invalid="true"]');
+      const invalid = formRef.current?.querySelector('[aria-invalid="true"], [data-invalid="true"]');
       if (invalid) centerInView(invalid);
     });
     return () => cancelAnimationFrame(frame);
@@ -183,6 +177,14 @@ export default function ContactForm({ type = "" }) {
     );
   }
 
+  // Avec « action » seule, React 19 vide le formulaire après chaque envoi, même refusé : le visiteur perdrait sa saisie.
+  // On déclenche donc l'envoi nous-mêmes ; « action » reste le secours si le JavaScript n'est pas encore chargé.
+  function handleSubmit(event) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    startTransition(() => formAction(data));
+  }
+
   const audiences = config?.audiences || [];
   const singleAudience = audiences.length === 1 ? audiences[0] : "";
 
@@ -192,6 +194,7 @@ export default function ContactForm({ type = "" }) {
       id="contact-form"
       data-clarity-mask="True"
       action={formAction}
+      onSubmit={handleSubmit}
       className="grid scroll-mt-32 gap-5 rounded-inset border border-line/12 bg-white/52 p-6 md:grid-cols-2 md:p-7"
     >
       <input type="hidden" name="type" value={selectedType} />
@@ -216,16 +219,13 @@ export default function ContactForm({ type = "" }) {
             {singleAudience ? (
               <input type="hidden" name="audience" value={singleAudience} />
             ) : (
-              <>
-                <CustomSelect
-                  name="audience"
-                  label={copy.youAre}
-                  options={buildSelectOptions(audiences)}
-                  defaultValue=""
-                  error={errors.audience}
-                />
-                <FieldError message={errors.audience} />
-              </>
+              <CustomSelect
+                name="audience"
+                label={copy.youAre}
+                options={buildSelectOptions(audiences)}
+                defaultValue=""
+                error={errors.audience}
+              />
             )}
           </div>
 
@@ -266,7 +266,6 @@ export default function ContactForm({ type = "" }) {
                   defaultValue=""
                   error={errors[field.name]}
                 />
-                <FieldError message={errors[field.name]} />
               </div>
             ) : (
               <label key={`${selectedType}-${field.name}`} className="space-y-2">
@@ -318,7 +317,6 @@ export default function ContactForm({ type = "" }) {
               defaultValue=""
               error={errors.budget}
             />
-            <FieldError message={errors.budget} />
           </div>
 
           <div>
@@ -329,7 +327,6 @@ export default function ContactForm({ type = "" }) {
               defaultValue=""
               error={errors.source}
             />
-            <FieldError message={errors.source} />
           </div>
 
           <label className="space-y-2 md:col-span-2">
