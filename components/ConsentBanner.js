@@ -31,7 +31,7 @@ const COPY = {
     ],
     footer: [
       "Sans votre accord, seules des mesures anonymes sont transmises, sans cookie.",
-      "Votre choix est conservé (date, choix, version de ce texte) pour pouvoir le justifier. Vous pouvez le modifier à tout moment avec « Gérer mes cookies », en bas de page.",
+      "Votre choix est conservé (date, choix, version de ce texte) pour pouvoir le justifier. Il vous sera redemandé au bout de 6 mois, et vous pouvez le modifier à tout moment avec « Gérer mes cookies », en bas de page.",
     ],
     whatLabel: "Données",
     whyLabel: "Pourquoi",
@@ -60,7 +60,7 @@ const COPY = {
     ],
     footer: [
       "Without your consent, only anonymous measurements are sent, with no cookie.",
-      "Your choice is kept (date, choice, version of this text) so that it can be demonstrated. You can change it at any time with “Manage cookies”, at the bottom of the page.",
+      "Your choice is kept (date, choice, version of this text) so that it can be demonstrated. You will be asked again after 6 months, and you can change it at any time with “Manage cookies”, at the bottom of the page.",
     ],
     whatLabel: "Data",
     whyLabel: "Why",
